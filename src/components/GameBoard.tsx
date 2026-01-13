@@ -30,6 +30,8 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest }: Game
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
 
+  const [showCopied, setShowCopied] = useState(false);
+
   const copyResultToClipboard = () => {
     if (!winningNumber) return;
 
@@ -38,13 +40,13 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest }: Game
     const bestScore = personalBest && personalBest < throwCount ? personalBest : throwCount;
     
     const shareText = `Kymppijape daily ${today}
-Throws today: ${throwCount} ${diceEmojis}
+Throws today: ${throwCount}
+${diceEmojis}
 Personal best: ${bestScore}`;
 
     navigator.clipboard.writeText(shareText).then(() => {
-      toast.success("Copied to clipboard!", {
-        description: "Share your result with friends!",
-      });
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
     }).catch(() => {
       toast.error("Failed to copy");
     });
@@ -159,9 +161,10 @@ Personal best: ${bestScore}`;
           <Button 
             onClick={copyResultToClipboard}
             size="lg"
-            className="animate-pop-in"
+            className="animate-pop-in min-w-[220px]"
+            variant={showCopied ? "secondary" : "default"}
           >
-            📋 Share Result with Friends
+            {showCopied ? "✓ Copied to clipboard!" : "📋 Share Result with Friends"}
           </Button>
         </div>
       )}
