@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { GameBoard } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
-import { AuthForm } from "@/components/AuthForm";
+import { PracticeMode } from "@/components/PracticeMode";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,7 +96,7 @@ Personal best: ${bestScore}`;
         </header>
 
         {!user ? (
-          <AuthForm onSuccess={() => {}} />
+          <PracticeMode />
         ) : (
           <div className="space-y-6">
             {hasPlayedToday ? (
