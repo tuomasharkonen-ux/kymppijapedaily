@@ -14,6 +14,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showCopied, setShowCopied] = useState(false);
+  const [showPracticeMode, setShowPracticeMode] = useState(false);
   
   const { 
     todayResult, 
@@ -97,6 +98,19 @@ Personal best: ${bestScore}`;
 
         {!user ? (
           <PracticeMode />
+        ) : showPracticeMode ? (
+          <div className="space-y-6">
+            <div className="text-center">
+              <Button 
+                variant="link" 
+                onClick={() => setShowPracticeMode(false)}
+                className="text-muted-foreground"
+              >
+                ← Back to Daily Game
+              </Button>
+            </div>
+            <PracticeMode />
+          </div>
         ) : (
           <div className="space-y-6">
             {hasPlayedToday ? (
@@ -116,6 +130,14 @@ Personal best: ${bestScore}`;
                     >
                       {showCopied ? "✓ Copied to clipboard!" : "📋 Share Result with Friends"}
                     </Button>
+                    <div className="mt-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowPracticeMode(true)}
+                      >
+                        🎯 Play Practice Mode
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
                 
