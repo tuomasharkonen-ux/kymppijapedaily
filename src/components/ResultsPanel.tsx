@@ -13,6 +13,7 @@ interface ResultsPanelProps {
   todayResult: GameRecord | null;
   personalBest: number | null;
   favoriteNumber: number | null;
+  currentStreak: number;
   isLoading: boolean;
 }
 
@@ -20,6 +21,7 @@ export const ResultsPanel = ({
   todayResult, 
   personalBest, 
   favoriteNumber,
+  currentStreak,
   isLoading 
 }: ResultsPanelProps) => {
   const copyToClipboard = () => {
@@ -64,20 +66,27 @@ Personal best: ${personalBest || todayResult.throws_count}`;
       <CardContent className="space-y-4">
         {todayResult ? (
           <>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div className="bg-accent/50 rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground">Today</p>
+                <p className="text-xs text-muted-foreground">Today</p>
                 <p className="text-2xl font-bold text-primary">
                   {todayResult.throws_count}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
               <div className="bg-accent/50 rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground">Best Ever</p>
+                <p className="text-xs text-muted-foreground">Best</p>
                 <p className="text-2xl font-bold text-primary">
                   {personalBest || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
+              </div>
+              <div className="bg-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Streak</p>
+                <p className="text-2xl font-bold text-primary">
+                  {currentStreak}
+                </p>
+                <p className="text-xs text-muted-foreground">🔥 days</p>
               </div>
             </div>
 
