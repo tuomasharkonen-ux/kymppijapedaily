@@ -199,7 +199,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <span>🎯</span>
-                <span>One new challenge every day at midnight</span>
+                <span>Unlock a new run every day at midnight</span>
               </li>
               <li className="flex items-center gap-2">
                 <span>🏆</span>
@@ -214,8 +214,8 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
                 <span>Discover your lucky number</span>
               </li>
               <li className="flex items-center gap-2">
-                <span>📊</span>
-                <span>See your stats and progress over time</span>
+                <span>💪</span>
+                <span>Flex your dice rolling skills to your friends</span>
               </li>
             </ul>
             <AuthForm onSuccess={() => {}} />
