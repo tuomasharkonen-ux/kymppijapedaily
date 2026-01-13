@@ -191,6 +191,18 @@ export const PracticeMode = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-lg">Save your progress</CardTitle>
+          <CardDescription>
+            Sign up or sign in to track your scores and compete daily!
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AuthForm onSuccess={() => {}} />
+        </CardContent>
+      </Card>
     </div>
   );
 };
