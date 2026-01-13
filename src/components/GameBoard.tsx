@@ -29,6 +29,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest }: Game
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
+  const [justCompletedGame, setJustCompletedGame] = useState(false);
 
   const [showCopied, setShowCopied] = useState(false);
 
@@ -126,6 +127,7 @@ Personal best: ${bestScore}`;
       if (winner !== null) {
         setWinningNumber(winner);
         setGameComplete(true);
+        setJustCompletedGame(true);
         triggerConfetti();
         onGameComplete(throwCount, winner);
       }
@@ -134,7 +136,7 @@ Personal best: ${bestScore}`;
     });
   };
 
-  if (hasPlayedToday && !winningNumber) {
+  if (hasPlayedToday && !justCompletedGame) {
     return (
       <Card className="max-w-md mx-auto">
         <CardContent className="p-6 text-center">
