@@ -5,6 +5,7 @@ import { ResultsPanel } from "@/components/ResultsPanel";
 import { AuthForm } from "@/components/AuthForm";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import type { User } from "@supabase/supabase-js";
 
@@ -76,23 +77,46 @@ const Index = () => {
           <AuthForm onSuccess={() => {}} />
         ) : (
           <div className="space-y-6">
-            <GameBoard 
-              onGameComplete={handleGameComplete}
-              hasPlayedToday={hasPlayedToday}
-              personalBest={personalBest}
-            />
-            
-            <ResultsPanel
-              todayResult={todayResult}
-              personalBest={personalBest}
-              favoriteNumber={favoriteNumber}
-              isLoading={isLoading}
-            />
+            {hasPlayedToday ? (
+              <>
+                <Card className="max-w-md mx-auto">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-6xl mb-4">🎲</div>
+                    <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
+                    <p className="text-muted-foreground">
+                      You've already played today's Kymppijape. New game unlocks at midnight!
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <ResultsPanel
+                  todayResult={todayResult}
+                  personalBest={personalBest}
+                  favoriteNumber={favoriteNumber}
+                  isLoading={isLoading}
+                />
+              </>
+            ) : (
+              <>
+                <GameBoard 
+                  onGameComplete={handleGameComplete}
+                  hasPlayedToday={hasPlayedToday}
+                  personalBest={personalBest}
+                />
+                
+                <ResultsPanel
+                  todayResult={todayResult}
+                  personalBest={personalBest}
+                  favoriteNumber={favoriteNumber}
+                  isLoading={isLoading}
+                />
 
-            <footer className="text-center text-sm text-muted-foreground">
-              <p>Lock all 10 dice on the same number to win!</p>
-              <p className="mt-1">New game available every day at midnight.</p>
-            </footer>
+                <footer className="text-center text-sm text-muted-foreground">
+                  <p>Lock all 10 dice on the same number to win!</p>
+                  <p className="mt-1">New game available every day at midnight.</p>
+                </footer>
+              </>
+            )}
           </div>
         )}
       </div>
