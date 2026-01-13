@@ -94,13 +94,6 @@ Personal best: ${personalBest || todayResult.throws_count}`;
               </div>
             )}
 
-            <Button 
-              onClick={copyToClipboard} 
-              variant="outline" 
-              className="w-full"
-            >
-              📋 Copy Result to Share
-            </Button>
           </>
         ) : (
           <div className="text-center py-4">
