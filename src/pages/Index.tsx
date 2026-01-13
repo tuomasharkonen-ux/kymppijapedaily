@@ -7,11 +7,13 @@ import { useGameRecords } from "@/hooks/useGameRecords";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showCopied, setShowCopied] = useState(false);
   
   const { 
     todayResult, 
@@ -21,6 +23,26 @@ const Index = () => {
     hasPlayedToday, 
     saveGameResult 
   } = useGameRecords(user?.id || null);
+
+  const copyResultToClipboard = () => {
+    if (!todayResult) return;
+
+    const today = format(new Date(), "dd.MM.yyyy");
+    const diceEmojis = "🎲".repeat(todayResult.throws_count);
+    const bestScore = personalBest && personalBest < todayResult.throws_count ? personalBest : todayResult.throws_count;
+    
+    const shareText = `Kymppijape daily ${today}
+Throws today: ${todayResult.throws_count}
+${diceEmojis}
+Personal best: ${bestScore}`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -83,9 +105,17 @@ const Index = () => {
                   <CardContent className="p-6 text-center">
                     <div className="text-6xl mb-4">🎲</div>
                     <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground mb-4">
                       You've already played today's Kymppijape. New game unlocks at midnight!
                     </p>
+                    <Button 
+                      onClick={copyResultToClipboard}
+                      size="lg"
+                      className="min-w-[220px]"
+                      variant={showCopied ? "secondary" : "default"}
+                    >
+                      {showCopied ? "✓ Copied to clipboard!" : "📋 Share Result with Friends"}
+                    </Button>
                   </CardContent>
                 </Card>
                 
