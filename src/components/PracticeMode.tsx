@@ -128,7 +128,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
             <CardHeader className="text-center">
               <CardTitle>Want to track your progress?</CardTitle>
               <CardDescription>
-                Sign up to save your scores, compete daily, and track your personal best!
+                Sign up to save your scores, share results to friends daily, and track your personal best!
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -146,8 +146,8 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
         <CardContent className="p-4 text-center">
           <p className="text-sm text-muted-foreground">
             <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock
-            it, then roll again. How few rolls do you need to get Kymppijape? Sign up to save your scores and share your
-            results to friends!
+            it, then roll again. How many rolls do you need to get Kymppijape? Sign up to save your scores and share
+            your results to friends!
           </p>
         </CardContent>
       </Card>
