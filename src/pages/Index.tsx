@@ -79,6 +79,7 @@ const Index = () => {
             <GameBoard 
               onGameComplete={handleGameComplete}
               hasPlayedToday={hasPlayedToday}
+              personalBest={personalBest}
             />
             
             <ResultsPanel
