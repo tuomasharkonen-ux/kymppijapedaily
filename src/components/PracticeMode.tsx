@@ -10,10 +10,12 @@ interface DiceState {
 }
 
 const getInitialDice = (): DiceState[] => {
-  return Array(10).fill(null).map(() => ({
-    value: Math.floor(Math.random() * 6) + 1,
-    isLocked: false,
-  }));
+  return Array(10)
+    .fill(null)
+    .map(() => ({
+      value: Math.floor(Math.random() * 6) + 1,
+      isLocked: false,
+    }));
 };
 
 interface PracticeModeProps {
@@ -28,10 +30,10 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
 
   const checkWin = (currentDice: DiceState[]) => {
-    const allLocked = currentDice.every(d => d.isLocked);
+    const allLocked = currentDice.every((d) => d.isLocked);
     if (allLocked) {
       const firstValue = currentDice[0].value;
-      const allSame = currentDice.every(d => d.value === firstValue);
+      const allSame = currentDice.every((d) => d.value === firstValue);
       if (allSame) {
         return firstValue;
       }
@@ -42,7 +44,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
   const triggerConfetti = async () => {
     const confettiModule = await import("canvas-confetti");
     const confetti = confettiModule.default;
-    
+
     const duration = 3000;
     const animationEnd = Date.now() + duration;
 
@@ -58,7 +60,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
       }
 
       const particleCount = 50 * (timeLeft / duration);
-      
+
       confetti({
         particleCount,
         startVelocity: 30,
@@ -67,37 +69,35 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
           x: randomInRange(0.1, 0.9),
           y: Math.random() - 0.2,
         },
-        colors: ['#00a86b', '#50c878', '#228b22', '#32cd32', '#7fff00'],
+        colors: ["#00a86b", "#50c878", "#228b22", "#32cd32", "#7fff00"],
       });
     }, 250);
   };
 
   const rollDice = () => {
     setIsRolling(true);
-    
+
     setTimeout(() => {
-      setDice(prev => prev.map(d => 
-        d.isLocked ? d : { ...d, value: Math.floor(Math.random() * 6) + 1 }
-      ));
+      setDice((prev) => prev.map((d) => (d.isLocked ? d : { ...d, value: Math.floor(Math.random() * 6) + 1 })));
       setIsRolling(false);
-      setThrowCount(c => c + 1);
+      setThrowCount((c) => c + 1);
     }, 600);
   };
 
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
-    
-    setDice(prev => {
+
+    setDice((prev) => {
       const newDice = [...prev];
       newDice[index] = { ...newDice[index], isLocked: !newDice[index].isLocked };
-      
+
       const winner = checkWin(newDice);
       if (winner !== null) {
         setWinningNumber(winner);
         setGameComplete(true);
         triggerConfetti();
       }
-      
+
       return newDice;
     });
   };
@@ -113,15 +113,11 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
     return (
       <div className="space-y-6">
         <div className="text-center animate-pop-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">
-            Kymppijape! 🎉
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! 🎉</h2>
           <p className="text-lg text-muted-foreground mb-2">
             All 10 dice showing {winningNumber} in {throwCount} throws!
           </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            (Practice mode - result not saved)
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">(Practice mode - result not saved)</p>
           <Button onClick={resetGame} variant="outline" size="lg">
             🎲 Play Again
           </Button>
@@ -149,8 +145,9 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
       <Card className="bg-muted/50">
         <CardContent className="p-4 text-center">
           <p className="text-sm text-muted-foreground">
-            <strong>Practice Mode:</strong> Lock all 10 dice on the same number to win! 
-            Click a die to lock/unlock it, then roll again. Sign up to save your scores!
+            <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock
+            it, then roll again. How few rolls do you need to get Kymppijape? Sign up to save your scores and share your
+            results to friends!
           </p>
         </CardContent>
       </Card>
@@ -162,7 +159,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
               Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
             </div>
             <div className="text-sm text-muted-foreground">
-              Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
+              Locked: <span className="font-bold text-foreground">{dice.filter((d) => d.isLocked).length}/10</span>
             </div>
           </div>
 
@@ -179,21 +176,15 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
             ))}
           </div>
 
-          <p className="text-center text-sm text-muted-foreground mb-4">
-            Click dice to lock them, then roll again
-          </p>
+          <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
 
           <Button
             onClick={rollDice}
-            disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
+            disabled={isRolling || gameComplete || dice.every((d) => d.isLocked)}
             className="w-full"
             size="lg"
           >
-            {isRolling ? (
-              <span className="animate-shake">🎲 Rolling...</span>
-            ) : (
-              <>🎲 Roll Dice</>
-            )}
+            {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
           </Button>
         </CardContent>
       </Card>
@@ -202,9 +193,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
         <Card>
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-lg">Save your progress</CardTitle>
-            <CardDescription>
-              Sign up or sign in to unlock all features!
-            </CardDescription>
+            <CardDescription>Sign up or sign in to unlock all features!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ul className="space-y-2 text-sm text-muted-foreground">
