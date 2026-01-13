@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Dice } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import confetti from "canvas-confetti";
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number) => void;
@@ -46,7 +45,10 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday }: GameBoardProps) =>
     return null;
   };
 
-  const triggerConfetti = () => {
+  const triggerConfetti = async () => {
+    const confettiModule = await import("canvas-confetti");
+    const confetti = confettiModule.default;
+    
     const duration = 3000;
     const animationEnd = Date.now() + duration;
 
