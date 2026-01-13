@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_records: {
+        Row: {
+          created_at: string
+          id: string
+          played_date: string
+          throws_count: number
+          user_id: string | null
+          winning_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          played_date?: string
+          throws_count: number
+          user_id?: string | null
+          winning_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          played_date?: string
+          throws_count?: number
+          user_id?: string | null
+          winning_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
