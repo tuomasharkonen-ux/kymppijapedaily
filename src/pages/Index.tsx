@@ -20,6 +20,7 @@ const Index = () => {
     todayResult, 
     personalBest, 
     favoriteNumber,
+    currentStreak,
     isLoading, 
     hasPlayedToday, 
     saveGameResult 
@@ -145,6 +146,7 @@ Personal best: ${bestScore}`;
                   todayResult={todayResult}
                   personalBest={personalBest}
                   favoriteNumber={favoriteNumber}
+                  currentStreak={currentStreak}
                   isLoading={isLoading}
                 />
               </>
@@ -160,6 +162,7 @@ Personal best: ${bestScore}`;
                   todayResult={todayResult}
                   personalBest={personalBest}
                   favoriteNumber={favoriteNumber}
+                  currentStreak={currentStreak}
                   isLoading={isLoading}
                 />
 

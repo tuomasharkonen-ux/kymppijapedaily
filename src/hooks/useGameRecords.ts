@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, subDays, parseISO, differenceInDays } from "date-fns";
 
 interface GameRecord {
   throws_count: number;
@@ -8,10 +8,44 @@ interface GameRecord {
   played_date: string;
 }
 
+const calculateStreak = (playedDates: string[]): number => {
+  if (playedDates.length === 0) return 0;
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+
+  // Sort dates in descending order (most recent first)
+  const sortedDates = [...new Set(playedDates)].sort((a, b) => 
+    parseISO(b).getTime() - parseISO(a).getTime()
+  );
+
+  // Check if the most recent game was today or yesterday
+  const mostRecent = sortedDates[0];
+  if (mostRecent !== today && mostRecent !== yesterday) {
+    return 0; // Streak broken
+  }
+
+  let streak = 1;
+  for (let i = 0; i < sortedDates.length - 1; i++) {
+    const current = parseISO(sortedDates[i]);
+    const next = parseISO(sortedDates[i + 1]);
+    const diff = differenceInDays(current, next);
+
+    if (diff === 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
 export const useGameRecords = (userId: string | null) => {
   const [todayResult, setTodayResult] = useState<GameRecord | null>(null);
   const [personalBest, setPersonalBest] = useState<number | null>(null);
   const [favoriteNumber, setFavoriteNumber] = useState<number | null>(null);
+  const [currentStreak, setCurrentStreak] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
 
@@ -50,13 +84,14 @@ export const useGameRecords = (userId: string | null) => {
         setPersonalBest(bestData.throws_count);
       }
 
-      // Get favorite number (most used)
+      // Get all records for favorite number and streak calculation
       const { data: allRecords } = await supabase
         .from("game_records")
-        .select("winning_number")
+        .select("winning_number, played_date")
         .eq("user_id", userId);
 
       if (allRecords && allRecords.length > 0) {
+        // Calculate favorite number
         const numberCounts: Record<number, number> = {};
         allRecords.forEach(r => {
           numberCounts[r.winning_number] = (numberCounts[r.winning_number] || 0) + 1;
@@ -65,6 +100,10 @@ export const useGameRecords = (userId: string | null) => {
           b[1] > a[1] ? b : a
         );
         setFavoriteNumber(parseInt(favorite[0]));
+
+        // Calculate streak
+        const playedDates = allRecords.map(r => r.played_date);
+        setCurrentStreak(calculateStreak(playedDates));
       }
     } catch (error) {
       console.error("Error fetching records:", error);
@@ -101,6 +140,7 @@ export const useGameRecords = (userId: string | null) => {
     todayResult,
     personalBest,
     favoriteNumber,
+    currentStreak,
     isLoading,
     hasPlayedToday,
     saveGameResult,
