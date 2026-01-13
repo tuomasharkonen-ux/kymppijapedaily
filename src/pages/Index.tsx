@@ -109,7 +109,7 @@ Personal best: ${bestScore}`;
                 ← Back to Daily Game
               </Button>
             </div>
-            <PracticeMode />
+            <PracticeMode isLoggedIn />
           </div>
         ) : (
           <div className="space-y-6">

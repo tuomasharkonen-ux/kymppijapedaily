@@ -16,7 +16,11 @@ const getInitialDice = (): DiceState[] => {
   }));
 };
 
-export const PracticeMode = () => {
+interface PracticeModeProps {
+  isLoggedIn?: boolean;
+}
+
+export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
   const [dice, setDice] = useState<DiceState[]>(getInitialDice());
   const [throwCount, setThrowCount] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
@@ -123,17 +127,19 @@ export const PracticeMode = () => {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Want to track your progress?</CardTitle>
-            <CardDescription>
-              Sign up to save your scores, compete daily, and track your personal best!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AuthForm onSuccess={() => {}} />
-          </CardContent>
-        </Card>
+        {!isLoggedIn && (
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle>Want to track your progress?</CardTitle>
+              <CardDescription>
+                Sign up to save your scores, compete daily, and track your personal best!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AuthForm onSuccess={() => {}} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     );
   }
@@ -192,17 +198,19 @@ export const PracticeMode = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="text-center pb-2">
-          <CardTitle className="text-lg">Save your progress</CardTitle>
-          <CardDescription>
-            Sign up or sign in to track your scores and compete daily!
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AuthForm onSuccess={() => {}} />
-        </CardContent>
-      </Card>
+      {!isLoggedIn && (
+        <Card>
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-lg">Save your progress</CardTitle>
+            <CardDescription>
+              Sign up or sign in to track your scores and compete daily!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AuthForm onSuccess={() => {}} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
