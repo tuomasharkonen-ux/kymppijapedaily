@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Dice } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number) => void;
   hasPlayedToday: boolean;
+  personalBest: number | null;
 }
 
 interface DiceState {
@@ -20,12 +23,32 @@ const getInitialDice = (): DiceState[] => {
   }));
 };
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest }: GameBoardProps) => {
   const [dice, setDice] = useState<DiceState[]>(getInitialDice());
   const [throwCount, setThrowCount] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
+
+  const copyResultToClipboard = () => {
+    if (!winningNumber) return;
+
+    const today = format(new Date(), "dd.MM.yyyy");
+    const diceEmojis = "🎲".repeat(throwCount);
+    const bestScore = personalBest && personalBest < throwCount ? personalBest : throwCount;
+    
+    const shareText = `Kymppijape daily ${today}
+Throws today: ${throwCount} ${diceEmojis}
+Personal best: ${bestScore}`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      toast.success("Copied to clipboard!", {
+        description: "Share your result with friends!",
+      });
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  };
 
   useEffect(() => {
     if (hasPlayedToday) {
@@ -130,9 +153,16 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday }: GameBoardProps) =>
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">
             Kymppijape! 🎉
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground mb-4">
             All 10 dice showing {winningNumber}!
           </p>
+          <Button 
+            onClick={copyResultToClipboard}
+            size="lg"
+            className="animate-pop-in"
+          >
+            📋 Share Result with Friends
+          </Button>
         </div>
       )}
 
