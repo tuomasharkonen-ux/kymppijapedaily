@@ -158,6 +158,7 @@ Personal best: ${bestScore}`;
                   onGameComplete={handleGameComplete}
                   hasPlayedToday={hasPlayedToday}
                   personalBest={personalBest}
+                  userId={user.id}
                 />
                 
                 <ResultsPanel
