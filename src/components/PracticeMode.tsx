@@ -125,14 +125,34 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
 
         {!isLoggedIn && (
           <Card>
-            <CardHeader className="text-center">
-              <CardTitle>Want to track your progress?</CardTitle>
-              <CardDescription>
-                Sign up to save your scores, share results to friends daily, and track your personal best!
-              </CardDescription>
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-lg">Want to track your progress?</CardTitle>
+              <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
             </CardHeader>
-            <CardContent>
-              <AuthForm onSuccess={() => {}} />
+            <CardContent className="space-y-4">
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>Unlock a new run every day at midnight</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>🏆</span>
+                  <span>Track your personal best score</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>🔥</span>
+                  <span>Build and maintain your daily streak</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>⭐</span>
+                  <span>Discover your lucky number</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>💪</span>
+                  <span>Flex your dice rolling skills to your friends</span>
+                </li>
+              </ul>
+              <AuthForm onSuccess={() => {}} defaultToSignUp />
             </CardContent>
           </Card>
         )}
