@@ -15,6 +15,7 @@ const Index = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [showCopied, setShowCopied] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
+  const [justCompletedGame, setJustCompletedGame] = useState(false);
   
   const { 
     todayResult, 
@@ -62,6 +63,7 @@ Personal best: ${bestScore}`;
   }, []);
 
   const handleGameComplete = (throws: number, winningNumber: number) => {
+    setJustCompletedGame(true);
     saveGameResult(throws, winningNumber);
   };
 
@@ -114,7 +116,7 @@ Personal best: ${bestScore}`;
           </div>
         ) : (
           <div className="space-y-6">
-            {hasPlayedToday ? (
+            {hasPlayedToday && !justCompletedGame ? (
               <>
                 <Card className="max-w-md mx-auto">
                   <CardContent className="p-6 text-center">
