@@ -3,115 +3,100 @@ import { Dice } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AuthForm } from "./AuthForm";
-
 interface DiceState {
   value: number;
   isLocked: boolean;
 }
-
 const getInitialDice = (): DiceState[] => {
-  return Array(10)
-    .fill(null)
-    .map(() => ({
-      value: Math.floor(Math.random() * 6) + 1,
-      isLocked: false,
-    }));
+  return Array(10).fill(null).map(() => ({
+    value: Math.floor(Math.random() * 6) + 1,
+    isLocked: false
+  }));
 };
-
 interface PracticeModeProps {
   isLoggedIn?: boolean;
 }
-
-export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
+export const PracticeMode = ({
+  isLoggedIn = false
+}: PracticeModeProps) => {
   const [dice, setDice] = useState<DiceState[]>(getInitialDice());
   const [throwCount, setThrowCount] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
-
   const checkWin = (currentDice: DiceState[]) => {
-    const allLocked = currentDice.every((d) => d.isLocked);
+    const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
       const firstValue = currentDice[0].value;
-      const allSame = currentDice.every((d) => d.value === firstValue);
+      const allSame = currentDice.every(d => d.value === firstValue);
       if (allSame) {
         return firstValue;
       }
     }
     return null;
   };
-
   const triggerConfetti = async () => {
     const confettiModule = await import("canvas-confetti");
     const confetti = confettiModule.default;
-
     const duration = 3000;
     const animationEnd = Date.now() + duration;
-
     const randomInRange = (min: number, max: number) => {
       return Math.random() * (max - min) + min;
     };
-
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
-
       if (timeLeft <= 0) {
         return clearInterval(interval);
       }
-
       const particleCount = 50 * (timeLeft / duration);
-
       confetti({
         particleCount,
         startVelocity: 30,
         spread: 360,
         origin: {
           x: randomInRange(0.1, 0.9),
-          y: Math.random() - 0.2,
+          y: Math.random() - 0.2
         },
-        colors: ["#00a86b", "#50c878", "#228b22", "#32cd32", "#7fff00"],
+        colors: ["#00a86b", "#50c878", "#228b22", "#32cd32", "#7fff00"]
       });
     }, 250);
   };
-
   const rollDice = () => {
     setIsRolling(true);
-
     setTimeout(() => {
-      setDice((prev) => prev.map((d) => (d.isLocked ? d : { ...d, value: Math.floor(Math.random() * 6) + 1 })));
+      setDice(prev => prev.map(d => d.isLocked ? d : {
+        ...d,
+        value: Math.floor(Math.random() * 6) + 1
+      }));
       setIsRolling(false);
-      setThrowCount((c) => c + 1);
+      setThrowCount(c => c + 1);
     }, 600);
   };
-
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
-
-    setDice((prev) => {
+    setDice(prev => {
       const newDice = [...prev];
-      newDice[index] = { ...newDice[index], isLocked: !newDice[index].isLocked };
-
+      newDice[index] = {
+        ...newDice[index],
+        isLocked: !newDice[index].isLocked
+      };
       const winner = checkWin(newDice);
       if (winner !== null) {
         setWinningNumber(winner);
         setGameComplete(true);
         triggerConfetti();
       }
-
       return newDice;
     });
   };
-
   const resetGame = () => {
     setDice(getInitialDice());
     setThrowCount(1);
     setGameComplete(false);
     setWinningNumber(null);
   };
-
   if (gameComplete && winningNumber) {
-    return (
-      <div className="space-y-6">
+    return <div className="space-y-6">
         <div className="text-center animate-pop-in">
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! 🎉</h2>
           <p className="text-lg text-muted-foreground mb-2">
@@ -123,8 +108,7 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
           </Button>
         </div>
 
-        {!isLoggedIn && (
-          <Card>
+        {!isLoggedIn && <Card>
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-lg">Want to track your progress?</CardTitle>
               <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
@@ -154,20 +138,14 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
               </ul>
               <AuthForm onSuccess={() => {}} defaultToSignUp />
             </CardContent>
-          </Card>
-        )}
-      </div>
-    );
+          </Card>}
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <Card className="bg-muted/50">
         <CardContent className="p-4 text-center">
           <p className="text-sm text-muted-foreground">
-            <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock
-            it, then roll again. How many rolls do you need to get Kymppijape? Sign up to save your scores and share
-            your results to friends!
+            <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Test your dice rolling skills and find out many rolls you need to get Kymppijape today! 
           </p>
         </CardContent>
       </Card>
@@ -179,38 +157,23 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
               Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
             </div>
             <div className="text-sm text-muted-foreground">
-              Locked: <span className="font-bold text-foreground">{dice.filter((d) => d.isLocked).length}/10</span>
+              Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
             </div>
           </div>
 
           <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
-            {dice.map((d, i) => (
-              <Dice
-                key={i}
-                value={d.value}
-                isLocked={d.isLocked}
-                isRolling={isRolling && !d.isLocked}
-                onClick={() => toggleLock(i)}
-                disabled={gameComplete}
-              />
-            ))}
+            {dice.map((d, i) => <Dice key={i} value={d.value} isLocked={d.isLocked} isRolling={isRolling && !d.isLocked} onClick={() => toggleLock(i)} disabled={gameComplete} />)}
           </div>
 
           <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
 
-          <Button
-            onClick={rollDice}
-            disabled={isRolling || gameComplete || dice.every((d) => d.isLocked)}
-            className="w-full"
-            size="lg"
-          >
+          <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg">
             {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
           </Button>
         </CardContent>
       </Card>
 
-      {!isLoggedIn && (
-        <Card>
+      {!isLoggedIn && <Card>
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-lg">Save your progress</CardTitle>
             <CardDescription>Sign up or sign in to unlock all features!</CardDescription>
@@ -240,8 +203,6 @@ export const PracticeMode = ({ isLoggedIn = false }: PracticeModeProps) => {
             </ul>
             <AuthForm onSuccess={() => {}} />
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
