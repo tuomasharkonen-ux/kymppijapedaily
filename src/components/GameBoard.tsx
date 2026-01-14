@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Dice } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { getSeededDice } from "@/lib/utils";
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number) => void;
   hasPlayedToday: boolean;
   personalBest: number | null;
+  userId: string;
 }
 
 interface DiceState {
@@ -16,15 +18,16 @@ interface DiceState {
   isLocked: boolean;
 }
 
-const getInitialDice = (): DiceState[] => {
-  return Array(10).fill(null).map(() => ({
-    value: Math.floor(Math.random() * 6) + 1,
-    isLocked: false,
-  }));
-};
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId }: GameBoardProps) => {
+  // Generate deterministic initial dice based on userId and today's date
+  const initialDiceValues = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    return getSeededDice(userId, today);
+  }, [userId]);
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest }: GameBoardProps) => {
-  const [dice, setDice] = useState<DiceState[]>(getInitialDice());
+  const [dice, setDice] = useState<DiceState[]>(() => 
+    initialDiceValues.map(value => ({ value, isLocked: false }))
+  );
   const [throwCount, setThrowCount] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
