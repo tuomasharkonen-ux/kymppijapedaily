@@ -19,9 +19,14 @@ const Index = () => {
   
   const { 
     todayResult, 
-    personalBest, 
+    personalBest,
+    personalWorst,
+    averageThrows,
     favoriteNumber,
     currentStreak,
+    rankByAverage,
+    rankByBest,
+    totalPlayers,
     isLoading, 
     hasPlayedToday, 
     saveGameResult 
@@ -147,8 +152,13 @@ Personal best: ${bestScore}`;
                 <ResultsPanel
                   todayResult={todayResult}
                   personalBest={personalBest}
+                  personalWorst={personalWorst}
+                  averageThrows={averageThrows}
                   favoriteNumber={favoriteNumber}
                   currentStreak={currentStreak}
+                  rankByAverage={rankByAverage}
+                  rankByBest={rankByBest}
+                  totalPlayers={totalPlayers}
                   isLoading={isLoading}
                 />
               </>
@@ -164,8 +174,13 @@ Personal best: ${bestScore}`;
                 <ResultsPanel
                   todayResult={todayResult}
                   personalBest={personalBest}
+                  personalWorst={personalWorst}
+                  averageThrows={averageThrows}
                   favoriteNumber={favoriteNumber}
                   currentStreak={currentStreak}
+                  rankByAverage={rankByAverage}
+                  rankByBest={rankByBest}
+                  totalPlayers={totalPlayers}
                   isLoading={isLoading}
                 />
 

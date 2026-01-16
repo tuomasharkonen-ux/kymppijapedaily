@@ -44,8 +44,13 @@ const calculateStreak = (playedDates: string[]): number => {
 export const useGameRecords = (userId: string | null) => {
   const [todayResult, setTodayResult] = useState<GameRecord | null>(null);
   const [personalBest, setPersonalBest] = useState<number | null>(null);
+  const [personalWorst, setPersonalWorst] = useState<number | null>(null);
+  const [averageThrows, setAverageThrows] = useState<number | null>(null);
   const [favoriteNumber, setFavoriteNumber] = useState<number | null>(null);
   const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [rankByAverage, setRankByAverage] = useState<number | null>(null);
+  const [rankByBest, setRankByBest] = useState<number | null>(null);
+  const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
 
@@ -71,29 +76,29 @@ export const useGameRecords = (userId: string | null) => {
         setHasPlayedToday(true);
       }
 
-      // Get personal best
-      const { data: bestData } = await supabase
+      // Get all user's records for stats calculation
+      const { data: userRecords } = await supabase
         .from("game_records")
-        .select("throws_count")
-        .eq("user_id", userId)
-        .order("throws_count", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (bestData) {
-        setPersonalBest(bestData.throws_count);
-      }
-
-      // Get all records for favorite number and streak calculation
-      const { data: allRecords } = await supabase
-        .from("game_records")
-        .select("winning_number, played_date")
+        .select("throws_count, winning_number, played_date")
         .eq("user_id", userId);
 
-      if (allRecords && allRecords.length > 0) {
+      if (userRecords && userRecords.length > 0) {
+        // Calculate personal best
+        const best = Math.min(...userRecords.map(r => r.throws_count));
+        setPersonalBest(best);
+
+        // Calculate personal worst
+        const worst = Math.max(...userRecords.map(r => r.throws_count));
+        setPersonalWorst(worst);
+
+        // Calculate average
+        const sum = userRecords.reduce((acc, r) => acc + r.throws_count, 0);
+        const avg = sum / userRecords.length;
+        setAverageThrows(Math.round(avg * 10) / 10);
+
         // Calculate favorite number
         const numberCounts: Record<number, number> = {};
-        allRecords.forEach(r => {
+        userRecords.forEach(r => {
           numberCounts[r.winning_number] = (numberCounts[r.winning_number] || 0) + 1;
         });
         const favorite = Object.entries(numberCounts).reduce((a, b) => 
@@ -102,8 +107,45 @@ export const useGameRecords = (userId: string | null) => {
         setFavoriteNumber(parseInt(favorite[0]));
 
         // Calculate streak
-        const playedDates = allRecords.map(r => r.played_date);
+        const playedDates = userRecords.map(r => r.played_date);
         setCurrentStreak(calculateStreak(playedDates));
+
+        // Fetch all players' stats for ranking
+        const { data: allRecords } = await supabase
+          .from("game_records")
+          .select("user_id, throws_count");
+
+        if (allRecords && allRecords.length > 0) {
+          // Group by user_id and calculate stats
+          const playerStats: Record<string, { best: number; total: number; count: number }> = {};
+          
+          allRecords.forEach(r => {
+            if (!playerStats[r.user_id]) {
+              playerStats[r.user_id] = { best: r.throws_count, total: 0, count: 0 };
+            }
+            playerStats[r.user_id].best = Math.min(playerStats[r.user_id].best, r.throws_count);
+            playerStats[r.user_id].total += r.throws_count;
+            playerStats[r.user_id].count++;
+          });
+
+          const playerList = Object.entries(playerStats).map(([id, stats]) => ({
+            userId: id,
+            best: stats.best,
+            average: stats.total / stats.count,
+          }));
+
+          setTotalPlayers(playerList.length);
+
+          // Rank by average (lower is better)
+          const sortedByAvg = [...playerList].sort((a, b) => a.average - b.average);
+          const avgRank = sortedByAvg.findIndex(p => p.userId === userId) + 1;
+          setRankByAverage(avgRank);
+
+          // Rank by best (lower is better)
+          const sortedByBest = [...playerList].sort((a, b) => a.best - b.best);
+          const bestRank = sortedByBest.findIndex(p => p.userId === userId) + 1;
+          setRankByBest(bestRank);
+        }
       }
     } catch (error) {
       console.error("Error fetching records:", error);
@@ -139,8 +181,13 @@ export const useGameRecords = (userId: string | null) => {
   return {
     todayResult,
     personalBest,
+    personalWorst,
+    averageThrows,
     favoriteNumber,
     currentStreak,
+    rankByAverage,
+    rankByBest,
+    totalPlayers,
     isLoading,
     hasPlayedToday,
     saveGameResult,
