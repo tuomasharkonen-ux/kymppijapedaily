@@ -27,6 +27,7 @@ const Index = () => {
     rankByAverage,
     rankByBest,
     totalPlayers,
+    gamesPlayed,
     isLoading, 
     hasPlayedToday, 
     saveGameResult 
@@ -159,6 +160,7 @@ Personal best: ${bestScore}`;
                   rankByAverage={rankByAverage}
                   rankByBest={rankByBest}
                   totalPlayers={totalPlayers}
+                  gamesPlayed={gamesPlayed}
                   isLoading={isLoading}
                 />
               </>
@@ -181,6 +183,7 @@ Personal best: ${bestScore}`;
                   rankByAverage={rankByAverage}
                   rankByBest={rankByBest}
                   totalPlayers={totalPlayers}
+                  gamesPlayed={gamesPlayed}
                   isLoading={isLoading}
                 />
 
