@@ -51,6 +51,7 @@ export const useGameRecords = (userId: string | null) => {
   const [rankByAverage, setRankByAverage] = useState<number | null>(null);
   const [rankByBest, setRankByBest] = useState<number | null>(null);
   const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
+  const [gamesPlayed, setGamesPlayed] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
 
@@ -83,6 +84,9 @@ export const useGameRecords = (userId: string | null) => {
         .eq("user_id", userId);
 
       if (userRecords && userRecords.length > 0) {
+        // Set games played count
+        setGamesPlayed(userRecords.length);
+
         // Calculate personal best
         const best = Math.min(...userRecords.map(r => r.throws_count));
         setPersonalBest(best);
@@ -188,6 +192,7 @@ export const useGameRecords = (userId: string | null) => {
     rankByAverage,
     rankByBest,
     totalPlayers,
+    gamesPlayed,
     isLoading,
     hasPlayedToday,
     saveGameResult,

@@ -16,6 +16,7 @@ interface ResultsPanelProps {
   rankByAverage: number | null;
   rankByBest: number | null;
   totalPlayers: number | null;
+  gamesPlayed: number;
   isLoading: boolean;
 }
 
@@ -29,6 +30,7 @@ export const ResultsPanel = ({
   rankByAverage,
   rankByBest,
   totalPlayers,
+  gamesPlayed,
   isLoading 
 }: ResultsPanelProps) => {
   if (isLoading) {
@@ -94,17 +96,24 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
               <div className="bg-accent/50 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground">Rank (Best)</p>
+                <p className="text-xs text-muted-foreground">Games</p>
                 <p className="text-2xl font-bold text-primary">
-                  {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
+                  {gamesPlayed}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {totalPlayers ? `of ${totalPlayers}` : ""}
-                </p>
+                <p className="text-xs text-muted-foreground">played</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card border rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Rank (Best)</p>
+                <p className="text-2xl font-bold">
+                  {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {totalPlayers ? `of ${totalPlayers} players` : ""}
+                </p>
+              </div>
               <div className="bg-card border rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground">Rank (Avg)</p>
                 <p className="text-2xl font-bold">
@@ -113,10 +122,6 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
                 </p>
-              </div>
-              <div className="bg-card border rounded-lg p-3 text-center">
-                <p className="text-sm text-muted-foreground">Today's number</p>
-                <p className="text-3xl font-bold">{todayResult.winning_number}</p>
               </div>
             </div>
 
