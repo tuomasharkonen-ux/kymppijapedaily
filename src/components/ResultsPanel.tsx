@@ -1,7 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { format } from "date-fns";
 
 interface GameRecord {
   throws_count: number;
@@ -12,37 +9,28 @@ interface GameRecord {
 interface ResultsPanelProps {
   todayResult: GameRecord | null;
   personalBest: number | null;
+  personalWorst: number | null;
+  averageThrows: number | null;
   favoriteNumber: number | null;
   currentStreak: number;
+  rankByAverage: number | null;
+  rankByBest: number | null;
+  totalPlayers: number | null;
   isLoading: boolean;
 }
 
 export const ResultsPanel = ({ 
   todayResult, 
-  personalBest, 
+  personalBest,
+  personalWorst,
+  averageThrows,
   favoriteNumber,
   currentStreak,
+  rankByAverage,
+  rankByBest,
+  totalPlayers,
   isLoading 
 }: ResultsPanelProps) => {
-  const copyToClipboard = () => {
-    if (!todayResult) return;
-
-    const today = format(new Date(), "dd.MM.yyyy");
-    const diceEmojis = "🎲".repeat(todayResult.throws_count);
-    
-    const shareText = `Kymppijape daily ${today}
-Throws today: ${todayResult.throws_count} ${diceEmojis}
-Personal best: ${personalBest || todayResult.throws_count}`;
-
-    navigator.clipboard.writeText(shareText).then(() => {
-      toast.success("Copied to clipboard!", {
-        description: "Share your result with friends!",
-      });
-    }).catch(() => {
-      toast.error("Failed to copy");
-    });
-  };
-
   if (isLoading) {
     return (
       <Card>
@@ -90,9 +78,46 @@ Personal best: ${personalBest || todayResult.throws_count}`;
               </div>
             </div>
 
-            <div className="bg-card border rounded-lg p-3 text-center">
-              <p className="text-sm text-muted-foreground">Today's number</p>
-              <p className="text-3xl font-bold">{todayResult.winning_number}</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Worst</p>
+                <p className="text-2xl font-bold text-destructive">
+                  {personalWorst || "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">throws</p>
+              </div>
+              <div className="bg-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Average</p>
+                <p className="text-2xl font-bold text-primary">
+                  {averageThrows || "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">throws</p>
+              </div>
+              <div className="bg-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Rank (Best)</p>
+                <p className="text-2xl font-bold text-primary">
+                  {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {totalPlayers ? `of ${totalPlayers}` : ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-card border rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Rank (Avg)</p>
+                <p className="text-2xl font-bold">
+                  {rankByAverage && totalPlayers ? `#${rankByAverage}` : "-"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {totalPlayers ? `of ${totalPlayers} players` : ""}
+                </p>
+              </div>
+              <div className="bg-card border rounded-lg p-3 text-center">
+                <p className="text-sm text-muted-foreground">Today's number</p>
+                <p className="text-3xl font-bold">{todayResult.winning_number}</p>
+              </div>
             </div>
 
             {favoriteNumber && (
@@ -102,7 +127,6 @@ Personal best: ${personalBest || todayResult.throws_count}`;
                 <p className="text-xs text-muted-foreground">Most used across all games</p>
               </div>
             )}
-
           </>
         ) : (
           <div className="text-center py-4">
