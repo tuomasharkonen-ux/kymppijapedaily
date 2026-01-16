@@ -72,22 +72,15 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
               <div className="bg-accent/50 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground">Streak</p>
-                <p className="text-2xl font-bold text-primary">
-                  {currentStreak}
-                </p>
-                <p className="text-xs text-muted-foreground">🔥 days</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground">Worst</p>
                 <p className="text-2xl font-bold text-destructive">
                   {personalWorst || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
               <div className="bg-accent/50 rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground">Average</p>
                 <p className="text-2xl font-bold text-primary">
@@ -102,6 +95,13 @@ export const ResultsPanel = ({
                 </p>
                 <p className="text-xs text-muted-foreground">played</p>
               </div>
+              <div className="bg-accent/50 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Streak</p>
+                <p className="text-2xl font-bold text-primary">
+                  {currentStreak}
+                </p>
+                <p className="text-xs text-muted-foreground">🔥 days</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -109,6 +109,7 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">Rank (Best)</p>
                 <p className="text-2xl font-bold">
                   {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
+                  {rankByBest === 1 && " 🏆"}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
@@ -118,6 +119,7 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">Rank (Avg)</p>
                 <p className="text-2xl font-bold">
                   {rankByAverage && totalPlayers ? `#${rankByAverage}` : "-"}
+                  {rankByAverage === 1 && " 🏆"}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
