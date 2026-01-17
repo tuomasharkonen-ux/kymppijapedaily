@@ -46,7 +46,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_player_rankings: {
+        Args: { p_user_id: string }
+        Returns: {
+          rank_by_average: number
+          rank_by_best: number
+          total_players: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
