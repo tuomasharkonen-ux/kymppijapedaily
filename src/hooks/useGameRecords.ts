@@ -114,41 +114,14 @@ export const useGameRecords = (userId: string | null) => {
         const playedDates = userRecords.map(r => r.played_date);
         setCurrentStreak(calculateStreak(playedDates));
 
-        // Fetch all players' stats for ranking
-        const { data: allRecords } = await supabase
-          .from("game_records")
-          .select("user_id, throws_count");
+        // Fetch rankings using the secure database function
+        const { data: rankingData } = await supabase
+          .rpc('get_player_rankings', { p_user_id: userId });
 
-        if (allRecords && allRecords.length > 0) {
-          // Group by user_id and calculate stats
-          const playerStats: Record<string, { best: number; total: number; count: number }> = {};
-          
-          allRecords.forEach(r => {
-            if (!playerStats[r.user_id]) {
-              playerStats[r.user_id] = { best: r.throws_count, total: 0, count: 0 };
-            }
-            playerStats[r.user_id].best = Math.min(playerStats[r.user_id].best, r.throws_count);
-            playerStats[r.user_id].total += r.throws_count;
-            playerStats[r.user_id].count++;
-          });
-
-          const playerList = Object.entries(playerStats).map(([id, stats]) => ({
-            userId: id,
-            best: stats.best,
-            average: stats.total / stats.count,
-          }));
-
-          setTotalPlayers(playerList.length);
-
-          // Rank by average (lower is better)
-          const sortedByAvg = [...playerList].sort((a, b) => a.average - b.average);
-          const avgRank = sortedByAvg.findIndex(p => p.userId === userId) + 1;
-          setRankByAverage(avgRank);
-
-          // Rank by best (lower is better)
-          const sortedByBest = [...playerList].sort((a, b) => a.best - b.best);
-          const bestRank = sortedByBest.findIndex(p => p.userId === userId) + 1;
-          setRankByBest(bestRank);
+        if (rankingData && rankingData.length > 0) {
+          setRankByBest(rankingData[0].rank_by_best);
+          setRankByAverage(rankingData[0].rank_by_average);
+          setTotalPlayers(rankingData[0].total_players);
         }
       }
     } catch (error) {
