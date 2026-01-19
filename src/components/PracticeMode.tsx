@@ -3,6 +3,7 @@ import { Dice } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AuthForm } from "./AuthForm";
+import { CalendarDays, TrendingUp, Flame, Award, Trophy } from "lucide-react";
 interface DiceState {
   value: number;
   isLocked: boolean;
@@ -116,24 +117,24 @@ export const PracticeMode = ({
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
-                  <span>🎯</span>
-                  <span>Unlock a new run every day at midnight</span>
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <span>New game every day at midnight</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>🏆</span>
-                  <span>Track your personal best score</span>
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span>Track your best, worst, and average</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>🔥</span>
-                  <span>Build and maintain your daily streak</span>
+                  <Flame className="h-4 w-4 text-primary" />
+                  <span>Build and maintain daily streaks</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>⭐</span>
-                  <span>Discover your lucky number</span>
+                  <Award className="h-4 w-4 text-primary" />
+                  <span>Unlock badges and earn credits</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>💪</span>
-                  <span>Flex your dice rolling skills to your friends</span>
+                  <Trophy className="h-4 w-4 text-primary" />
+                  <span>Compete and see your global rank</span>
                 </li>
               </ul>
               <AuthForm onSuccess={() => {}} defaultToSignUp />
@@ -181,24 +182,24 @@ export const PracticeMode = ({
           <CardContent className="space-y-4">
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <span>🎯</span>
-                <span>Unlock a new run every day at midnight</span>
+                <CalendarDays className="h-4 w-4 text-primary" />
+                <span>New game every day at midnight</span>
               </li>
               <li className="flex items-center gap-2">
-                <span>🏆</span>
-                <span>Track your personal best score</span>
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span>Track your best, worst, and average</span>
               </li>
               <li className="flex items-center gap-2">
-                <span>🔥</span>
-                <span>Build and maintain your daily streak</span>
+                <Flame className="h-4 w-4 text-primary" />
+                <span>Build and maintain daily streaks</span>
               </li>
               <li className="flex items-center gap-2">
-                <span>⭐</span>
-                <span>Discover your lucky number</span>
+                <Award className="h-4 w-4 text-primary" />
+                <span>Unlock badges and earn credits</span>
               </li>
               <li className="flex items-center gap-2">
-                <span>💪</span>
-                <span>Flex your dice rolling skills to your friends</span>
+                <Trophy className="h-4 w-4 text-primary" />
+                <span>Compete and see your global rank</span>
               </li>
             </ul>
             <AuthForm onSuccess={() => {}} />
