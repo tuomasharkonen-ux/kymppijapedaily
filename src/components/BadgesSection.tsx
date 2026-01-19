@@ -87,7 +87,7 @@ export const BadgesSection = ({
           })}
           </div>
 
-          <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4">
+          <div className="bg-background border border-border rounded-lg p-4">
             <h3 className="font-semibold leading-none tracking-tight text-base">
               Credits
             </h3>
