@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { getBadgeIcon } from "@/lib/badgeIcons";
 import type { Badge as BadgeType } from "@/hooks/useBadges";
 
 interface BadgeModalProps {
@@ -54,13 +55,14 @@ export const BadgeModal = ({ badge, earnedAt, isOpen, onClose }: BadgeModalProps
   if (!badge) return null;
 
   const rarity = rarityConfig[badge.rarity] || rarityConfig.Common;
+  const IconComponent = getBadgeIcon(badge.id);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`bg-background border ${rarity.borderColor}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className="text-3xl">🏆</span>
+            <IconComponent className={`w-8 h-8 ${rarity.color}`} />
             <span className={rarity.color}>{badge.name}</span>
           </DialogTitle>
         </DialogHeader>

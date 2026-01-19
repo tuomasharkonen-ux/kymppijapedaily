@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { HelpCircle } from "lucide-react";
 import { BadgeModal } from "./BadgeModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getBadgeIcon } from "@/lib/badgeIcons";
 import type { UserBadge, Badge } from "@/hooks/useBadges";
 interface BadgesSectionProps {
   userBadges: UserBadge[];
@@ -74,12 +75,13 @@ export const BadgesSection = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
-            {userBadges.map(userBadge => {
+          {userBadges.map(userBadge => {
             const rarity = userBadge.badge.rarity;
             const styles = rarityStyles[rarity] || rarityStyles.Common;
             const textColor = rarityTextColors[rarity] || rarityTextColors.Common;
+            const IconComponent = getBadgeIcon(userBadge.badge.id);
             return <button key={userBadge.id} onClick={() => handleBadgeClick(userBadge)} className={`aspect-square rounded-lg border-2 p-2 flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${styles}`} title={userBadge.badge.name}>
-                  <span className="text-2xl md:text-3xl">🏆</span>
+                  <IconComponent className={`w-6 h-6 md:w-8 md:h-8 ${textColor}`} />
                   <span className={`text-xs font-medium truncate w-full text-center ${textColor}`}>
                     {userBadge.badge.name.length > 10 ? userBadge.badge.name.substring(0, 10) + "..." : userBadge.badge.name}
                   </span>
