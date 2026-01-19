@@ -182,7 +182,14 @@ export const BadgeUnlockModal = ({
   const remainingCount = pendingBadges.length - 1;
 
   return (
-    <Dialog open={!!currentBadge} onOpenChange={() => onDismiss()}>
+    <Dialog
+      open={!!currentBadge}
+      onOpenChange={(open) => {
+        // Radix may call onOpenChange(true) on mount in controlled mode.
+        // Only dismiss when the dialog is actually closing.
+        if (!open) onDismiss();
+      }}
+    >
       <DialogContent
         className={`
           border-2 ${rarity.borderClass} ${rarity.glowClass}
