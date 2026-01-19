@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface DiceProps {
   value: number;
@@ -28,7 +29,8 @@ const DiceDots = ({ value }: { value: number }) => {
     "bottom-right": "bottom-2 right-2",
   };
 
-  const positions = dotPositions[value] || [];
+  // Handle value of 0 (pre-game state) - show empty die
+  const positions = value > 0 ? (dotPositions[value] || []) : [];
 
   return (
     <>
@@ -46,6 +48,30 @@ const DiceDots = ({ value }: { value: number }) => {
 };
 
 export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProps) => {
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    if (isRolling) {
+      // Tumble through random values rapidly
+      const tumbleInterval = setInterval(() => {
+        setDisplayValue(Math.floor(Math.random() * 6) + 1);
+      }, 50);
+
+      // Stop tumbling after animation duration
+      const timeout = setTimeout(() => {
+        clearInterval(tumbleInterval);
+        setDisplayValue(value);
+      }, 550);
+
+      return () => {
+        clearInterval(tumbleInterval);
+        clearTimeout(timeout);
+      };
+    } else {
+      setDisplayValue(value);
+    }
+  }, [isRolling, value]);
+
   return (
     <button
       onClick={onClick}
@@ -61,7 +87,7 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <DiceDots value={value} />
+      <DiceDots value={displayValue} />
       {isLocked && (
         <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-primary rounded-full flex items-center justify-center">
           <span className="text-primary-foreground text-[10px] md:text-xs">🔒</span>
