@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 import { BadgeModal } from "./BadgeModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { UserBadge, Badge } from "@/hooks/useBadges";
@@ -74,18 +76,11 @@ export const BadgesSection = ({ userBadges, isLoading, userCredits }: BadgesSect
     <>
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <span>🏆</span> Your Badges
-            </CardTitle>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <span>💰</span>
-              <span className="font-medium text-foreground">{userCredits}</span>
-              <span>credits</span>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <span>🏆</span> Your Badges
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
             {userBadges.map((userBadge) => {
               const rarity = userBadge.badge.rarity;
@@ -108,6 +103,25 @@ export const BadgesSection = ({ userBadges, isLoading, userCredits }: BadgesSect
                 </button>
               );
             })}
+          </div>
+
+          <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1">
+                💰 Your Credits
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Credits can be used to buy cool stuff in the future, maybe.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </h3>
+            </div>
+            <p className="text-2xl font-bold text-foreground mt-1">{userCredits}</p>
           </div>
         </CardContent>
       </Card>
