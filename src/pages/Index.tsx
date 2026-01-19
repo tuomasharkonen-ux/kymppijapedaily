@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GameBoard } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
@@ -244,6 +245,11 @@ Personal best: ${bestScore}`;
           pendingBadges={pendingBadges} 
           onDismiss={dismissBadge} 
         />
+
+        {/* Footer with Terms link */}
+        <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+          <Link to="/terms" className="hover:underline">Terms and Conditions</Link>
+        </footer>
       </div>
     </div>
   );

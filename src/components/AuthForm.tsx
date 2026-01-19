@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,15 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
         </Button>
+        {!isLogin && (
+          <p className="text-xs text-muted-foreground text-center">
+            By signing up, you agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline">
+              Terms and Conditions
+            </Link>
+            .
+          </p>
+        )}
       </form>
       <p className="text-center text-sm text-muted-foreground">
         {isLogin ? "Don't have an account? " : "Already have an account? "}
