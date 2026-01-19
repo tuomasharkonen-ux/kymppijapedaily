@@ -49,8 +49,8 @@ export const ResultsPanel = ({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          📊 Your Stats
+        <CardTitle className="flex items-center gap-2">
+          <span>📊</span> Your Stats
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
