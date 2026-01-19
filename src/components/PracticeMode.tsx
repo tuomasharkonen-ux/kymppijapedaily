@@ -8,9 +8,9 @@ interface DiceState {
   value: number;
   isLocked: boolean;
 }
-const getInitialDice = (): DiceState[] => {
+const getEmptyDice = (): DiceState[] => {
   return Array(10).fill(null).map(() => ({
-    value: Math.floor(Math.random() * 6) + 1,
+    value: 0,
     isLocked: false
   }));
 };
@@ -20,11 +20,12 @@ interface PracticeModeProps {
 export const PracticeMode = ({
   isLoggedIn = false
 }: PracticeModeProps) => {
-  const [dice, setDice] = useState<DiceState[]>(getInitialDice());
-  const [throwCount, setThrowCount] = useState(1);
+  const [dice, setDice] = useState<DiceState[]>(getEmptyDice());
+  const [throwCount, setThrowCount] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
@@ -64,6 +65,9 @@ export const PracticeMode = ({
   };
   const rollDice = () => {
     setIsRolling(true);
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
     setTimeout(() => {
       setDice(prev => prev.map(d => d.isLocked ? d : {
         ...d,
@@ -91,10 +95,11 @@ export const PracticeMode = ({
     });
   };
   const resetGame = () => {
-    setDice(getInitialDice());
-    setThrowCount(1);
+    setDice(getEmptyDice());
+    setThrowCount(0);
     setGameComplete(false);
     setWinningNumber(null);
+    setHasStarted(false);
   };
   if (gameComplete && winningNumber) {
     return <div className="space-y-6">
@@ -153,24 +158,35 @@ export const PracticeMode = ({
 
       <Card>
         <CardContent className="p-4 md:p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-muted-foreground">
-              Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+          {hasStarted ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-muted-foreground">
+                  Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+                {dice.map((d, i) => <Dice key={i} value={d.value} isLocked={d.isLocked} isRolling={isRolling && !d.isLocked} onClick={() => toggleLock(i)} disabled={gameComplete} />)}
+              </div>
+
+              <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
+
+              <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg">
+                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              </Button>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-6">Ready to test your luck?</p>
+              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
+                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              </Button>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
-            {dice.map((d, i) => <Dice key={i} value={d.value} isLocked={d.isLocked} isRolling={isRolling && !d.isLocked} onClick={() => toggleLock(i)} disabled={gameComplete} />)}
-          </div>
-
-          <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
-
-          <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg">
-            {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
-          </Button>
+          )}
         </CardContent>
       </Card>
 

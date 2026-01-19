@@ -27,13 +27,14 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   }, [userId]);
 
   const [dice, setDice] = useState<DiceState[]>(() => 
-    initialDiceValues.map(value => ({ value, isLocked: false }))
+    Array(10).fill(null).map(() => ({ value: 0, isLocked: false }))
   );
-  const [throwCount, setThrowCount] = useState(1);
+  const [throwCount, setThrowCount] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const [showCopied, setShowCopied] = useState(false);
 
@@ -116,11 +117,19 @@ Personal best: ${bestScore}`;
 
   const rollDice = () => {
     setIsRolling(true);
+    const isFirstRoll = !hasStarted;
+    
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
     
     setTimeout(() => {
-      setDice(prev => prev.map(d => 
-        d.isLocked ? d : { ...d, value: Math.floor(Math.random() * 6) + 1 }
-      ));
+      setDice(prev => prev.map((d, i) => {
+        if (d.isLocked) return d;
+        // Use seeded values for first roll, random for subsequent rolls
+        const value = isFirstRoll ? initialDiceValues[i] : Math.floor(Math.random() * 6) + 1;
+        return { ...d, value };
+      }));
       setIsRolling(false);
       setThrowCount(c => c + 1);
     }, 600);
@@ -183,46 +192,57 @@ Personal best: ${bestScore}`;
 
       <Card>
         <CardContent className="p-4 md:p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-muted-foreground">
-              Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+          {hasStarted ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-muted-foreground">
+                  Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+                {dice.map((d, i) => (
+                  <Dice
+                    key={i}
+                    value={d.value}
+                    isLocked={d.isLocked}
+                    isRolling={isRolling && !d.isLocked}
+                    onClick={() => toggleLock(i)}
+                    disabled={gameComplete}
+                  />
+                ))}
+              </div>
+
+              <p className="text-center text-sm text-muted-foreground mb-4">
+                {gameComplete 
+                  ? "Game complete! See your results below."
+                  : "Click dice to lock them, then roll again"}
+              </p>
+
+              <Button
+                onClick={rollDice}
+                disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
+                className="w-full"
+                size="lg"
+              >
+                {isRolling ? (
+                  <span className="animate-shake">🎲 Rolling...</span>
+                ) : (
+                  <>🎲 Roll Dice</>
+                )}
+              </Button>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-6">Ready for today's challenge?</p>
+              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
+                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              </Button>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
-            {dice.map((d, i) => (
-              <Dice
-                key={i}
-                value={d.value}
-                isLocked={d.isLocked}
-                isRolling={isRolling && !d.isLocked}
-                onClick={() => toggleLock(i)}
-                disabled={gameComplete}
-              />
-            ))}
-          </div>
-
-          <p className="text-center text-sm text-muted-foreground mb-4">
-            {gameComplete 
-              ? "Game complete! See your results below."
-              : "Click dice to lock them, then roll again"}
-          </p>
-
-          <Button
-            onClick={rollDice}
-            disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
-            className="w-full"
-            size="lg"
-          >
-            {isRolling ? (
-              <span className="animate-shake">🎲 Rolling...</span>
-            ) : (
-              <>🎲 Roll Dice</>
-            )}
-          </Button>
+          )}
         </CardContent>
       </Card>
     </div>
