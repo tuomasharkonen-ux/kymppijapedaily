@@ -68,7 +68,7 @@ export const BadgesSection = ({
           <CardTitle className="flex items-center gap-2">
             <span>🏆</span> Your Badges
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-center">
             Earn credits with badges. Badges can be earned by playing the game really well. Keep playing to find out how!
           </p>
         </CardHeader>
