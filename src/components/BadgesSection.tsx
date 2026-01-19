@@ -109,12 +109,14 @@ export const BadgesSection = ({ userBadges, isLoading, userCredits }: BadgesSect
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-1">
                 💰 Your Credits
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      <button type="button" className="inline-flex">
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </button>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent side="top">
                       <p>Credits can be used to buy cool stuff in the future, maybe.</p>
                     </TooltipContent>
                   </Tooltip>
