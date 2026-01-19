@@ -4,6 +4,7 @@ import { GameBoard } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { PracticeMode } from "@/components/PracticeMode";
 import { BadgesSection } from "@/components/BadgesSection";
+import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,8 @@ const Index = () => {
     isLoading: badgesLoading,
     checkAndAwardBadges,
     checkShareFeature,
+    pendingBadges,
+    dismissBadge,
   } = useBadges(user?.id || null);
 
   const copyResultToClipboard = async () => {
@@ -235,6 +238,12 @@ Personal best: ${bestScore}`;
             )}
           </div>
         )}
+
+        {/* Badge unlock modal */}
+        <BadgeUnlockModal 
+          pendingBadges={pendingBadges} 
+          onDismiss={dismissBadge} 
+        />
       </div>
     </div>
   );
