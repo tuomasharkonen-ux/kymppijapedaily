@@ -105,25 +105,23 @@ export const BadgesSection = ({ userBadges, isLoading, userCredits }: BadgesSect
             })}
           </div>
 
-          <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-1">
-                💰 Your Credits
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="inline-flex">
-                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p>Credits can be used to buy cool stuff in the future, maybe.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </h3>
-            </div>
-            <p className="text-2xl font-bold text-foreground mt-1">{userCredits}</p>
+          <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4">
+            <h3 className="text-2xl font-semibold leading-none tracking-tight flex items-center gap-2">
+              <span>💰</span> Your Credits
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="inline-flex">
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>Credits can be used to buy cool stuff in the future, maybe.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </h3>
+            <p className="text-2xl font-bold text-foreground mt-2">{userCredits}</p>
           </div>
         </CardContent>
       </Card>
