@@ -15,30 +15,25 @@ interface BadgeModalProps {
   onClose: () => void;
 }
 
-const rarityConfig: Record<string, { color: string; bgColor: string; borderColor: string }> = {
+const rarityConfig: Record<string, { color: string; borderColor: string }> = {
   Common: { 
     color: "text-muted-foreground", 
-    bgColor: "bg-muted/50",
     borderColor: "border-muted-foreground/30"
   },
   Uncommon: { 
     color: "text-green-600 dark:text-green-400", 
-    bgColor: "bg-green-500/10",
     borderColor: "border-green-500/30"
   },
   Rare: { 
     color: "text-blue-600 dark:text-blue-400", 
-    bgColor: "bg-blue-500/10",
     borderColor: "border-blue-500/30"
   },
   Epic: { 
     color: "text-purple-600 dark:text-purple-400", 
-    bgColor: "bg-purple-500/10",
     borderColor: "border-purple-500/30"
   },
   Legendary: { 
     color: "text-amber-600 dark:text-amber-400", 
-    bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30"
   },
 };
@@ -62,7 +57,7 @@ export const BadgeModal = ({ badge, earnedAt, isOpen, onClose }: BadgeModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`${rarity.bgColor} border ${rarity.borderColor}`}>
+      <DialogContent className={`bg-background border ${rarity.borderColor}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="text-3xl">🏆</span>
