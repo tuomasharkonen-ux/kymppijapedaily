@@ -7,10 +7,11 @@ import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
 
 interface GameBoardProps {
-  onGameComplete: (throws: number, winningNumber: number) => void;
+  onGameComplete: (throws: number, winningNumber: number, initialDice: number[]) => void;
   hasPlayedToday: boolean;
   personalBest: number | null;
   userId: string;
+  onShareClick?: () => void;
 }
 
 interface DiceState {
@@ -18,7 +19,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -36,7 +37,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
   const [showCopied, setShowCopied] = useState(false);
 
-  const copyResultToClipboard = () => {
+  const copyResultToClipboard = async () => {
     if (!winningNumber) return;
 
     const today = format(new Date(), "dd.MM.yyyy");
@@ -48,12 +49,18 @@ Throws today: ${throwCount}
 ${diceEmojis}
 Personal best: ${bestScore}`;
 
-    navigator.clipboard.writeText(shareText).then(() => {
+    try {
+      await navigator.clipboard.writeText(shareText);
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
-    }).catch(() => {
+      
+      // Trigger share feature achievement check
+      if (onShareClick) {
+        await onShareClick();
+      }
+    } catch {
       toast.error("Failed to copy");
-    });
+    }
   };
 
   useEffect(() => {
@@ -132,7 +139,7 @@ Personal best: ${bestScore}`;
         setGameComplete(true);
         setJustCompletedGame(true);
         triggerConfetti();
-        onGameComplete(throwCount, winner);
+        onGameComplete(throwCount, winner, initialDiceValues);
       }
       
       return newDice;

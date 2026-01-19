@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { GameBoard } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { PracticeMode } from "@/components/PracticeMode";
+import { BadgesSection } from "@/components/BadgesSection";
 import { useGameRecords } from "@/hooks/useGameRecords";
+import { useBadges } from "@/hooks/useBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -33,7 +35,15 @@ const Index = () => {
     saveGameResult 
   } = useGameRecords(user?.id || null);
 
-  const copyResultToClipboard = () => {
+  const {
+    userBadges,
+    userCredits,
+    isLoading: badgesLoading,
+    checkAndAwardBadges,
+    checkShareFeature,
+  } = useBadges(user?.id || null);
+
+  const copyResultToClipboard = async () => {
     if (!todayResult) return;
 
     const today = format(new Date(), "dd.MM.yyyy");
@@ -45,12 +55,16 @@ Throws today: ${todayResult.throws_count}
 ${diceEmojis}
 Personal best: ${bestScore}`;
 
-    navigator.clipboard.writeText(shareText).then(() => {
+    try {
+      await navigator.clipboard.writeText(shareText);
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
-    }).catch(() => {
+      
+      // Check for share feature badge
+      await checkShareFeature();
+    } catch {
       toast.error("Failed to copy");
-    });
+    }
   };
 
   useEffect(() => {
@@ -68,9 +82,22 @@ Personal best: ${bestScore}`;
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleGameComplete = (throws: number, winningNumber: number) => {
+  const handleGameComplete = async (
+    throws: number, 
+    winningNumber: number, 
+    initialDice: number[]
+  ) => {
     setJustCompletedGame(true);
-    saveGameResult(throws, winningNumber);
+    await saveGameResult(throws, winningNumber);
+    
+    // Check for achievements
+    await checkAndAwardBadges({
+      throws,
+      winningNumber,
+      initialDice,
+      currentStreak: currentStreak + 1, // Will be +1 after this game
+      isFirstGame: gamesPlayed === 0,
+    });
   };
 
   const handleSignOut = async () => {
@@ -163,6 +190,12 @@ Personal best: ${bestScore}`;
                   gamesPlayed={gamesPlayed}
                   isLoading={isLoading}
                 />
+
+                <BadgesSection 
+                  userBadges={userBadges}
+                  isLoading={badgesLoading}
+                  userCredits={userCredits}
+                />
               </>
             ) : (
               <>
@@ -171,6 +204,7 @@ Personal best: ${bestScore}`;
                   hasPlayedToday={hasPlayedToday}
                   personalBest={personalBest}
                   userId={user.id}
+                  onShareClick={checkShareFeature}
                 />
                 
                 <ResultsPanel
@@ -185,6 +219,12 @@ Personal best: ${bestScore}`;
                   totalPlayers={totalPlayers}
                   gamesPlayed={gamesPlayed}
                   isLoading={isLoading}
+                />
+
+                <BadgesSection 
+                  userBadges={userBadges}
+                  isLoading={badgesLoading}
+                  userCredits={userCredits}
                 />
 
                 <footer className="text-center text-sm text-muted-foreground">

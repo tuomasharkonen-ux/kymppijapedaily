@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      badges: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+          prize_credits: number | null
+          rarity: string
+          trigger_type: string
+          trigger_value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id: string
+          name: string
+          prize_credits?: number | null
+          rarity?: string
+          trigger_type: string
+          trigger_value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          prize_credits?: number | null
+          rarity?: string
+          trigger_type?: string
+          trigger_value?: string | null
+        }
+        Relationships: []
+      }
       game_records: {
         Row: {
           created_at: string
@@ -38,6 +71,53 @@ export type Database = {
           throws_count?: number
           user_id?: string | null
           winning_number?: number
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_credits: {
+        Row: {
+          balance: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
