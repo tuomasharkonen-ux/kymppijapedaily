@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HelpCircle } from "lucide-react";
 import { BadgeModal } from "./BadgeModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBadgeIcon } from "@/lib/badgeIcons";
@@ -90,21 +88,12 @@ export const BadgesSection = ({
           </div>
 
           <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4">
-            <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
+            <h3 className="font-semibold leading-none tracking-tight text-base">
               Credits
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="inline-flex">
-                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p>Credits can be used to buy cool stuff in the future, maybe.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Credits can be used to buy cool stuff in the future, maybe.
+            </p>
             <p className="text-2xl font-bold text-foreground mt-2">{userCredits}</p>
           </div>
         </CardContent>
