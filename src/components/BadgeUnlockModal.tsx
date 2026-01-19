@@ -186,11 +186,14 @@ export const BadgeUnlockModal = ({
       <DialogContent
         className={`
           border-2 ${rarity.borderClass} ${rarity.glowClass}
-          ${rarity.bgOverlay}
+          bg-background relative overflow-hidden
           max-w-sm
         `}
       >
-        <DialogHeader className="text-center">
+        {/* Tint overlay */}
+        <div className={`absolute inset-0 ${rarity.bgOverlay} pointer-events-none`} />
+        
+        <DialogHeader className="text-center relative z-10">
           <div className="flex justify-center mb-4">
             <div
               className={`
@@ -222,7 +225,7 @@ export const BadgeUnlockModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex justify-center gap-2 mt-2">
+        <div className="flex justify-center gap-2 mt-2 relative z-10">
           <BadgeUI
             variant="outline"
             className={`${rarity.textColor} ${rarity.borderClass.replace("border-", "border-")}`}
@@ -236,7 +239,7 @@ export const BadgeUnlockModal = ({
           )}
         </div>
 
-        <div className="mt-4 flex flex-col items-center gap-2">
+        <div className="mt-4 flex flex-col items-center gap-2 relative z-10">
           <Button
             onClick={onDismiss}
             size="lg"
