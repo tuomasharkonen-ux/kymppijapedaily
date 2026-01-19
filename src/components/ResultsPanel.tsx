@@ -1,11 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 interface GameRecord {
   throws_count: number;
   winning_number: number;
   played_date: string;
 }
-
 interface ResultsPanelProps {
   todayResult: GameRecord | null;
   personalBest: number | null;
@@ -19,9 +17,8 @@ interface ResultsPanelProps {
   gamesPlayed: number;
   isLoading: boolean;
 }
-
-export const ResultsPanel = ({ 
-  todayResult, 
+export const ResultsPanel = ({
+  todayResult,
   personalBest,
   personalWorst,
   averageThrows,
@@ -31,47 +28,42 @@ export const ResultsPanel = ({
   rankByBest,
   totalPlayers,
   gamesPlayed,
-  isLoading 
+  isLoading
 }: ResultsPanelProps) => {
   if (isLoading) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="p-6 text-center">
           <div className="animate-pulse space-y-3">
             <div className="h-4 bg-muted rounded w-3/4 mx-auto" />
             <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card>
+  return <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <span>📊</span> Your Stats
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {todayResult ? (
-          <>
+        {todayResult ? <>
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Today</p>
                 <p className="text-2xl font-bold text-primary">
                   {todayResult.throws_count}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Best</p>
                 <p className="text-2xl font-bold text-primary">
                   {personalBest || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Worst</p>
                 <p className="text-2xl font-bold text-destructive">
                   {personalWorst || "-"}
@@ -81,21 +73,21 @@ export const ResultsPanel = ({
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Average</p>
                 <p className="text-2xl font-bold text-primary">
                   {averageThrows || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Games</p>
                 <p className="text-2xl font-bold text-primary">
                   {gamesPlayed}
                 </p>
                 <p className="text-xs text-muted-foreground">played</p>
               </div>
-              <div className="bg-accent/50 rounded-lg p-3 text-center">
+              <div className="rounded-lg p-3 text-center bg-primary-foreground">
                 <p className="text-xs text-muted-foreground">Streak</p>
                 <p className="text-2xl font-bold text-primary">
                   {currentStreak}
@@ -127,27 +119,19 @@ export const ResultsPanel = ({
               </div>
             </div>
 
-            {favoriteNumber && (
-              <div className="bg-card border rounded-lg p-3 text-center">
+            {favoriteNumber && <div className="bg-card border rounded-lg p-3 text-center">
                 <p className="text-sm text-muted-foreground">Your favorite number</p>
                 <p className="text-3xl font-bold text-primary">{favoriteNumber} ⭐</p>
                 <p className="text-xs text-muted-foreground">Most used across all games</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-4">
+              </div>}
+          </> : <div className="text-center py-4">
             <p className="text-muted-foreground">
               Play today's game to see your stats!
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              {personalBest 
-                ? `Your best: ${personalBest} throws` 
-                : "No games played yet"}
+              {personalBest ? `Your best: ${personalBest} throws` : "No games played yet"}
             </p>
-          </div>
-        )}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
