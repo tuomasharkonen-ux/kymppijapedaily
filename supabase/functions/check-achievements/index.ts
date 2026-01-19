@@ -204,26 +204,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Update user credits if any badges were earned
+    // Update user credits atomically if any badges were earned
     if (totalCreditsEarned > 0) {
       console.log('Total credits earned:', totalCreditsEarned);
       
-      // Get current credits or create new record
-      const { data: currentCredits } = await supabase
-        .from('user_credits')
-        .select('balance')
-        .eq('user_id', userId)
-        .single();
+      // Use atomic increment function to prevent race conditions
+      const { error: creditError } = await supabase.rpc('increment_user_credits', {
+        p_user_id: userId,
+        p_amount: totalCreditsEarned
+      });
 
-      if (currentCredits) {
-        await supabase
-          .from('user_credits')
-          .update({ balance: currentCredits.balance + totalCreditsEarned })
-          .eq('user_id', userId);
-      } else {
-        await supabase
-          .from('user_credits')
-          .insert({ user_id: userId, balance: totalCreditsEarned });
+      if (creditError) {
+        console.error('Error updating credits:', creditError);
       }
     }
 
