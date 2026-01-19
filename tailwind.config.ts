@@ -104,6 +104,35 @@ export default {
 		'pulse-glow': {
 			'0%, 100%': { boxShadow: '0 0 5px hsl(var(--primary) / 0.3)' },
 			'50%': { boxShadow: '0 0 15px hsl(var(--primary) / 0.6)' }
+		},
+		'shimmer': {
+			'0%': { boxShadow: '0 0 20px hsl(217 91% 60% / 0.3)' },
+			'50%': { boxShadow: '0 0 40px hsl(217 91% 60% / 0.5)' },
+			'100%': { boxShadow: '0 0 20px hsl(217 91% 60% / 0.3)' }
+		},
+		'glow-pulse': {
+			'0%, 100%': { boxShadow: '0 0 30px hsl(270 91% 65% / 0.4)' },
+			'50%': { boxShadow: '0 0 50px hsl(270 91% 65% / 0.6)' }
+		},
+		'legendary-glow': {
+			'0%, 100%': { boxShadow: '0 0 40px hsl(45 93% 47% / 0.5)' },
+			'50%': { boxShadow: '0 0 80px hsl(45 93% 47% / 0.8)' }
+		},
+		'epic-entrance': {
+			'0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+			'50%': { transform: 'scale(1.2) rotate(10deg)' },
+			'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+		},
+		'legendary-entrance': {
+			'0%': { transform: 'scale(0) rotate(-360deg)', opacity: '0' },
+			'40%': { transform: 'scale(1.3) rotate(20deg)' },
+			'60%': { transform: 'scale(0.9) rotate(-10deg)' },
+			'80%': { transform: 'scale(1.1) rotate(5deg)' },
+			'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+		},
+		'float': {
+			'0%, 100%': { transform: 'translateY(0)' },
+			'50%': { transform: 'translateY(-8px)' }
 		}
 		},
 		animation: {
@@ -113,7 +142,13 @@ export default {
 			'dice-bounce': 'dice-bounce 0.3s ease-in-out',
 			'shake': 'shake 0.5s ease-in-out',
 			'pop-in': 'pop-in 0.4s ease-out',
-			'pulse-glow': 'pulse-glow 3s ease-in-out infinite'
+			'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+			'shimmer': 'shimmer 2s ease-in-out infinite',
+			'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+			'legendary-glow': 'legendary-glow 1.5s ease-in-out infinite',
+			'epic-entrance': 'epic-entrance 0.6s ease-out forwards',
+			'legendary-entrance': 'legendary-entrance 0.8s ease-out forwards',
+			'float': 'float 2s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',

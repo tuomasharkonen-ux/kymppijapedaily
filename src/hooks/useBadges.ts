@@ -31,11 +31,17 @@ interface GameContext {
   playDate: string;
 }
 
+interface PendingBadge {
+  badge: Badge;
+  earnedAt: string;
+}
+
 export const useBadges = (userId: string | null) => {
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [userCredits, setUserCredits] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingBadges, setPendingBadges] = useState<PendingBadge[]>([]);
 
   const fetchBadges = useCallback(async () => {
     if (!userId) {
@@ -88,11 +94,12 @@ export const useBadges = (userId: string | null) => {
     }
   }, [userId]);
 
-  const showBadgeToast = (badge: Badge) => {
-    toast.success(`🏆 Badge Unlocked: ${badge.name} (+${badge.prize_credits} credits)`, {
-      duration: 5000,
-      position: "bottom-center",
-    });
+  const queueBadge = (badge: Badge) => {
+    setPendingBadges((prev) => [...prev, { badge, earnedAt: new Date().toISOString() }]);
+  };
+
+  const dismissBadge = () => {
+    setPendingBadges((prev) => prev.slice(1));
   };
 
   const checkAndAwardBadges = useCallback(async (context: Omit<GameContext, "playDate">) => {
@@ -111,10 +118,10 @@ export const useBadges = (userId: string | null) => {
         return;
       }
 
-      // Show toast for each new badge
+      // Queue each new badge for the unlock modal
       if (data?.newBadges && data.newBadges.length > 0) {
         data.newBadges.forEach((badge: Badge) => {
-          showBadgeToast(badge);
+          queueBadge(badge);
         });
 
         // Refresh badges after earning new ones
@@ -151,7 +158,7 @@ export const useBadges = (userId: string | null) => {
 
       if (data?.newBadges && data.newBadges.length > 0) {
         data.newBadges.forEach((badge: Badge) => {
-          showBadgeToast(badge);
+          queueBadge(badge);
         });
 
         await fetchBadges();
@@ -182,5 +189,7 @@ export const useBadges = (userId: string | null) => {
     checkAndAwardBadges,
     checkShareFeature,
     refetchBadges: fetchBadges,
+    pendingBadges,
+    dismissBadge,
   };
 };
