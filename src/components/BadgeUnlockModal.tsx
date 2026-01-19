@@ -54,7 +54,7 @@ const rarityConfig: Record<
   },
   Rare: {
     borderClass: "border-blue-500",
-    glowClass: "shadow-[0_0_30px_hsl(217,91%,60%,0.4)] animate-shimmer",
+    glowClass: "shadow-[0_0_30px_hsl(217,91%,60%,0.4)]",
     iconAnimation: "animate-pop-in",
     bgOverlay: "bg-blue-500/5",
     textColor: "text-blue-600 dark:text-blue-400",
@@ -63,7 +63,7 @@ const rarityConfig: Record<
   },
   Epic: {
     borderClass: "border-purple-500",
-    glowClass: "shadow-[0_0_40px_hsl(270,91%,65%,0.5)] animate-glow-pulse",
+    glowClass: "shadow-[0_0_40px_hsl(270,91%,65%,0.5)]",
     iconAnimation: "animate-epic-entrance",
     bgOverlay: "bg-purple-500/10",
     textColor: "text-purple-600 dark:text-purple-400",
@@ -72,7 +72,7 @@ const rarityConfig: Record<
   },
   Legendary: {
     borderClass: "border-amber-500",
-    glowClass: "shadow-[0_0_60px_hsl(45,93%,47%,0.6)] animate-legendary-glow",
+    glowClass: "shadow-[0_0_60px_hsl(45,93%,47%,0.6)]",
     iconAnimation: "animate-legendary-entrance",
     bgOverlay: "bg-gradient-to-b from-amber-500/20 via-amber-500/5 to-transparent",
     textColor: "text-amber-600 dark:text-amber-400",
@@ -186,11 +186,15 @@ export const BadgeUnlockModal = ({
       <DialogContent
         className={`
           border-2 ${rarity.borderClass} ${rarity.glowClass}
-          ${rarity.bgOverlay}
+          bg-background
           max-w-sm
+          relative overflow-hidden
         `}
       >
-        <DialogHeader className="text-center">
+        {/* Rarity color overlay */}
+        <div className={`absolute inset-0 rounded-lg ${rarity.bgOverlay} pointer-events-none`} />
+        
+        <DialogHeader className="text-center relative z-10">
           <div className="flex justify-center mb-4">
             <div
               className={`
