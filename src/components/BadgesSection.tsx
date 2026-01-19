@@ -86,7 +86,7 @@ export const BadgesSection = ({
 
           <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4">
             <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
-              <span>💰</span> Credits
+              Credits
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
