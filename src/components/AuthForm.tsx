@@ -48,7 +48,7 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-center">
-        {isLogin ? "Sign In" : "Sign Up"}
+        {isLogin ? "Log in" : "Create an account"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -75,7 +75,7 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+          {loading ? "Loading..." : isLogin ? "Log in" : "Create account"}
         </Button>
         {!isLogin && (
           <p className="text-xs text-muted-foreground text-center">
@@ -93,7 +93,7 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
           onClick={() => setIsLogin(!isLogin)}
           className="text-primary hover:underline font-medium"
         >
-          {isLogin ? "Sign Up" : "Sign In"}
+          {isLogin ? "Create one" : "Log in"}
         </button>
       </p>
     </div>
