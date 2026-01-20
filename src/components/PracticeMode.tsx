@@ -181,7 +181,7 @@ export const PracticeMode = ({
         <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Find out many rolls you need to get Kymppijape today! It's obviously pure skill, no luck involved.
       </p>
 
-      <Card>
+      <Card className={!hasStarted ? "animate-border-glow" : ""}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? <>
               <div className="flex justify-between items-center mb-4">
