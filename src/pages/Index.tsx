@@ -184,7 +184,7 @@ Personal best: ${bestScore}`;
             <PracticeMode isLoggedIn />
           </div> : <div className="space-y-6">
             {hasPlayedToday && !justCompletedGame ? <>
-                <Card className="max-w-md mx-auto">
+                <Card>
                   <CardContent className="p-6 text-center">
                     <div className="text-6xl mb-4">​👋</div>
                     <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
