@@ -78,7 +78,7 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
       onClick={onClick}
       disabled={disabled || isRolling}
       className={cn(
-        "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md transition-all duration-300",
+        "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md transition-transform duration-300",
         "bg-card border-2",
         isLocked 
           ? "border-primary ring-2 ring-primary/50 animate-pulse-glow" 
