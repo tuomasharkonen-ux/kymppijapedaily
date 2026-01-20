@@ -108,7 +108,7 @@ export const PracticeMode = ({
           <p className="text-lg text-muted-foreground mb-2">
             All 10 dice showing {winningNumber} in {throwCount} throws!
           </p>
-          <p className="text-sm text-muted-foreground mb-4">(Practice mode - result not saved)</p>
+          <p className="text-sm mb-4 text-muted">(Practice mode - result not saved)</p>
           <Button onClick={resetGame} variant="outline" size="lg">
             🎲 Play Again
           </Button>
