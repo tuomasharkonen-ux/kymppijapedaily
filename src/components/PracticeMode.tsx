@@ -174,7 +174,7 @@ export const PracticeMode = ({
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
             </> : <div className="text-center py-8">
-              <p className="text-muted-foreground mb-6">Ready to test your luck?</p>
+              <p className="text-muted-foreground mb-6">Ready to test your dice rolling skills?</p>
               <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
