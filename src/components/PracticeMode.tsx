@@ -120,7 +120,7 @@ export const PracticeMode = ({
               <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <ul className="space-y-2 text-sm text-muted-foreground mb-[24px]">
                 <li className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-primary" />
                   <span>New game every day at midnight</span>
@@ -158,8 +158,7 @@ export const PracticeMode = ({
 
       <Card>
         <CardContent className="p-4 md:p-6">
-          {hasStarted ? (
-            <>
+          {hasStarted ? <>
               <div className="flex justify-between items-center mb-4">
                 <div className="text-sm text-muted-foreground">
                   Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
@@ -178,15 +177,12 @@ export const PracticeMode = ({
               <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg">
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
-            </>
-          ) : (
-            <div className="text-center py-8">
+            </> : <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">Ready to test your luck?</p>
               <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
