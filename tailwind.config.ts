@@ -146,7 +146,7 @@ export default {
 			'dice-bounce': 'dice-bounce 0.3s ease-in-out',
 			'shake': 'shake 0.5s ease-in-out',
 			'pop-in': 'pop-in 0.4s ease-out',
-			'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
+			'pulse-glow': 'pulse-glow 2.5s ease-in-out infinite',
 			'shimmer': 'shimmer 2s ease-in-out infinite',
 			'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
 			'legendary-glow': 'legendary-glow 1.5s ease-in-out infinite',
