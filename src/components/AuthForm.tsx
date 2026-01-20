@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface AuthFormProps {
@@ -46,20 +47,27 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
 
   return (
     <div className="space-y-4">
+      <h2 className="text-xl font-semibold text-center">
+        {isLogin ? "Sign In" : "Sign Up"}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
           <Input
+            id="email"
             type="email"
-            placeholder="Email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
-        <div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
           <Input
+            id="password"
             type="password"
-            placeholder="Password"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
