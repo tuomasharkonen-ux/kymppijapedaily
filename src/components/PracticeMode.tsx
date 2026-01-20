@@ -148,13 +148,9 @@ export const PracticeMode = ({
       </div>;
   }
   return <div className="space-y-6">
-      <Card className="bg-muted/50">
-        <CardContent className="p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Test your dice rolling skills and find out many rolls you need to get Kymppijape today! 
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground text-center">
+        <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Test your dice rolling skills and find out many rolls you need to get Kymppijape today! 
+      </p>
 
       <Card>
         <CardContent className="p-4 md:p-6">
