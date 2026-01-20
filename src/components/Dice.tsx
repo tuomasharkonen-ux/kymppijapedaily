@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
 
 interface DiceProps {
   value: number;
@@ -89,8 +90,8 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
     >
       <DiceDots value={displayValue} />
       {isLocked && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-primary rounded-full flex items-center justify-center">
-          <span className="text-primary-foreground text-[10px] md:text-xs">🔒</span>
+        <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center">
+          <Lock className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary-foreground" />
         </div>
       )}
     </button>
