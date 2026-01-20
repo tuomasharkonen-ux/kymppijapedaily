@@ -190,7 +190,7 @@ Personal best: ${bestScore}`;
         </div>
       )}
 
-      <Card>
+      <Card className={!hasStarted ? "animate-border-glow" : ""}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? (
             <>
