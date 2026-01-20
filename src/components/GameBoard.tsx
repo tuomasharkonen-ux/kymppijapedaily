@@ -159,7 +159,7 @@ Personal best: ${bestScore}`;
     return (
       <Card className="max-w-md mx-auto">
         <CardContent className="p-6 text-center">
-          <div className="text-6xl mb-4">🎲</div>
+          <div className="text-6xl mb-4">🫶</div>
           <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
           <p className="text-muted-foreground">
             You've already played today's Kymppijape. Check your results below!
