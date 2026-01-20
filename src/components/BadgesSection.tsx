@@ -38,7 +38,7 @@ export const BadgesSection = ({
     return <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span>🏆</span> Your Badges
+            <span aria-hidden="true">🏆</span> Your Badges
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -52,7 +52,7 @@ export const BadgesSection = ({
     return <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span>🏆</span> Your Badges
+            <span aria-hidden="true">🏆</span> Your Badges
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center text-muted-foreground py-6">
@@ -65,7 +65,7 @@ export const BadgesSection = ({
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <span>🏆</span> Your Badges
+            <span aria-hidden="true">🏆</span> Your Badges
           </CardTitle>
           <p className="text-sm text-muted-foreground text-center">
             Earn credits with badges. Badges can be earned by playing the game really well. Keep playing to find out how!
@@ -78,9 +78,9 @@ export const BadgesSection = ({
             const styles = rarityStyles[rarity] || rarityStyles.Common;
             const textColor = rarityTextColors[rarity] || rarityTextColors.Common;
             const IconComponent = getBadgeIcon(userBadge.badge.id);
-            return <button key={userBadge.id} onClick={() => handleBadgeClick(userBadge)} className={`aspect-square rounded-lg border-2 p-2.5 min-w-[70px] min-h-[70px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${styles}`} title={userBadge.badge.name}>
-                  <IconComponent className={`w-5 h-5 md:w-6 md:h-6 ${textColor}`} />
-                  <span className={`text-[10px] font-medium w-full text-center leading-tight line-clamp-2 ${textColor}`}>
+            return <button key={userBadge.id} onClick={() => handleBadgeClick(userBadge)} aria-label={`${userBadge.badge.name} badge, ${userBadge.badge.rarity} rarity. Click for details.`} className={`aspect-square rounded-lg border-2 p-2.5 min-w-[70px] min-h-[70px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${styles}`}>
+                  <IconComponent className={`w-5 h-5 md:w-6 md:h-6 ${textColor}`} aria-hidden="true" />
+                  <span className={`text-[10px] font-medium w-full text-center leading-tight line-clamp-2 ${textColor}`} aria-hidden="true">
                     {userBadge.badge.name}
                   </span>
                 </button>;

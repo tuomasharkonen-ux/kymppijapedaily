@@ -77,6 +77,8 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
     <button
       onClick={onClick}
       disabled={disabled || isRolling}
+      aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? 'locked' : 'unlocked'}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
+      aria-pressed={isLocked}
       className={cn(
         "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md transition-transform duration-300",
         "bg-card border-2",

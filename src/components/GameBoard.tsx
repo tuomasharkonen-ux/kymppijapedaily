@@ -159,7 +159,7 @@ Personal best: ${bestScore}`;
     return (
       <Card className="max-w-md mx-auto">
         <CardContent className="p-6 text-center">
-          <div className="text-6xl mb-4">🫶</div>
+          <div className="text-6xl mb-4" aria-hidden="true">🫶</div>
           <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
           <p className="text-muted-foreground">
             You've already played today's Kymppijape. Check your results below!
@@ -171,10 +171,15 @@ Personal best: ${bestScore}`;
 
   return (
     <div className="space-y-6">
+      {/* Live region for screen reader announcements */}
+      <div aria-live="polite" className="sr-only">
+        {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
+      </div>
+      
       {gameComplete && winningNumber && (
         <div className="text-center animate-pop-in">
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">
-            Kymppijape! 🎉
+            Kymppijape! <span aria-hidden="true">🎉</span>
           </h2>
           <p className="text-lg text-muted-foreground mb-4">
             All 10 dice showing {winningNumber}!
@@ -185,7 +190,7 @@ Personal best: ${bestScore}`;
             className="animate-pop-in min-w-[220px]"
             variant={showCopied ? "secondary" : "default"}
           >
-            {showCopied ? "✓ Copied to clipboard!" : "📋 Share Result with Friends"}
+            {showCopied ? "✓ Copied to clipboard!" : <><span aria-hidden="true">📋</span> Share Result with Friends</>}
           </Button>
         </div>
       )}
@@ -227,19 +232,20 @@ Personal best: ${bestScore}`;
                 disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
                 className="w-full"
                 size="lg"
+                aria-label={isRolling ? "Rolling dice" : "Roll dice"}
               >
                 {isRolling ? (
-                  <span className="animate-shake">🎲 Rolling...</span>
+                  <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span>
                 ) : (
-                  <>🎲 Roll Dice</>
+                  <><span aria-hidden="true">🎲</span> Roll Dice</>
                 )}
               </Button>
             </>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">Ready for today's challenge?</p>
-              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
-                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+                {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
             </div>
           )}

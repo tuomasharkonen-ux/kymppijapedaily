@@ -212,7 +212,7 @@ export const BadgeUnlockModal = ({
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold text-center">
-            🏆 Badge Unlocked!
+            <span aria-hidden="true">🏆</span> Badge Unlocked!
           </DialogTitle>
           <DialogDescription className="text-center space-y-2">
             <p className={`text-xl font-semibold ${rarity.textColor}`}>

@@ -123,15 +123,16 @@ Personal best: ${bestScore}`;
     }
   };
   if (authLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-4xl">🎲</div>
+    return <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-label="Loading game">
+        <div className="animate-pulse text-4xl" aria-hidden="true">🎲</div>
+        <span className="sr-only">Loading game...</span>
       </div>;
   }
   return <div className="min-h-screen bg-background">
       <div className="container max-w-lg mx-auto px-4 py-6 md:py-10">
         <header className="text-center mb-6 md:mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
-            🎲 Kymppijape Daily
+            <span aria-hidden="true">🎲</span> Kymppijape Daily
           </h1>
           <p className="text-muted-foreground">
             {format(new Date(), "EEEE, MMMM d, yyyy")}
@@ -140,8 +141,8 @@ Personal best: ${bestScore}`;
               <span className="text-sm text-muted-foreground">{user.email}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Menu className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" aria-label="User menu">
+                    <Menu className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
@@ -186,17 +187,17 @@ Personal best: ${bestScore}`;
             {hasPlayedToday && !justCompletedGame ? <>
                 <Card>
                   <CardContent className="p-6 text-center">
-                    <div className="text-6xl mb-4">​👋</div>
+                    <div className="text-6xl mb-4" aria-hidden="true">👋</div>
                     <h2 className="text-xl font-semibold mb-2">Come back tomorrow!</h2>
                     <p className="text-muted-foreground mb-4">
                       You've already played today's Kymppijape. New game unlocks at midnight!
                     </p>
                     <Button onClick={copyResultToClipboard} size="lg" className="min-w-[220px]" variant={showCopied ? "secondary" : "default"}>
-                      {showCopied ? "✓ Copied to clipboard!" : "📋 Share Result with Friends"}
+                      {showCopied ? "✓ Copied to clipboard!" : <><span aria-hidden="true">📋</span> Share Result with Friends</>}
                     </Button>
                     <div className="mt-4">
-                      <Button variant="outline" onClick={() => setShowPracticeMode(true)}>
-                        🎯 Play Practice Mode
+                      <Button variant="outline" onClick={() => setShowPracticeMode(true)} aria-label="Play Practice Mode">
+                        <span aria-hidden="true">🎯</span> Play Practice Mode
                       </Button>
                     </div>
                   </CardContent>
