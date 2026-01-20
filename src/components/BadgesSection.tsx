@@ -79,9 +79,9 @@ export const BadgesSection = ({
             const textColor = rarityTextColors[rarity] || rarityTextColors.Common;
             const IconComponent = getBadgeIcon(userBadge.badge.id);
             return <button key={userBadge.id} onClick={() => handleBadgeClick(userBadge)} className={`aspect-square rounded-lg border-2 p-2.5 min-w-[70px] min-h-[70px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${styles}`} title={userBadge.badge.name}>
-                  <IconComponent className={`w-6 h-6 md:w-8 md:h-8 ${textColor}`} />
-                  <span className={`text-[10px] font-medium truncate w-full text-center leading-tight ${textColor}`}>
-                    {userBadge.badge.name.length > 12 ? userBadge.badge.name.substring(0, 12) + "..." : userBadge.badge.name}
+                  <IconComponent className={`w-5 h-5 md:w-6 md:h-6 ${textColor}`} />
+                  <span className={`text-[10px] font-medium w-full text-center leading-tight line-clamp-2 ${textColor}`}>
+                    {userBadge.badge.name}
                   </span>
                 </button>;
           })}
