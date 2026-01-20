@@ -126,7 +126,7 @@ export const PracticeMode = ({
     const percentileInfo = getPercentileText(throwCount);
     return <div className="space-y-6">
         <div className="text-center animate-pop-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! 🎉</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! <span aria-hidden="true">🎉</span></h2>
           <div className="py-4">
             <p className="text-lg text-muted-foreground mb-2">
               All 10 dice showing {winningNumber} in {throwCount} throws!
@@ -136,8 +136,8 @@ export const PracticeMode = ({
             </p>
           </div>
           <p className="text-sm text-muted-foreground mb-4">(Practice mode - result not saved)</p>
-          <Button onClick={resetGame} variant="outline" size="lg">
-            🎲 Play Again
+          <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
+            <span aria-hidden="true">🎲</span> Play Again
           </Button>
         </div>
 
@@ -177,6 +177,11 @@ export const PracticeMode = ({
       </div>;
   }
   return <div className="space-y-6">
+      {/* Live region for screen reader announcements */}
+      <div aria-live="polite" className="sr-only">
+        {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
+      </div>
+      
       <p className="text-sm text-muted-foreground text-center">
         <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Find out many rolls you need to get Kymppijape today! It's obviously pure skill, no luck involved.
       </p>
@@ -199,13 +204,13 @@ export const PracticeMode = ({
 
               <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
 
-              <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg">
-                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+                {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
             </> : <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">Ready to test your dice rolling skills?</p>
-              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
-                {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
+              <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+                {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
             </div>}
         </CardContent>

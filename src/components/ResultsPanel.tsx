@@ -43,7 +43,7 @@ export const ResultsPanel = ({
   return <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
-          <span>📊</span> Your Stats
+          <span aria-hidden="true">📊</span> Your Stats
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -92,7 +92,7 @@ export const ResultsPanel = ({
                 <p className="text-2xl font-bold text-primary">
                   {currentStreak}
                 </p>
-                <p className="text-xs text-muted-foreground">🔥 days</p>
+                <p className="text-xs text-muted-foreground"><span aria-hidden="true">🔥</span> days</p>
               </div>
             </div>
 
@@ -101,7 +101,7 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">Rank (Best)</p>
                 <p className="text-2xl font-bold">
                   {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
-                  {rankByBest === 1 && " 🏆"}
+                  {rankByBest === 1 && <span aria-hidden="true"> 🏆</span>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
@@ -111,7 +111,7 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">Rank (Avg)</p>
                 <p className="text-2xl font-bold">
                   {rankByAverage && totalPlayers ? `#${rankByAverage}` : "-"}
-                  {rankByAverage === 1 && " 🏆"}
+                  {rankByAverage === 1 && <span aria-hidden="true"> 🏆</span>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
@@ -121,7 +121,7 @@ export const ResultsPanel = ({
 
             {favoriteNumber && <div className="bg-card border rounded-lg p-3 text-center">
                 <p className="text-sm text-muted-foreground">Your favorite number</p>
-                <p className="text-3xl font-bold text-primary">{favoriteNumber} ⭐</p>
+                <p className="text-3xl font-bold text-primary">{favoriteNumber} <span aria-hidden="true">⭐</span></p>
                 <p className="text-xs text-muted-foreground">Most used across all games</p>
               </div>}
           </> : <div className="text-center py-4">
