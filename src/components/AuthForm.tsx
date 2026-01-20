@@ -47,9 +47,9 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-center">
+      <h3 className="text-lg font-semibold text-center">
         {isLogin ? "Log in" : "Create an account"}
-      </h2>
+      </h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
