@@ -101,14 +101,39 @@ export const PracticeMode = ({
     setWinningNumber(null);
     setHasStarted(false);
   };
+
+  const getPercentile = (throws: number): number => {
+    if (throws <= 6) return 1;
+    if (throws <= 8) return 5;
+    if (throws <= 10) return 15;
+    if (throws <= 12) return 30;
+    if (throws <= 14) return 50;
+    if (throws <= 16) return 65;
+    if (throws <= 18) return 75;
+    if (throws <= 22) return 85;
+    if (throws <= 28) return 95;
+    return 99;
+  };
+
+  const getPercentileText = (throws: number): { text: string; highlight: boolean } => {
+    const percentile = getPercentile(throws);
+    if (percentile === 1) return { text: "Incredible! Top 1% result! 🏆", highlight: true };
+    if (percentile === 5) return { text: "Amazing! Top 5% result! ⭐", highlight: true };
+    return { text: `Top ${percentile}% result`, highlight: false };
+  };
+
   if (gameComplete && winningNumber) {
+    const percentileInfo = getPercentileText(throwCount);
     return <div className="space-y-6">
         <div className="text-center animate-pop-in">
           <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! 🎉</h2>
           <p className="text-lg text-muted-foreground mb-2">
             All 10 dice showing {winningNumber} in {throwCount} throws!
           </p>
-          <p className="text-sm mb-4 text-muted">(Practice mode - result not saved)</p>
+          <p className={`text-sm mb-2 ${percentileInfo.highlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            {percentileInfo.text}
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">(Practice mode - result not saved)</p>
           <Button onClick={resetGame} variant="outline" size="lg">
             🎲 Play Again
           </Button>
@@ -120,7 +145,7 @@ export const PracticeMode = ({
               <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <ul className="space-y-2 text-sm text-muted-foreground mb-[24px]">
                 <li className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-primary" />
                   <span>New game every day at midnight</span>
@@ -133,7 +158,7 @@ export const PracticeMode = ({
                   <Flame className="h-4 w-4 text-primary" />
                   <span>Build and maintain daily streaks</span>
                 </li>
-                <li className="flex items-center gap-2 text-muted text-center">
+                <li className="flex items-center gap-2">
                   <Award className="h-4 w-4 text-primary" />
                   <span>Unlock badges and earn credits</span>
                 </li>
@@ -148,13 +173,9 @@ export const PracticeMode = ({
       </div>;
   }
   return <div className="space-y-6">
-      <Card className="bg-muted/50">
-        <CardContent className="p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Test your dice rolling skills and find out many rolls you need to get Kymppijape today! 
-          </p>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground text-center">
+        <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Find out many rolls you need to get Kymppijape today! It's obviously pure skill, no luck involved.
+      </p>
 
       <Card>
         <CardContent className="p-4 md:p-6">
@@ -178,7 +199,7 @@ export const PracticeMode = ({
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
             </> : <div className="text-center py-8">
-              <p className="text-muted-foreground mb-6">Ready to test your luck?</p>
+              <p className="text-muted-foreground mb-6">Ready to test your dice rolling skills?</p>
               <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]">
                 {isRolling ? <span className="animate-shake">🎲 Rolling...</span> : <>🎲 Roll Dice</>}
               </Button>
