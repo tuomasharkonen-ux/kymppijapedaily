@@ -147,28 +147,30 @@ export const PracticeMode = ({
               <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-muted-foreground mb-[24px]">
-                <li className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  <span>New game every day at midnight</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <span>Track your best, worst, and average</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-primary" />
-                  <span>Build and maintain daily streaks</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-primary" />
-                  <span>Unlock badges and earn credits</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-primary" />
-                  <span>Compete and see your global rank</span>
-                </li>
-              </ul>
+              <div className="flex justify-center mb-6">
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-primary" />
+                    <span>New game every day at midnight</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span>Track your best, worst, and average</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-primary" />
+                    <span>Build and maintain daily streaks</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-primary" />
+                    <span>Unlock badges and earn credits</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-primary" />
+                    <span>Compete and see your global rank</span>
+                  </li>
+                </ul>
+              </div>
               <AuthForm onSuccess={() => {}} defaultToSignUp />
             </CardContent>
           </Card>}
@@ -215,28 +217,30 @@ export const PracticeMode = ({
             <CardDescription>Sign up or sign in to unlock all features!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-primary" />
-                <span>New game every day at midnight</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <span>Track your best, worst, and average</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Flame className="h-4 w-4 text-primary" />
-                <span>Build and maintain daily streaks</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-primary" />
-                <span>Unlock badges and earn credits</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-primary" />
-                <span>Compete and see your global rank</span>
-              </li>
-            </ul>
+            <div className="flex justify-center mb-4">
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <span>New game every day at midnight</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span>Track your best, worst, and average</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-primary" />
+                  <span>Build and maintain daily streaks</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-primary" />
+                  <span>Unlock badges and earn credits</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  <span>Compete and see your global rank</span>
+                </li>
+              </ul>
+            </div>
             <AuthForm onSuccess={() => {}} />
           </CardContent>
         </Card>}
