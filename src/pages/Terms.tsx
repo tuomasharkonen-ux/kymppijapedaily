@@ -87,7 +87,15 @@ const Terms = () => {
           <section className="mb-6">
             <h2 className="text-lg font-semibold text-foreground mb-2">8. Contact</h2>
             <p className="text-muted-foreground">
-              For questions about these terms or the service, please contact us through the game's official channels.
+              For questions about these terms or the service, please reach out via{" "}
+              <a 
+                href="https://www.linkedin.com/in/harkonentuomas/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                LinkedIn
+              </a>.
             </p>
           </section>
         </article>
