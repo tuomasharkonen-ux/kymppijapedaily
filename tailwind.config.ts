@@ -135,8 +135,8 @@ export default {
 			'50%': { transform: 'translateY(-8px)' }
 		},
 		'border-glow': {
-			'0%, 100%': { boxShadow: '0 0 8px hsl(var(--primary) / 0.2), inset 0 0 0 1px hsl(var(--primary) / 0.15)' },
-			'50%': { boxShadow: '0 0 16px hsl(var(--primary) / 0.35), inset 0 0 0 1px hsl(var(--primary) / 0.25)' }
+			'0%, 100%': { boxShadow: '0 0 12px hsl(var(--primary) / 0.25), inset 0 0 0 1px hsl(var(--primary) / 0.15)' },
+			'50%': { boxShadow: '0 0 24px hsl(var(--primary) / 0.45), inset 0 0 0 1px hsl(var(--primary) / 0.3)' }
 		}
 		},
 		animation: {
