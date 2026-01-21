@@ -93,7 +93,7 @@ export const BadgesSection = ({
             </h3>
             <p className="text-2xl font-bold text-foreground mt-2">{userCredits}</p>
             <p className="text-xs text-muted-foreground/70 mt-1">
-              Credits can be used to buy cool stuff in the future, maybe.
+              Credits can be used to unlock cool stuff in the future, maybe.
             </p>
           </div>
         </CardContent>
