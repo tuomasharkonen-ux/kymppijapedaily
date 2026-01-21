@@ -74,6 +74,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -126,6 +147,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: { p_limit?: number; p_sort_by?: string }
+        Returns: {
+          avg_throws: number
+          best_throws: number
+          games_played: number
+          rank: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_player_rankings: {
         Args: { p_user_id: string }
         Returns: {

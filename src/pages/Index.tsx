@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { GameBoard } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
@@ -11,19 +11,17 @@ import { useBadges } from "@/hooks/useBadges";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Menu, LogOut, Trash2 } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import { Menu, LogOut, User } from "lucide-react";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 const Index = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showCopied, setShowCopied] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const {
     todayResult,
     personalBest,
@@ -103,25 +101,6 @@ Personal best: ${bestScore}`;
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
-  const handleDeleteAccount = async () => {
-    if (!user) return;
-    setIsDeleting(true);
-    try {
-      // Delete user data from all tables
-      await supabase.from("user_badges").delete().eq("user_id", user.id);
-      await supabase.from("user_credits").delete().eq("user_id", user.id);
-      await supabase.from("game_records").delete().eq("user_id", user.id);
-
-      // Sign out the user (account deletion requires admin API)
-      await supabase.auth.signOut();
-      toast.success("Your account data has been deleted");
-    } catch (error) {
-      toast.error("Failed to delete account data");
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
-    }
-  };
   if (authLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-label="Loading game">
         <div className="animate-pulse text-4xl" aria-hidden="true">🎲</div>
@@ -146,34 +125,17 @@ Personal best: ${bestScore}`;
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign out
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-destructive focus:text-destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete account
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>}
-
-          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete all your game data, badges, and credits. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteAccount} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  {isDeleting ? "Deleting..." : "Delete account"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </header>
 
         {!user ? <PracticeMode /> : showPracticeMode ? <div className="space-y-6">
