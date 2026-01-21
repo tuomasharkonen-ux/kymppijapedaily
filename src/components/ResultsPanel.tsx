@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 interface GameRecord {
   throws_count: number;
   winning_number: number;
@@ -117,6 +119,14 @@ export const ResultsPanel = ({
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
                 </p>
               </div>
+            </div>
+
+            <div className="text-center">
+              <Link to="/leaderboard">
+                <Button variant="link" className="text-sm">
+                  View Full Leaderboard →
+                </Button>
+              </Link>
             </div>
 
             {favoriteNumber && <div className="bg-card border rounded-lg p-3 text-center">
