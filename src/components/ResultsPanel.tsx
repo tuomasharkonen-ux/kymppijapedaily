@@ -51,21 +51,21 @@ export const ResultsPanel = ({
       <CardContent className="space-y-4">
         {todayResult ? <>
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Today</p>
                 <p className="text-2xl font-bold text-primary">
                   {todayResult.throws_count}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Best</p>
                 <p className="text-2xl font-bold text-primary">
                   {personalBest || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Worst</p>
                 <p className="text-2xl font-bold text-destructive">
                   {personalWorst || "-"}
@@ -75,21 +75,21 @@ export const ResultsPanel = ({
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Average</p>
                 <p className="text-2xl font-bold text-primary">
                   {averageThrows || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
               </div>
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Games</p>
                 <p className="text-2xl font-bold text-primary">
                   {gamesPlayed}
                 </p>
                 <p className="text-xs text-muted-foreground">played</p>
               </div>
-              <div className="rounded-lg p-3 text-center bg-primary-foreground">
+              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
                 <p className="text-xs text-muted-foreground">Streak</p>
                 <p className="text-2xl font-bold text-primary">
                   {currentStreak}
