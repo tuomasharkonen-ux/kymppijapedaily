@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { format } from "date-fns";
 
 export interface Badge {
   id: string;
@@ -18,17 +16,6 @@ export interface UserBadge {
   badge_id: string;
   earned_at: string;
   badge: Badge;
-}
-
-interface GameContext {
-  throws: number;
-  winningNumber: number;
-  initialDice: number[];
-  currentStreak: number;
-  isFirstGame: boolean;
-  lockedNumbers?: number[];
-  featureUsed?: string;
-  playDate: string;
 }
 
 interface PendingBadge {
@@ -102,15 +89,13 @@ export const useBadges = (userId: string | null) => {
     setPendingBadges((prev) => prev.slice(1));
   };
 
-  const checkAndAwardBadges = useCallback(async (context: Omit<GameContext, "playDate">) => {
+  const checkAndAwardBadges = useCallback(async () => {
     if (!userId) return;
 
-    const playDate = format(new Date(), "MM-dd");
-    const fullContext: GameContext = { ...context, playDate };
-
     try {
+      // Server validates all game data from database - no client data needed
       const { data, error } = await supabase.functions.invoke("check-achievements", {
-        body: fullContext,
+        body: {},
       });
 
       if (error) {
@@ -138,16 +123,9 @@ export const useBadges = (userId: string | null) => {
     if (!userId) return;
 
     try {
-      const playDate = format(new Date(), "MM-dd");
       const { data, error } = await supabase.functions.invoke("check-achievements", {
         body: {
-          throws: 0,
-          winningNumber: 0,
-          initialDice: [],
-          currentStreak: 0,
-          isFirstGame: false,
           featureUsed: "share",
-          playDate,
         },
       });
 

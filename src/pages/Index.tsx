@@ -84,19 +84,12 @@ Personal best: ${bestScore}`;
     });
     return () => subscription.unsubscribe();
   }, []);
-  const handleGameComplete = async (throws: number, winningNumber: number, initialDice: number[]) => {
+  const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[]) => {
     setJustCompletedGame(true);
     await saveGameResult(throws, winningNumber);
 
-    // Check for achievements
-    await checkAndAwardBadges({
-      throws,
-      winningNumber,
-      initialDice,
-      currentStreak: currentStreak + 1,
-      // Will be +1 after this game
-      isFirstGame: gamesPlayed === 0
-    });
+    // Check for achievements (server validates all data from database)
+    await checkAndAwardBadges();
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
