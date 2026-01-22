@@ -135,19 +135,27 @@ export const useGameRecords = (userId: string | null) => {
     if (!userId) return;
 
     try {
-      const { error } = await supabase.from("game_records").insert({
-        user_id: userId,
-        throws_count: throws,
-        winning_number: winningNumber,
-        played_date: today,
+      // Use secure edge function instead of direct insert
+      // This prevents score manipulation and ensures server-side date validation
+      const { data, error } = await supabase.functions.invoke('save-game-result', {
+        body: { 
+          throws_count: throws, 
+          winning_number: winningNumber 
+        }
       });
 
       if (error) throw error;
+      
+      // Check for application-level errors from the edge function
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       // Refresh records after saving
       await fetchRecords();
     } catch (error) {
       console.error("Error saving game result:", error);
+      throw error; // Re-throw so the caller can handle it
     }
   };
 
