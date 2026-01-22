@@ -6,14 +6,7 @@ const corsHeaders = {
 };
 
 interface GameContext {
-  throws: number;
-  winningNumber: number;
-  initialDice: number[];
-  currentStreak: number;
-  isFirstGame: boolean;
-  lockedNumbers?: number[];
   featureUsed?: string;
-  playDate: string; // MM-DD format
 }
 
 interface Badge {
@@ -29,6 +22,75 @@ interface Badge {
 interface EarnedBadge {
   badge: Badge;
   isNew: boolean;
+}
+
+// Seeded random number generator using mulberry32 algorithm (must match client)
+function seededRandom(seed: string): () => number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  return function() {
+    let t = hash += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Generate deterministic dice values for a user on a specific date (must match client)
+function getSeededDice(userId: string, date: string): number[] {
+  const seed = `${userId}_${date}`;
+  const rng = seededRandom(seed);
+  return Array(10).fill(null).map(() => Math.floor(rng() * 6) + 1);
+}
+
+// Calculate streak from played dates
+function calculateStreak(playedDates: string[]): number {
+  if (playedDates.length === 0) return 0;
+
+  // Sort dates descending (most recent first)
+  const sortedDates = [...playedDates].sort((a, b) => 
+    new Date(b).getTime() - new Date(a).getTime()
+  );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const mostRecentDate = new Date(sortedDates[0]);
+  mostRecentDate.setHours(0, 0, 0, 0);
+
+  // Most recent game must be today or yesterday to count
+  if (mostRecentDate < yesterday) {
+    return 0;
+  }
+
+  let streak = 1;
+  let currentDate = mostRecentDate;
+
+  for (let i = 1; i < sortedDates.length; i++) {
+    const prevDate = new Date(sortedDates[i]);
+    prevDate.setHours(0, 0, 0, 0);
+
+    const expectedPrevDate = new Date(currentDate);
+    expectedPrevDate.setDate(expectedPrevDate.getDate() - 1);
+
+    if (prevDate.getTime() === expectedPrevDate.getTime()) {
+      streak++;
+      currentDate = prevDate;
+    } else if (prevDate.getTime() < expectedPrevDate.getTime()) {
+      break;
+    }
+    // Skip duplicates (same day)
+  }
+
+  return streak;
 }
 
 Deno.serve(async (req) => {
@@ -72,8 +134,55 @@ Deno.serve(async (req) => {
     // Create admin client for badge operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const gameContext: GameContext = await req.json();
-    console.log('Game context received:', gameContext);
+    // Parse minimal client context (only used for share feature)
+    const clientContext: GameContext = await req.json();
+    console.log('Client context received:', clientContext);
+
+    // Get today's date in YYYY-MM-DD format (server-side, cannot be spoofed)
+    const today = new Date().toISOString().split('T')[0];
+    const playDateForBadges = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }).replace('/', '-');
+    
+    console.log('Server date:', today, 'Badge date:', playDateForBadges);
+
+    // Fetch today's game from database (verified data)
+    const { data: todayGame, error: gameError } = await supabase
+      .from('game_records')
+      .select('throws_count, winning_number')
+      .eq('user_id', userId)
+      .eq('played_date', today)
+      .maybeSingle();
+
+    if (gameError) {
+      console.error('Error fetching today game:', gameError);
+      throw gameError;
+    }
+
+    // Fetch all user's games for streak calculation
+    const { data: allGames, error: allGamesError } = await supabase
+      .from('game_records')
+      .select('played_date')
+      .eq('user_id', userId)
+      .order('played_date', { ascending: false });
+
+    if (allGamesError) {
+      console.error('Error fetching all games:', allGamesError);
+      throw allGamesError;
+    }
+
+    // Calculate verified values server-side
+    const verifiedThrows = todayGame?.throws_count ?? 0;
+    const verifiedWinningNumber = todayGame?.winning_number ?? 0;
+    const verifiedStreak = calculateStreak(allGames?.map(g => g.played_date) || []);
+    const isFirstGame = allGames?.length === 1 && todayGame !== null;
+    const verifiedInitialDice = getSeededDice(userId, today);
+
+    console.log('Verified values:', {
+      throws: verifiedThrows,
+      winningNumber: verifiedWinningNumber,
+      streak: verifiedStreak,
+      isFirstGame,
+      initialDice: verifiedInitialDice,
+    });
 
     // Fetch all badges
     const { data: allBadges, error: badgesError } = await supabase
@@ -123,7 +232,7 @@ Deno.serve(async (req) => {
 
       console.log(`Awarding badge: ${badgeId}`);
 
-      // Insert the badge
+      // Insert the badge (using service role, bypasses RLS)
       const { error: insertError } = await supabase
         .from('user_badges')
         .insert({ user_id: userId, badge_id: badgeId });
@@ -140,21 +249,22 @@ Deno.serve(async (req) => {
       totalCreditsEarned += badge.prize_credits;
     };
 
-    // Check first_win (first game ever)
-    await checkAndAwardBadge('first_win', gameContext.isFirstGame);
+    // Only check game-related badges if user has played today
+    if (todayGame) {
+      // Check first_win (first game ever)
+      await checkAndAwardBadge('first_win', isFirstGame);
 
-    // Check winning_number badges (win_1 through win_6)
-    await checkAndAwardBadge(`win_${gameContext.winningNumber}`, true);
+      // Check winning_number badges (win_1 through win_6)
+      await checkAndAwardBadge(`win_${verifiedWinningNumber}`, verifiedWinningNumber >= 1 && verifiedWinningNumber <= 6);
 
-    // Check winning_throw_count badges (throws_1 through throws_6)
-    if (gameContext.throws <= 6) {
-      await checkAndAwardBadge(`throws_${gameContext.throws}`, true);
-    }
+      // Check winning_throw_count badges (throws_1 through throws_6)
+      if (verifiedThrows >= 1 && verifiedThrows <= 6) {
+        await checkAndAwardBadge(`throws_${verifiedThrows}`, true);
+      }
 
-    // Check starter_match badges (5-9 matching dice on first throw)
-    if (gameContext.initialDice && gameContext.initialDice.length > 0) {
+      // Check starter_match badges (5-9 matching dice on first throw)
       const diceCounts: Record<number, number> = {};
-      gameContext.initialDice.forEach(d => {
+      verifiedInitialDice.forEach(d => {
         diceCounts[d] = (diceCounts[d] || 0) + 1;
       });
       const maxMatch = Math.max(...Object.values(diceCounts));
@@ -166,42 +276,38 @@ Deno.serve(async (req) => {
           await checkAndAwardBadge(`starter_${i}`, true);
         }
       }
-    }
 
-    // Check daily_streak milestone badges (10, 30, 50, 100, 365)
-    const streakMilestones = [10, 30, 50, 100, 365];
-    for (const milestone of streakMilestones) {
-      if (gameContext.currentStreak >= milestone) {
-        await checkAndAwardBadge(`streak_${milestone}`, true);
+      // Check daily_streak milestone badges (10, 30, 50, 100, 365)
+      const streakMilestones = [10, 30, 50, 100, 365];
+      for (const milestone of streakMilestones) {
+        if (verifiedStreak >= milestone) {
+          await checkAndAwardBadge(`streak_${milestone}`, true);
+        }
       }
+
+      // Check daily streak_add (repeatable daily reward)
+      if (verifiedStreak >= 1) {
+        await checkAndAwardBadge('daily_streak', true, true);
+      }
+
+      // Check date_match badges
+      const dateMatches: Record<string, string> = {
+        '09-09': 'special_date_birthday',
+        '01-01': 'special_date_ny',
+        '12-25': 'special_date_xmas',
+      };
+      if (dateMatches[playDateForBadges]) {
+        await checkAndAwardBadge(dateMatches[playDateForBadges], true);
+      }
+
+      // Check locked_numbers (special straight 1-5)
+      // We can verify this by checking if the winning dice include a straight
+      // For now, we skip this check as it requires tracking locked order during game
     }
 
-    // Check daily streak_add (repeatable daily reward)
-    if (gameContext.currentStreak >= 1) {
-      await checkAndAwardBadge('daily_streak', true, true);
-    }
-
-    // Check date_match badges
-    const dateMatches: Record<string, string> = {
-      '09-09': 'special_date_birthday',
-      '01-01': 'special_date_ny',
-      '25-12': 'special_date_xmas',
-    };
-    if (dateMatches[gameContext.playDate]) {
-      await checkAndAwardBadge(dateMatches[gameContext.playDate], true);
-    }
-
-    // Check feature_used (share feature)
-    if (gameContext.featureUsed === 'share') {
+    // Check feature_used (share feature) - this is the only client-trusted value
+    if (clientContext.featureUsed === 'share') {
       await checkAndAwardBadge('special_share', true);
-    }
-
-    // Check locked_numbers (special straight 1-5)
-    if (gameContext.lockedNumbers && gameContext.lockedNumbers.length === 5) {
-      const sorted = [...gameContext.lockedNumbers].sort((a, b) => a - b);
-      if (sorted.join(';') === '1;2;3;4;5') {
-        await checkAndAwardBadge('special_straight', true);
-      }
     }
 
     // Update user credits atomically if any badges were earned
