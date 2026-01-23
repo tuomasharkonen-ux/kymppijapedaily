@@ -285,8 +285,17 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Check daily streak_add (repeatable daily reward)
-      if (verifiedStreak >= 1) {
+      // Check daily streak_add (repeatable daily reward, but only once per day)
+      // Only award if this badge hasn't been earned today
+      const { data: todayStreakBadge } = await supabase
+        .from('user_badges')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('badge_id', 'daily_streak')
+        .gte('earned_at', today)
+        .maybeSingle();
+
+      if (verifiedStreak >= 1 && !todayStreakBadge) {
         await checkAndAwardBadge('daily_streak', true, true);
       }
 
