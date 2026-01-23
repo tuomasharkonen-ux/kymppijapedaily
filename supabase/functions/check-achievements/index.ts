@@ -235,7 +235,9 @@ Deno.serve(async (req) => {
       // Insert the badge (using service role, bypasses RLS)
       const { error: insertError } = await supabase
         .from('user_badges')
-        .insert({ user_id: userId, badge_id: badgeId });
+        // Explicitly set earned_at so "earned today" checks work even if the
+        // column has no DEFAULT now() in the database.
+        .insert({ user_id: userId, badge_id: badgeId, earned_at: new Date().toISOString() });
 
       if (insertError) {
         // Ignore duplicate errors for non-repeatable badges
@@ -249,8 +251,9 @@ Deno.serve(async (req) => {
       totalCreditsEarned += badge.prize_credits;
     };
 
-    // Only check game-related badges if user has played today
-    if (todayGame) {
+    // Only check game-related badges if user has played today AND this call isn't
+    // coming from a client feature action (like sharing).
+    if (todayGame && clientContext.featureUsed !== 'share') {
       // Check first_win (first game ever)
       await checkAndAwardBadge('first_win', isFirstGame);
 
