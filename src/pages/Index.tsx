@@ -6,6 +6,7 @@ import { ResultsPanel } from "@/components/ResultsPanel";
 import { PracticeMode } from "@/components/PracticeMode";
 import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
+import { DiceProShopCard } from "@/components/DiceProShopCard";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { Button } from "@/components/ui/button";
@@ -161,12 +162,16 @@ Personal best: ${bestScore}`;
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
+                
+                <DiceProShopCard />
               </> : <>
                 <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
+
+                <DiceProShopCard />
 
                 <footer className="text-center text-sm text-muted-foreground">
                   <p>Lock all 10 dice on the same number to win!</p>
