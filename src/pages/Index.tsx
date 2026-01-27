@@ -163,7 +163,7 @@ Personal best: ${bestScore}`;
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
                 
-                <DiceProShopCard />
+                <DiceProShopCard userCredits={userCredits} />
               </> : <>
                 <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} />
                 
@@ -171,7 +171,7 @@ Personal best: ${bestScore}`;
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
 
-                <DiceProShopCard />
+                <DiceProShopCard userCredits={userCredits} />
 
                 <footer className="text-center text-sm text-muted-foreground">
                   <p>Lock all 10 dice on the same number to win!</p>

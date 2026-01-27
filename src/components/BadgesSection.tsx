@@ -86,16 +86,6 @@ export const BadgesSection = ({
                 </button>;
           })}
           </div>
-
-          <div className="bg-background border border-border rounded-lg p-4">
-            <h3 className="font-semibold leading-none tracking-tight text-base">
-              Credits
-            </h3>
-            <p className="text-2xl font-bold text-foreground mt-2">{userCredits}</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Credits can be used to unlock cool stuff in the future, maybe.
-            </p>
-          </div>
         </CardContent>
       </Card>
 

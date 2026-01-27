@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Store, ArrowRight } from "lucide-react";
+import { Sparkles, Store, ArrowRight, Coins } from "lucide-react";
 
-export const DiceProShopCard = () => {
+interface DiceProShopCardProps {
+  userCredits: number;
+}
+
+export const DiceProShopCard = ({ userCredits }: DiceProShopCardProps) => {
   return (
     <Card className="relative overflow-hidden">
       {/* Decorative background elements */}
@@ -16,7 +20,18 @@ export const DiceProShopCard = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="relative">
+      <CardContent className="relative space-y-4">
+        {/* Credits Display */}
+        <div className="flex items-center gap-3 bg-muted/50 rounded-lg p-3 border border-border">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <Coins className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Your Balance</p>
+            <p className="text-xl font-bold text-foreground">{userCredits} credits</p>
+          </div>
+        </div>
+
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-primary flex items-center justify-center shadow-lg">
             <Store className="w-8 h-8 text-primary-foreground" aria-hidden="true" />
@@ -34,7 +49,7 @@ export const DiceProShopCard = () => {
           </div>
         </div>
         
-        <Button asChild className="w-full mt-4 gap-2" variant="default">
+        <Button asChild className="w-full gap-2" variant="default">
           <Link to="/shop">
             Enter the Shop
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
