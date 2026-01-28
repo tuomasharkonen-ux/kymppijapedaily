@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShopItemModal } from "@/components/ShopItemModal";
 import { shopItems, type ShopItem } from "@/lib/shopItems";
 import { useBadges } from "@/hooks/useBadges";
+import { useUserPurchases } from "@/hooks/useUserPurchases";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Coins, Store } from "lucide-react";
-import { useEffect } from "react";
+import { ArrowLeft, Coins, Store, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const Shop = () => {
@@ -16,7 +16,8 @@ const Shop = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   
-  const { userCredits, isLoading: creditsLoading } = useBadges(user?.id || null);
+  const { userCredits, isLoading: creditsLoading, refetchBadges } = useBadges(user?.id || null);
+  const { isOwned, isLoading: purchasesLoading, purchaseItem, isPurchasing } = useUserPurchases(user?.id || null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -30,6 +31,10 @@ const Shop = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handlePurchaseSuccess = () => {
+    refetchBadges();
+  };
 
   if (authLoading) {
     return (
@@ -60,6 +65,12 @@ const Shop = () => {
       </div>
     );
   }
+
+  const getItemState = (item: ShopItem): "owned" | "can_buy" | "too_expensive" => {
+    if (isOwned(item.id)) return "owned";
+    if (userCredits >= item.price) return "can_buy";
+    return "too_expensive";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,53 +123,86 @@ const Shop = () => {
             <span aria-hidden="true">🎁</span> Available Items
           </h2>
           
-          {shopItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  {/* Item icon */}
-                  <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl">
-                    <span aria-hidden="true">{item.emoji}</span>
-                  </div>
-                  
-                  {/* Item details */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {item.shortDescription}
-                    </p>
+          {shopItems.map((item) => {
+            const itemState = getItemState(item);
+            const owned = itemState === "owned";
+            const canBuy = itemState === "can_buy";
+            
+            return (
+              <Card key={item.id} className={`overflow-hidden ${owned ? "border-primary/30 bg-primary/5" : ""}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Item icon */}
+                    <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl relative">
+                      <span aria-hidden="true">{item.emoji}</span>
+                      {owned && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="w-3 h-3 text-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
                     
-                    {/* Price */}
-                    <div className="mt-2 flex items-center gap-1">
-                      <Coins className="w-4 h-4 text-primary" aria-hidden="true" />
-                      <span className="font-bold text-foreground">{item.price}</span>
-                      <span className="text-sm text-muted-foreground">credits</span>
+                    {/* Item details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground">{item.name}</h3>
+                        {owned && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                            Owned
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {item.shortDescription}
+                      </p>
+                      
+                      {/* Price */}
+                      {!owned && (
+                        <div className="mt-2 flex items-center gap-1">
+                          <Coins className="w-4 h-4 text-primary" aria-hidden="true" />
+                          <span className="font-bold text-foreground">{item.price}</span>
+                          <span className="text-sm text-muted-foreground">credits</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-                
-                {/* Action buttons */}
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setSelectedItem(item)}
-                  >
-                    Read More
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1"
-                    disabled
-                  >
-                    Unlock (Coming Soon)
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  
+                  {/* Action buttons */}
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setSelectedItem(item)}
+                    >
+                      {owned ? "View Details" : "Read More"}
+                    </Button>
+                    {owned ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1"
+                        disabled
+                      >
+                        <Check className="w-4 h-4 mr-1" />
+                        Owned
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={canBuy ? "default" : "secondary"}
+                        size="sm"
+                        className="flex-1"
+                        disabled={!canBuy || purchasesLoading}
+                        onClick={() => setSelectedItem(item)}
+                      >
+                        {canBuy ? `Unlock` : "Not enough credits"}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Footer */}
@@ -173,6 +217,11 @@ const Shop = () => {
         item={selectedItem}
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
+        isOwned={selectedItem ? isOwned(selectedItem.id) : false}
+        canAfford={selectedItem ? userCredits >= selectedItem.price : false}
+        onPurchase={purchaseItem}
+        isPurchasing={isPurchasing}
+        onPurchaseSuccess={handlePurchaseSuccess}
       />
     </div>
   );
