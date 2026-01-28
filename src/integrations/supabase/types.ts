@@ -142,11 +142,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_purchases: {
+        Row: {
+          id: string
+          item_id: string
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      decrement_user_credits: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: number
+      }
       get_leaderboard: {
         Args: { p_limit?: number; p_sort_by?: string }
         Returns: {

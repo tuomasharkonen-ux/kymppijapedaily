@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,24 +7,89 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { Check, Loader2, Coins } from "lucide-react";
 import type { ShopItem } from "@/lib/shopItems";
+
+interface PurchaseResult {
+  success: boolean;
+  itemId?: string;
+  itemName?: string;
+  newBalance?: number;
+  error?: string;
+}
 
 interface ShopItemModalProps {
   item: ShopItem | null;
   isOpen: boolean;
   onClose: () => void;
+  isOwned: boolean;
+  canAfford: boolean;
+  onPurchase: (itemId: string) => Promise<PurchaseResult>;
+  isPurchasing: boolean;
+  onPurchaseSuccess: () => void;
 }
 
-export const ShopItemModal = ({ item, isOpen, onClose }: ShopItemModalProps) => {
+export const ShopItemModal = ({
+  item,
+  isOpen,
+  onClose,
+  isOwned,
+  canAfford,
+  onPurchase,
+  isPurchasing,
+  onPurchaseSuccess,
+}: ShopItemModalProps) => {
+  const [showConfirm, setShowConfirm] = useState(false);
+
   if (!item) return null;
 
+  const handlePurchaseClick = () => {
+    setShowConfirm(true);
+  };
+
+  const handleConfirmPurchase = async () => {
+    const result = await onPurchase(item.id);
+    
+    if (result.success) {
+      toast({
+        title: "🎉 Purchase successful!",
+        description: `You now own ${result.itemName}! New balance: ${result.newBalance} credits`,
+      });
+      onPurchaseSuccess();
+      setShowConfirm(false);
+      onClose();
+    } else {
+      toast({
+        title: "Purchase failed",
+        description: result.error || "Something went wrong",
+        variant: "destructive",
+      });
+      setShowConfirm(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowConfirm(false);
+  };
+
+  const handleClose = () => {
+    setShowConfirm(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
             {item.name}
+            {isOwned && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground ml-2">
+                Owned
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Details about {item.name}
@@ -55,12 +121,68 @@ export const ShopItemModal = ({ item, isOpen, onClose }: ShopItemModalProps) => 
           
           {/* Price and action */}
           <div className="flex items-center justify-between pt-2 border-t">
-            <div className="text-lg font-bold text-foreground">
-              {item.price} credits
-            </div>
-            <Button disabled variant="secondary">
-              Coming Soon
-            </Button>
+            {isOwned ? (
+              <>
+                <div className="text-sm text-muted-foreground">
+                  You own this item
+                </div>
+                <Button variant="secondary" disabled>
+                  <Check className="w-4 h-4 mr-1" />
+                  Owned
+                </Button>
+              </>
+            ) : showConfirm ? (
+              <div className="flex flex-col w-full gap-3">
+                <div className="text-sm text-foreground text-center p-3 bg-muted rounded-lg">
+                  <p className="font-medium">Confirm Purchase</p>
+                  <p className="text-muted-foreground mt-1">
+                    Spend <span className="font-bold text-primary">{item.price}</span> credits on {item.name}?
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleCancel}
+                    disabled={isPurchasing}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    className="flex-1"
+                    onClick={handleConfirmPurchase}
+                    disabled={isPurchasing}
+                  >
+                    {isPurchasing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        Buying...
+                      </>
+                    ) : (
+                      <>
+                        <Coins className="w-4 h-4 mr-1" />
+                        Confirm
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-lg font-bold text-foreground flex items-center gap-1">
+                  <Coins className="w-5 h-5 text-primary" />
+                  {item.price} credits
+                </div>
+                <Button
+                  variant={canAfford ? "default" : "secondary"}
+                  disabled={!canAfford}
+                  onClick={handlePurchaseClick}
+                >
+                  {canAfford ? "Unlock Now" : "Not enough credits"}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>
