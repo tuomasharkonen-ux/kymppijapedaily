@@ -7,8 +7,11 @@ import { PracticeMode } from "@/components/PracticeMode";
 import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { DiceProShopCard } from "@/components/DiceProShopCard";
+import { CustomizationSection } from "@/components/CustomizationSection";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
+import { useUserPurchases } from "@/hooks/useUserPurchases";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,6 +19,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Menu, LogOut, User } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { DiceSkin } from "@/components/Dice";
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -47,6 +51,19 @@ const Index = () => {
     pendingBadges,
     dismissBadge
   } = useBadges(user?.id || null);
+  const {
+    purchasedItems,
+    isLoading: purchasesLoading,
+  } = useUserPurchases(user?.id || null);
+  const {
+    settings,
+    isLoading: settingsLoading,
+    updateSkin,
+    updateAction,
+  } = useUserSettings(user?.id || null);
+
+  // Get the active skin as DiceSkin type
+  const activeSkin: DiceSkin = (settings.activeSkin as DiceSkin) || "default";
   const copyResultToClipboard = async () => {
     if (!todayResult) return;
     const today = format(new Date(), "dd.MM.yyyy");
@@ -162,14 +179,32 @@ Personal best: ${bestScore}`;
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
+
+                <CustomizationSection
+                  purchasedItems={purchasedItems}
+                  activeSkin={settings.activeSkin}
+                  activeAction={settings.activeAction}
+                  onSkinChange={updateSkin}
+                  onActionChange={updateAction}
+                  isLoading={purchasesLoading || settingsLoading}
+                />
                 
                 <DiceProShopCard userCredits={userCredits} />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} />
+                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
+
+                <CustomizationSection
+                  purchasedItems={purchasedItems}
+                  activeSkin={settings.activeSkin}
+                  activeAction={settings.activeAction}
+                  onSkinChange={updateSkin}
+                  onActionChange={updateAction}
+                  isLoading={purchasesLoading || settingsLoading}
+                />
 
                 <DiceProShopCard userCredits={userCredits} />
 

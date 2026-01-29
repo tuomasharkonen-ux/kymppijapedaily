@@ -2,15 +2,45 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Lock } from "lucide-react";
 
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
+
 interface DiceProps {
   value: number;
   isLocked: boolean;
   isRolling: boolean;
   onClick: () => void;
   disabled?: boolean;
+  skin?: DiceSkin;
 }
 
-const DiceDots = ({ value }: { value: number }) => {
+
+// Skin-specific styles
+const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; glow?: string }> = {
+  default: {
+    bg: "bg-card",
+    border: "border-border",
+    dot: "bg-foreground",
+  },
+  golden_dice: {
+    bg: "bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500",
+    border: "border-amber-600",
+    dot: "bg-amber-900",
+    glow: "shadow-[0_0_15px_rgba(251,191,36,0.5)]",
+  },
+  diamond_dice: {
+    bg: "bg-gradient-to-br from-cyan-200 via-blue-300 to-purple-300",
+    border: "border-blue-400",
+    dot: "bg-blue-900",
+    glow: "shadow-[0_0_15px_rgba(147,197,253,0.6)]",
+  },
+  german_supermarket_dice: {
+    bg: "bg-gradient-to-br from-yellow-400 via-blue-500 to-red-500",
+    border: "border-yellow-500",
+    dot: "bg-white",
+  },
+};
+
+const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: DiceSkin }) => {
   const dotPositions: Record<number, string[]> = {
     1: ["center"],
     2: ["top-right", "bottom-left"],
@@ -30,8 +60,8 @@ const DiceDots = ({ value }: { value: number }) => {
     "bottom-right": "bottom-2 right-2",
   };
 
-  // Handle value of 0 (pre-game state) - show empty die
   const positions = value > 0 ? (dotPositions[value] || []) : [];
+  const dotColor = skinStyles[skin].dot;
 
   return (
     <>
@@ -39,7 +69,8 @@ const DiceDots = ({ value }: { value: number }) => {
         <div
           key={index}
           className={cn(
-            "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-foreground",
+            "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
+            dotColor,
             positionClasses[pos]
           )}
         />
@@ -48,17 +79,15 @@ const DiceDots = ({ value }: { value: number }) => {
   );
 };
 
-export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProps) => {
+export const Dice = ({ value, isLocked, isRolling, onClick, disabled, skin = "default" }: DiceProps) => {
   const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
     if (isRolling) {
-      // Tumble through random values rapidly
       const tumbleInterval = setInterval(() => {
         setDisplayValue(Math.floor(Math.random() * 6) + 1);
       }, 50);
 
-      // Stop tumbling after animation duration
       const timeout = setTimeout(() => {
         clearInterval(tumbleInterval);
         setDisplayValue(value);
@@ -73,6 +102,8 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
     }
   }, [isRolling, value]);
 
+  const styles = skinStyles[skin];
+
   return (
     <button
       onClick={onClick}
@@ -81,16 +112,18 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled }: DiceProp
       aria-pressed={isLocked}
       className={cn(
         "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md transition-transform duration-300",
-        "bg-card border-2",
+        styles.bg,
+        "border-2",
         isLocked 
           ? "border-primary ring-2 ring-primary/50 animate-pulse-glow" 
-          : "border-border hover:border-primary/50",
+          : styles.border + " hover:border-primary/50",
+        styles.glow,
         isRolling && "animate-dice-roll",
         !isRolling && !disabled && "hover:scale-105 cursor-pointer",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <DiceDots value={displayValue} />
+      <DiceDotsWithSkin value={displayValue} skin={skin} />
       {isLocked && (
         <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary-foreground" />

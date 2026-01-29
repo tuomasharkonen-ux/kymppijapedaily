@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Dice } from "./Dice";
+import { Dice, DiceSkin } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ interface GameBoardProps {
   personalBest: number | null;
   userId: string;
   onShareClick?: () => void;
+  activeSkin?: DiceSkin;
 }
 
 interface DiceState {
@@ -19,7 +20,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default" }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -217,6 +218,7 @@ Personal best: ${bestScore}`;
                     isRolling={isRolling && !d.isLocked}
                     onClick={() => toggleLock(i)}
                     disabled={gameComplete}
+                    skin={activeSkin}
                   />
                 ))}
               </div>
