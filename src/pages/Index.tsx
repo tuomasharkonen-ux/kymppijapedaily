@@ -179,6 +179,8 @@ Personal best: ${bestScore}`;
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
+                
+                <DiceProShopCard userCredits={userCredits} />
 
                 <CustomizationSection
                   purchasedItems={purchasedItems}
@@ -188,8 +190,6 @@ Personal best: ${bestScore}`;
                   onActionChange={updateAction}
                   isLoading={purchasesLoading || settingsLoading}
                 />
-                
-                <DiceProShopCard userCredits={userCredits} />
               </> : <>
                 <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} />
                 
@@ -197,6 +197,8 @@ Personal best: ${bestScore}`;
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
 
+                <DiceProShopCard userCredits={userCredits} />
+
                 <CustomizationSection
                   purchasedItems={purchasedItems}
                   activeSkin={settings.activeSkin}
@@ -205,8 +207,6 @@ Personal best: ${bestScore}`;
                   onActionChange={updateAction}
                   isLoading={purchasesLoading || settingsLoading}
                 />
-
-                <DiceProShopCard userCredits={userCredits} />
 
                 <footer className="text-center text-sm text-muted-foreground">
                   <p>Lock all 10 dice on the same number to win!</p>
