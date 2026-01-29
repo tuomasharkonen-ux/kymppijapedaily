@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Check, Loader2, Coins } from "lucide-react";
 import type { ShopItem } from "@/lib/shopItems";
+import { DicePreview } from "@/components/DicePreview";
+import type { DiceSkin } from "@/components/Dice";
 
 interface PurchaseResult {
   success: boolean;
@@ -99,10 +101,17 @@ export const ShopItemModal = ({
         <div className="space-y-4">
           {/* In-game preview */}
           <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl mb-2" aria-hidden="true">{item.emoji}</div>
-              <p className="text-xs text-muted-foreground">In-game preview</p>
-            </div>
+            {item.category === 'skin' ? (
+              <div className="text-center">
+                <DicePreview skin={item.id as DiceSkin} />
+                <p className="text-xs text-muted-foreground mt-3">In-game preview</p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-6xl mb-2" aria-hidden="true">{item.emoji}</div>
+                <p className="text-xs text-muted-foreground">In-game preview</p>
+              </div>
+            )}
           </div>
           
           {/* Long description */}
