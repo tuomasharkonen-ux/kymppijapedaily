@@ -1,166 +1,81 @@
 
 
-# Test User Implementation Plan
+# Fix Shake Detection for Mobile Devices
 
-## Overview
+## Problem Summary
 
-This plan creates a "test user" system that allows designated accounts to test shop items and badges without affecting leaderboards or player statistics. Test users can purchase items, earn badges, and play the game normally, but their data is filtered out from all public-facing statistics.
+The shake detection feature isn't working because **iOS requires permission requests to be triggered by a user gesture** (like a button tap). The current code tries to request permission automatically when the component mounts, which iOS blocks silently.
 
----
+## Solution Overview
 
-## Approach
-
-The cleanest approach is to add an `is_test_user` boolean flag to the `profiles` table. This flag will be used to:
-1. Exclude test users from the leaderboard
-2. Exclude test users from ranking calculations (total players count, rank by best/average)
-3. Still allow test users to fully interact with badges, shop, and game mechanics
+Add a permission prompt that appears when the user first tries to use the Shake action feature, requesting motion sensor access through a button tap.
 
 ---
 
-## Database Changes
+## Implementation Steps
 
-### Step 1: Add is_test_user Column to Profiles
+### Step 1: Update the Shake Detection Hook
 
-Add a new column to the `profiles` table:
-- `is_test_user` (boolean, default FALSE, not null)
+Modify `useShakeDetection.ts` to:
+- Remove the automatic permission request from `useEffect`
+- Only add the motion listener after permission is confirmed
+- Track permission status internally
+- Add a `permissionStatus` state that can be checked externally
 
-This ensures existing users are not affected and new users default to regular players.
+### Step 2: Add Permission Request Flow to GameBoard
 
-### Step 2: Update get_leaderboard Function
+When the user has purchased and activated the Shake action:
+- Check if motion permission has been granted
+- If not, show a prompt or button asking them to "Enable Shake Detection"
+- When they tap the button, call the permission request
+- Store the result (granted/denied) in localStorage for persistence
 
-Modify the `get_leaderboard` database function to exclude users where `is_test_user = TRUE`:
+### Step 3: Add Visual Feedback
 
-```text
-Current behavior: Returns all players
-New behavior: Filters out profiles.is_test_user = TRUE
-```
-
-### Step 3: Update get_player_rankings Function
-
-Modify the `get_player_rankings` function to:
-- Exclude test users from total player count
-- Exclude test users from ranking calculations (so regular users' ranks aren't affected by test data)
-
----
-
-## How to Mark a User as Test User
-
-Since there's no admin UI, test users will be marked directly in the database:
-
-1. Create a regular account (e.g., `test@example.com`)
-2. Set their profile's `is_test_user` flag to TRUE via a SQL query
-
-This is a one-time setup that can be done through the Cloud View > Run SQL feature.
+- Show a small indicator or toast when shake detection is enabled
+- If permission was denied, show a message explaining how to enable it in browser settings
 
 ---
 
-## Technical Implementation Details
+## Technical Details
 
-### Migration SQL
+### Updated Hook API
 
-```text
--- Add is_test_user column to profiles
-ALTER TABLE profiles 
-ADD COLUMN is_test_user BOOLEAN NOT NULL DEFAULT FALSE;
+The hook will expose:
+- `permissionStatus`: 'unknown' | 'granted' | 'denied' | 'not-supported'
+- `requestPermission`: Function to call on user gesture
+- `isListening`: Whether the motion listener is active
 
--- Update get_leaderboard to exclude test users
-CREATE OR REPLACE FUNCTION public.get_leaderboard(
-  p_sort_by text DEFAULT 'best',
-  p_limit integer DEFAULT 50
-)
-RETURNS TABLE(...)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  -- Validate inputs (existing logic)
-  
-  -- Add JOIN to profiles and filter is_test_user = FALSE
-  RETURN QUERY
-  SELECT ...
-  FROM game_records gr
-  LEFT JOIN profiles p ON gr.user_id = p.user_id
-  WHERE gr.user_id IS NOT NULL
-    AND (p.is_test_user IS NULL OR p.is_test_user = FALSE)
-  ...
-END;
-$$
+### Permission Storage
 
--- Update get_player_rankings to exclude test users
-CREATE OR REPLACE FUNCTION public.get_player_rankings(p_user_id uuid)
-RETURNS TABLE(...)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  -- Filter out test users from rankings and total counts
-  ...
-  WHERE (p.is_test_user IS NULL OR p.is_test_user = FALSE)
-  ...
-END;
-$$
-```
+Use localStorage key `shake_motion_permission` to remember:
+- Whether permission was previously granted (skip re-asking)
+- Whether it was denied (show instructions instead)
 
-### Edge Cases Handled
+### UI Changes
 
-1. **Profiles without is_test_user set**: Uses `IS NULL OR = FALSE` to handle both cases
-2. **Game records without profiles**: Uses LEFT JOIN so games from users without profiles still work
-3. **Test user viewing their own rank**: They can still see their stats, but they won't appear in public leaderboard
+Add a conditional banner or modal in GameBoard that appears when:
+- User has Shake action enabled
+- Permission hasn't been granted yet
+
+The banner will have a button: "Enable Shake to Shake" that triggers the permission request.
 
 ---
 
-## What Test Users CAN Do
+## Files to Modify
 
-- Play the daily game
-- Earn badges and credits
-- Purchase shop items
-- Use dice skins and actions
-- View their own stats and ranks (personal stats still work)
-
-## What Test Users CANNOT Affect
-
-- Public leaderboard (excluded)
-- Other users' ranking positions (not counted in rankings)
-- Total player count in statistics
+1. **`src/hooks/useShakeDetection.ts`** - Refactor permission handling
+2. **`src/components/GameBoard.tsx`** - Add permission request UI
+3. **`src/components/ActionButtons.tsx`** (optional) - Show indicator for shake-enabled state
 
 ---
 
-## File Changes Summary
+## Expected Outcome
 
-| Type | Target | Changes |
-|------|--------|---------|
-| Migration | Database | Add `is_test_user` column to `profiles` |
-| Migration | Database | Update `get_leaderboard` function |
-| Migration | Database | Update `get_player_rankings` function |
-
----
-
-## Post-Implementation: Creating a Test User
-
-After the migration is applied, mark any user as a test user with this SQL:
-
-```text
-UPDATE profiles 
-SET is_test_user = TRUE 
-WHERE username = 'your_test_username';
-```
-
-Or by user email (requires joining with auth.users, run via Cloud View):
-
-```text
-UPDATE profiles 
-SET is_test_user = TRUE 
-WHERE user_id = (
-  SELECT id FROM auth.users WHERE email = 'test@example.com'
-);
-```
-
----
-
-## Security Considerations
-
-- The `is_test_user` column is not exposed to clients (no frontend changes needed)
-- Only database admins can modify this flag
-- Test users have no special privileges - they just get filtered from public stats
-- RLS policies remain unchanged
+After implementation:
+- iOS users will see a prompt to enable shake detection
+- Tapping the enable button triggers the native iOS permission dialog
+- Once granted, shaking the phone will trigger the Shake action
+- Android users may not need the prompt (permission granted automatically)
+- Desktop users will not see the shake option at all
 
