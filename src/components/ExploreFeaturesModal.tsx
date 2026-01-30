@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import {
   Carousel,
   CarouselContent,
@@ -26,6 +27,7 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 
 interface ExploreFeaturesModalProps {
@@ -244,97 +246,106 @@ export const ExploreFeaturesModal = ({
   const scrollTo = useCallback((index: number) => api?.scrollTo(index), [api]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[85vh] overflow-hidden p-4 sm:p-6">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="text-center text-base sm:text-lg">
-            <span aria-hidden="true">🎲</span> Explore Features
-          </DialogTitle>
-          <DialogDescription className="text-center text-xs sm:text-sm">
-            Swipe to discover what Kymppijape offers
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[85vh] overflow-hidden">
+        <div className="relative px-4 pb-4 pt-2 sm:px-6 sm:pb-6">
+          <DrawerClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 h-8 w-8"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DrawerClose>
 
-        <Carousel
-          className="w-full"
-          setApi={setApi}
-          opts={{ loop: true }}
-        >
-          {/*
-            Override the default carousel "-ml-4 / pl-4" spacing.
-            On small viewports this can visually shift the slide content.
-          */}
-          <CarouselContent className="ml-0">
-            {features.map((feature) => (
-              <CarouselItem key={feature.id} className="pl-0">
-                <Card className="border-0 shadow-none">
-                  <CardContent className="flex flex-col items-center p-2 sm:p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      {feature.icon}
-                      <h3 className="font-semibold text-base sm:text-lg">{feature.title}</h3>
-                    </div>
-                    {feature.badge && (
-                      <Badge variant={feature.badgeVariant || "default"} className="text-[10px]">
-                        {feature.badge}
-                      </Badge>
-                    )}
-                    <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed px-2">
-                      {feature.description}
-                    </p>
-                    <div className="w-full min-h-[70px] flex items-center justify-center">
-                      {feature.preview}
-                    </div>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+          <DrawerHeader className="pb-2 pt-0">
+            <DrawerTitle className="text-center text-base sm:text-lg">
+              <span aria-hidden="true">🎲</span> Explore Features
+            </DrawerTitle>
+            <DrawerDescription className="text-center text-xs sm:text-sm">
+              Swipe to discover what Kymppijape offers
+            </DrawerDescription>
+          </DrawerHeader>
 
-        {/* Navigation controls */}
-        <div className="flex items-center justify-between pt-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={scrollPrev}
-            aria-label="Previous feature"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+          <Carousel className="w-full" setApi={setApi} opts={{ loop: true }}>
+            {/*
+              Override the default carousel "-ml-4 / pl-4" spacing.
+              On small viewports this can visually shift the slide content.
+            */}
+            <CarouselContent className="ml-0">
+              {features.map((feature) => (
+                <CarouselItem key={feature.id} className="pl-0">
+                  <Card className="border-0 shadow-none">
+                    <CardContent className="flex flex-col items-center p-2 sm:p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        {feature.icon}
+                        <h3 className="font-semibold text-base sm:text-lg">{feature.title}</h3>
+                      </div>
+                      {feature.badge && (
+                        <Badge variant={feature.badgeVariant || "default"} className="text-[10px]">
+                          {feature.badge}
+                        </Badge>
+                      )}
+                      <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed px-2">
+                        {feature.description}
+                      </p>
+                      <div className="w-full min-h-[70px] flex items-center justify-center">
+                        {feature.preview}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
 
-          {/* Dot indicators */}
-          <div className="flex justify-center gap-1.5">
-            {features.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => scrollTo(i)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === current 
-                    ? "bg-primary" 
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                }`}
-                aria-label={`Go to feature ${i + 1}`}
-              />
-            ))}
+          {/* Navigation controls */}
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={scrollPrev}
+              aria-label="Previous feature"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {/* Dot indicators */}
+            <div className="flex justify-center gap-1.5">
+              {features.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => scrollTo(i)}
+                  className={`h-2 w-2 rounded-full transition-colors ${
+                    i === current
+                      ? "bg-primary"
+                      : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  }`}
+                  aria-label={`Go to feature ${i + 1}`}
+                />
+              ))}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={scrollNext}
+              aria-label="Next feature"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={scrollNext}
-            aria-label="Next feature"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          {/* Slide counter */}
+          <p className="text-center text-[10px] text-muted-foreground">
+            {current + 1} of {features.length}
+          </p>
         </div>
-
-        {/* Slide counter */}
-        <p className="text-center text-[10px] text-muted-foreground">
-          {current + 1} of {features.length}
-        </p>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
