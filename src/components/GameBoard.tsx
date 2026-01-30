@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ActionButtons, ActionType } from "./ActionButtons";
+import { useShakeDetection } from "@/hooks/useShakeDetection";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
@@ -146,7 +147,7 @@ Personal best: ${bestScore}`;
   };
 
   // Handle action button clicks (Shake/Blow)
-  const triggerAction = (actionType: ActionType) => {
+  const triggerAction = useCallback((actionType: ActionType) => {
     if (isRolling || gameComplete) return;
     
     // If dice aren't started yet, show them first
@@ -162,7 +163,26 @@ Personal best: ${bestScore}`;
     setTimeout(() => {
       setCurrentAction(null);
     }, 800);
-  };
+  }, [isRolling, gameComplete, hasStarted]);
+
+  // Check if shake action is available (owned and active)
+  const isShakeActionActive = purchasedItems.includes('shake_dice_action') && 
+    activeActions.includes('shake_dice_action');
+
+  // Handle phone shake detection
+  const handlePhoneShake = useCallback(() => {
+    if (isShakeActionActive && !isRolling && !gameComplete && currentAction === null) {
+      triggerAction('shake');
+    }
+  }, [isShakeActionActive, isRolling, gameComplete, currentAction, triggerAction]);
+
+  // Use shake detection hook
+  useShakeDetection({
+    onShake: handlePhoneShake,
+    enabled: isShakeActionActive && !isRolling && !gameComplete && currentAction === null,
+    threshold: 15,
+    timeout: 1000,
+  });
 
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
