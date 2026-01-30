@@ -97,7 +97,7 @@ export const ShopItemModal = ({
         
         <div className="space-y-4">
           {/* In-game preview */}
-          <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
+          <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center">
             {item.category === 'skin' ? (
               <DicePreview skin={item.id as DiceSkin} />
             ) : (
@@ -114,7 +114,7 @@ export const ShopItemModal = ({
           
           {/* Category badge */}
           <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
+            <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
               {item.category === 'skin' ? '🎨 Dice Skin' : '🎬 Special Action'}
             </span>
           </div>
@@ -133,7 +133,7 @@ export const ShopItemModal = ({
               </>
             ) : showConfirm ? (
               <div className="flex flex-col w-full gap-3">
-                <div className="text-sm text-foreground text-center p-3 bg-muted rounded-lg">
+                <div className="text-sm text-foreground text-center p-3 bg-muted/50 rounded-lg">
                   <p className="font-medium">Confirm Purchase</p>
                   <p className="text-muted-foreground mt-1">
                     Spend <span className="font-bold text-primary">{item.price}</span> credits on {item.name}?
