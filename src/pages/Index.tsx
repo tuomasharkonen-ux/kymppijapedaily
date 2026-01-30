@@ -155,7 +155,7 @@ Personal best: ${bestScore}`;
                 ← Back to Daily Game
               </Button>
             </div>
-            <PracticeMode isLoggedIn />
+            <PracticeMode isLoggedIn activeSkin={activeSkin} purchasedItems={purchasedItems} />
           </div> : <div className="space-y-6">
             {hasPlayedToday && !justCompletedGame ? <>
                 <Card>

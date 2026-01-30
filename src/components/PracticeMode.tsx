@@ -1,24 +1,33 @@
 import React, { useState } from "react";
-import { Dice } from "./Dice";
+import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
+import { ActionButtons } from "./ActionButtons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AuthForm } from "./AuthForm";
 import { CalendarDays, TrendingUp, Flame, Award, Trophy } from "lucide-react";
+
 interface DiceState {
   value: number;
   isLocked: boolean;
 }
+
 const getEmptyDice = (): DiceState[] => {
   return Array(10).fill(null).map(() => ({
     value: 0,
     isLocked: false
   }));
 };
+
 interface PracticeModeProps {
   isLoggedIn?: boolean;
+  activeSkin?: DiceSkin;
+  purchasedItems?: string[];
 }
+
 export const PracticeMode = ({
-  isLoggedIn = false
+  isLoggedIn = false,
+  activeSkin = "default",
+  purchasedItems = []
 }: PracticeModeProps) => {
   const [dice, setDice] = useState<DiceState[]>(getEmptyDice());
   const [throwCount, setThrowCount] = useState(0);
@@ -26,6 +35,8 @@ export const PracticeMode = ({
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isScrambled, setIsScrambled] = useState(false);
+  const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
@@ -65,6 +76,7 @@ export const PracticeMode = ({
   };
   const rollDice = () => {
     setIsRolling(true);
+    setIsScrambled(false);
     if (!hasStarted) {
       setHasStarted(true);
     }
@@ -76,6 +88,15 @@ export const PracticeMode = ({
       setIsRolling(false);
       setThrowCount(c => c + 1);
     }, 600);
+  };
+
+  const triggerAction = (actionType: DiceAnimationType) => {
+    if (isRolling || gameComplete) return;
+    setCurrentAction(actionType);
+    setTimeout(() => {
+      setIsScrambled(true);
+      setCurrentAction(null);
+    }, 800);
   };
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
@@ -100,6 +121,8 @@ export const PracticeMode = ({
     setGameComplete(false);
     setWinningNumber(null);
     setHasStarted(false);
+    setIsScrambled(false);
+    setCurrentAction(null);
   };
 
   const getPercentile = (throws: number): number => {
@@ -199,7 +222,19 @@ export const PracticeMode = ({
               </div>
 
               <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
-                {dice.map((d, i) => <Dice key={i} value={d.value} isLocked={d.isLocked} isRolling={isRolling && !d.isLocked} onClick={() => toggleLock(i)} disabled={gameComplete} />)}
+                {dice.map((d, i) => (
+                  <Dice
+                    key={i}
+                    value={d.value}
+                    isLocked={d.isLocked}
+                    isRolling={isRolling && !d.isLocked}
+                    onClick={() => toggleLock(i)}
+                    disabled={gameComplete}
+                    skin={activeSkin}
+                    isScrambled={isScrambled && !d.isLocked}
+                    animationType={!d.isLocked ? currentAction : null}
+                  />
+                ))}
               </div>
 
               <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
@@ -207,6 +242,14 @@ export const PracticeMode = ({
               <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
                 {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
+
+              {isLoggedIn && (
+                <ActionButtons
+                  purchasedItems={purchasedItems}
+                  onActionClick={triggerAction}
+                  disabled={isRolling || gameComplete}
+                />
+              )}
             </> : <div className="text-center py-8">
               <p className="text-muted-foreground mb-6">Ready to test your dice rolling skills?</p>
               <Button onClick={rollDice} disabled={isRolling} size="lg" className="min-w-[200px]" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
