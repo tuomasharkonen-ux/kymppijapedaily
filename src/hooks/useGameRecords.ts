@@ -46,6 +46,7 @@ export const useGameRecords = (userId: string | null) => {
   const [personalBest, setPersonalBest] = useState<number | null>(null);
   const [personalWorst, setPersonalWorst] = useState<number | null>(null);
   const [averageThrows, setAverageThrows] = useState<number | null>(null);
+  const [previousAverage, setPreviousAverage] = useState<number | null>(null);
   const [favoriteNumber, setFavoriteNumber] = useState<number | null>(null);
   const [currentStreak, setCurrentStreak] = useState<number>(0);
   const [rankByAverage, setRankByAverage] = useState<number | null>(null);
@@ -99,6 +100,20 @@ export const useGameRecords = (userId: string | null) => {
         const sum = userRecords.reduce((acc, r) => acc + r.throws_count, 0);
         const avg = sum / userRecords.length;
         setAverageThrows(Math.round(avg * 10) / 10);
+
+        // Calculate previous average (excluding today's result)
+        if (userRecords.length > 1 && todayData) {
+          const previousRecords = userRecords.filter(r => r.played_date !== today);
+          if (previousRecords.length > 0) {
+            const prevSum = previousRecords.reduce((acc, r) => acc + r.throws_count, 0);
+            const prevAvg = prevSum / previousRecords.length;
+            setPreviousAverage(Math.round(prevAvg * 10) / 10);
+          } else {
+            setPreviousAverage(null);
+          }
+        } else {
+          setPreviousAverage(null);
+        }
 
         // Calculate favorite number
         const numberCounts: Record<number, number> = {};
@@ -168,6 +183,7 @@ export const useGameRecords = (userId: string | null) => {
     personalBest,
     personalWorst,
     averageThrows,
+    previousAverage,
     favoriteNumber,
     currentStreak,
     rankByAverage,
