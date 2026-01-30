@@ -8,18 +8,18 @@ import { Palette, Sparkles } from "lucide-react";
 interface CustomizationSectionProps {
   purchasedItems: string[];
   activeSkin: string | null;
-  activeAction: string | null;
+  activeActions: string[];
   onSkinChange: (skinId: string | null) => void;
-  onActionChange: (actionId: string | null) => void;
+  onActionToggle: (actionId: string) => void;
   isLoading?: boolean;
 }
 
 export const CustomizationSection = ({
   purchasedItems,
   activeSkin,
-  activeAction,
+  activeActions,
   onSkinChange,
-  onActionChange,
+  onActionToggle,
   isLoading = false,
 }: CustomizationSectionProps) => {
   const ownedSkins = shopItems.filter(
@@ -116,10 +116,8 @@ export const CustomizationSection = ({
                   </Label>
                   <Switch
                     id={`action-${action.id}`}
-                    checked={activeAction === action.id}
-                    onCheckedChange={(checked) =>
-                      onActionChange(checked ? action.id : null)
-                    }
+                    checked={activeActions.includes(action.id)}
+                    onCheckedChange={() => onActionToggle(action.id)}
                   />
                 </div>
               ))}

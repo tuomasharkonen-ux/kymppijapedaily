@@ -22,12 +22,14 @@ interface PracticeModeProps {
   isLoggedIn?: boolean;
   activeSkin?: DiceSkin;
   purchasedItems?: string[];
+  activeActions?: string[];
 }
 
 export const PracticeMode = ({
   isLoggedIn = false,
   activeSkin = "default",
-  purchasedItems = []
+  purchasedItems = [],
+  activeActions = []
 }: PracticeModeProps) => {
   const [dice, setDice] = useState<DiceState[]>(getEmptyDice());
   const [throwCount, setThrowCount] = useState(0);
@@ -246,6 +248,7 @@ export const PracticeMode = ({
               {isLoggedIn && (
                 <ActionButtons
                   purchasedItems={purchasedItems}
+                  activeActions={activeActions}
                   onActionClick={triggerAction}
                   disabled={isRolling || gameComplete}
                 />
