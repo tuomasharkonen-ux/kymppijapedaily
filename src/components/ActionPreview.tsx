@@ -6,6 +6,43 @@ interface ActionPreviewProps {
   actionId: "shake_dice_action" | "blow_dice_action";
 }
 
+// Dot positions for dice faces
+const dotPositions: Record<number, string[]> = {
+  1: ["center"],
+  2: ["top-right", "bottom-left"],
+  3: ["top-right", "center", "bottom-left"],
+  4: ["top-left", "top-right", "bottom-left", "bottom-right"],
+  5: ["top-left", "top-right", "center", "bottom-left", "bottom-right"],
+  6: ["top-left", "top-right", "middle-left", "middle-right", "bottom-left", "bottom-right"],
+};
+
+const positionClasses: Record<string, string> = {
+  center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+  "top-left": "top-1.5 left-1.5",
+  "top-right": "top-1.5 right-1.5",
+  "middle-left": "top-1/2 left-1.5 -translate-y-1/2",
+  "middle-right": "top-1/2 right-1.5 -translate-y-1/2",
+  "bottom-left": "bottom-1.5 left-1.5",
+  "bottom-right": "bottom-1.5 right-1.5",
+};
+
+const PreviewDiceDots = ({ value }: { value: number }) => {
+  const positions = dotPositions[value] || [];
+  return (
+    <>
+      {positions.map((pos, index) => (
+        <div
+          key={index}
+          className={cn(
+            "absolute w-2 h-2 rounded-full bg-foreground",
+            positionClasses[pos]
+          )}
+        />
+      ))}
+    </>
+  );
+};
+
 export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -28,12 +65,14 @@ export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
   const isBlow = actionId === "blow_dice_action";
 
   const diceBaseClasses =
-    "w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold border-2 bg-gradient-to-br from-background to-muted border-border shadow-md";
+    "relative w-10 h-10 rounded-lg border-2 bg-card border-border shadow-md";
+
+  const diceValues = [3, 5, 6];
 
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex gap-2">
-        {[1, 2, 3].map((index) => (
+        {diceValues.map((value, index) => (
           <div
             key={index}
             className={cn(
@@ -46,13 +85,15 @@ export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
             }}
           >
             {isAnimating ? (
-              isShake ? (
-                <HelpCircle className="w-5 h-5 text-muted-foreground animate-pulse" />
-              ) : (
-                <Wind className="w-5 h-5 text-muted-foreground animate-pulse" />
-              )
+              <div className="absolute inset-0 flex items-center justify-center">
+                {isShake ? (
+                  <HelpCircle className="w-5 h-5 text-muted-foreground animate-pulse" />
+                ) : (
+                  <Wind className="w-5 h-5 text-muted-foreground animate-pulse" />
+                )}
+              </div>
             ) : (
-              <span className="text-foreground">{index + 2}</span>
+              <PreviewDiceDots value={value} />
             )}
           </div>
         ))}
