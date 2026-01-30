@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { Check, Loader2, Coins } from "lucide-react";
 import type { ShopItem } from "@/lib/shopItems";
 import { DicePreview } from "@/components/DicePreview";
+import { ActionPreview } from "@/components/ActionPreview";
 import type { DiceSkin } from "@/components/Dice";
 
 interface PurchaseResult {
@@ -102,15 +103,9 @@ export const ShopItemModal = ({
           {/* In-game preview */}
           <div className="bg-muted rounded-lg p-6 flex items-center justify-center">
             {item.category === 'skin' ? (
-              <div className="text-center">
-                <DicePreview skin={item.id as DiceSkin} />
-                <p className="text-xs text-muted-foreground mt-3">In-game preview</p>
-              </div>
+              <DicePreview skin={item.id as DiceSkin} />
             ) : (
-              <div className="text-center">
-                <div className="text-6xl mb-2" aria-hidden="true">{item.emoji}</div>
-                <p className="text-xs text-muted-foreground">In-game preview</p>
-              </div>
+              <ActionPreview actionId={item.id as "shake_dice_action" | "blow_dice_action"} />
             )}
           </div>
           
