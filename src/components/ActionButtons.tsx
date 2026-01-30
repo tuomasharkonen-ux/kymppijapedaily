@@ -1,0 +1,56 @@
+import { Button } from "@/components/ui/button";
+import { shopItems } from "@/lib/shopItems";
+
+export type ActionType = 'shake' | 'blow';
+
+interface ActionButtonsProps {
+  purchasedItems: string[];
+  onActionClick: (actionType: ActionType) => void;
+  disabled?: boolean;
+  isAnimating?: boolean;
+}
+
+const actionItemMap: Record<string, ActionType> = {
+  'shake_dice_action': 'shake',
+  'blow_dice_action': 'blow',
+};
+
+export const ActionButtons = ({ 
+  purchasedItems, 
+  onActionClick, 
+  disabled = false,
+  isAnimating = false 
+}: ActionButtonsProps) => {
+  // Filter to only show owned action items
+  const ownedActions = shopItems.filter(
+    item => item.category === 'action' && purchasedItems.includes(item.id)
+  );
+
+  if (ownedActions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex gap-2 justify-center mt-3">
+      {ownedActions.map((action) => {
+        const actionType = actionItemMap[action.id];
+        if (!actionType) return null;
+        
+        return (
+          <Button
+            key={action.id}
+            variant="secondary"
+            size="sm"
+            onClick={() => onActionClick(actionType)}
+            disabled={disabled || isAnimating}
+            aria-label={`${action.name} - ${action.shortDescription}`}
+            className="min-w-[100px]"
+          >
+            <span aria-hidden="true">{action.emoji}</span>
+            <span className="ml-1">{actionType === 'shake' ? 'Shake' : 'Blow'}</span>
+          </Button>
+        );
+      })}
+    </div>
+  );
+};

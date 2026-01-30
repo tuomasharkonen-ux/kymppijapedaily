@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Dice, DiceSkin } from "./Dice";
+import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ActionButtons, ActionType } from "./ActionButtons";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
@@ -13,6 +14,7 @@ interface GameBoardProps {
   userId: string;
   onShareClick?: () => void;
   activeSkin?: DiceSkin;
+  purchasedItems?: string[];
 }
 
 interface DiceState {
@@ -20,7 +22,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default" }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [] }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -36,6 +38,10 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+
+  // Action states
+  const [isScrambled, setIsScrambled] = useState(false);
+  const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
 
   const [showCopied, setShowCopied] = useState(false);
 
@@ -118,6 +124,8 @@ Personal best: ${bestScore}`;
 
   const rollDice = () => {
     setIsRolling(true);
+    setIsScrambled(false); // Clear scrambled state when rolling
+    setCurrentAction(null);
     const isFirstRoll = !hasStarted;
     
     if (!hasStarted) {
@@ -134,6 +142,19 @@ Personal best: ${bestScore}`;
       setIsRolling(false);
       setThrowCount(c => c + 1);
     }, 600);
+  };
+
+  // Handle action button clicks (Shake/Blow)
+  const triggerAction = (actionType: ActionType) => {
+    if (isRolling || gameComplete) return;
+    
+    setCurrentAction(actionType);
+    
+    // After animation completes, set scrambled state
+    setTimeout(() => {
+      setIsScrambled(true);
+      setCurrentAction(null);
+    }, 800);
   };
 
   const toggleLock = (index: number) => {
@@ -219,6 +240,8 @@ Personal best: ${bestScore}`;
                     onClick={() => toggleLock(i)}
                     disabled={gameComplete}
                     skin={activeSkin}
+                    isScrambled={isScrambled}
+                    animationType={currentAction}
                   />
                 ))}
               </div>
@@ -231,7 +254,7 @@ Personal best: ${bestScore}`;
 
               <Button
                 onClick={rollDice}
-                disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
+                disabled={isRolling || gameComplete || dice.every(d => d.isLocked) || currentAction !== null}
                 className="w-full"
                 size="lg"
                 aria-label={isRolling ? "Rolling dice" : "Roll dice"}
@@ -242,6 +265,13 @@ Personal best: ${bestScore}`;
                   <><span aria-hidden="true">🎲</span> Roll Dice</>
                 )}
               </Button>
+
+              <ActionButtons
+                purchasedItems={purchasedItems}
+                onActionClick={triggerAction}
+                disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
+                isAnimating={currentAction !== null}
+              />
             </>
           ) : (
             <div className="text-center py-8">

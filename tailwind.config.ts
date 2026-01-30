@@ -137,6 +137,30 @@ export default {
 		'border-glow': {
 			'0%, 100%': { boxShadow: '0 0 12px hsl(var(--primary) / 0.25), inset 0 0 0 1px hsl(var(--primary) / 0.15)' },
 			'50%': { boxShadow: '0 0 24px hsl(var(--primary) / 0.45), inset 0 0 0 1px hsl(var(--primary) / 0.3)' }
+		},
+		'dice-shake-intense': {
+			'0%, 100%': { transform: 'translateX(0) rotate(0deg)' },
+			'10%': { transform: 'translateX(-3px) rotate(-2deg)' },
+			'20%': { transform: 'translateX(3px) rotate(2deg)' },
+			'30%': { transform: 'translateX(-5px) rotate(-3deg)' },
+			'40%': { transform: 'translateX(5px) rotate(3deg)' },
+			'50%': { transform: 'translateX(-7px) rotate(-4deg)' },
+			'60%': { transform: 'translateX(7px) rotate(4deg)' },
+			'70%': { transform: 'translateX(-5px) rotate(-3deg)' },
+			'80%': { transform: 'translateX(5px) rotate(2deg)' },
+			'90%': { transform: 'translateX(-2px) rotate(-1deg)' }
+		},
+		'dice-blow': {
+			'0%': { transform: 'translateX(0) rotate(0deg) scale(1)' },
+			'20%': { transform: 'translateX(4px) rotate(3deg) scale(1.02)' },
+			'40%': { transform: 'translateX(8px) rotate(5deg) scale(1.05)' },
+			'60%': { transform: 'translateX(4px) rotate(3deg) scale(1.02)' },
+			'80%': { transform: 'translateX(2px) rotate(1deg) scale(1.01)' },
+			'100%': { transform: 'translateX(0) rotate(0deg) scale(1)' }
+		},
+		'scramble-pulse': {
+			'0%, 100%': { opacity: '1', transform: 'scale(1)' },
+			'50%': { opacity: '0.7', transform: 'scale(0.95)' }
 		}
 		},
 		animation: {
@@ -153,7 +177,10 @@ export default {
 			'epic-entrance': 'epic-entrance 0.6s ease-out forwards',
 			'legendary-entrance': 'legendary-entrance 0.8s ease-out forwards',
 			'float': 'float 2s ease-in-out infinite',
-			'border-glow': 'border-glow 2.5s ease-in-out infinite'
+			'border-glow': 'border-glow 2.5s ease-in-out infinite',
+			'dice-shake-intense': 'dice-shake-intense 0.8s ease-in-out',
+			'dice-blow': 'dice-blow 0.8s ease-in-out',
+			'scramble-pulse': 'scramble-pulse 1.5s ease-in-out infinite'
 		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
