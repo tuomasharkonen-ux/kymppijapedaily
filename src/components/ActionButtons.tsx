@@ -36,7 +36,7 @@ export const ActionButtons = ({
   }
 
   return (
-    <div className="flex gap-2 justify-center mt-3">
+    <div className="flex gap-2 mt-3 w-full">
       {availableActions.map((action) => {
         const actionType = actionItemMap[action.id];
         if (!actionType) return null;
@@ -49,7 +49,7 @@ export const ActionButtons = ({
             onClick={() => onActionClick(actionType)}
             disabled={disabled || isAnimating}
             aria-label={`${action.name} - ${action.shortDescription}`}
-            className="min-w-[100px]"
+            className="flex-1"
           >
             <span aria-hidden="true">{action.emoji}</span>
             <span className="ml-1">{actionType === 'shake' ? 'Shake' : 'Blow'}</span>
