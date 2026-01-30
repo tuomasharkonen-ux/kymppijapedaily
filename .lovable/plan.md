@@ -1,216 +1,197 @@
 
-
-# Purchase System Implementation Plan
+# Shake and Blow Dice Actions Implementation Plan
 
 ## Overview
 
-This plan implements a secure, server-side purchase system for the Dice Pro Shop. Users will be able to spend their earned credits to unlock cosmetic items and actions, with all transactions validated and processed by a backend function to prevent cheating.
+This plan implements interactive action buttons for the "Shake Dice" and "Blow Dice" shop items. When a user owns one or both actions, secondary buttons appear below the main "Roll Dice" button. Pressing an action triggers a fun animation and scrambles the dice visually (hiding numbers with placeholder icons) to create the illusion of preparation before the actual roll.
 
 ---
 
-## Current State
+## Feature Behavior
 
-**Already in place:**
-- `user_credits` table with RLS (users can only read their own balance)
-- `increment_user_credits` database function (SECURITY DEFINER, atomic updates)
-- Shop UI with item catalog, modals, and "Coming Soon" buttons
-- `check-achievements` edge function pattern for secure server-side operations
-
-**Missing:**
-- Table to track purchased items
-- Backend function to handle purchases securely
-- Frontend logic to call purchase function and display ownership status
+**User Flow:**
+1. User purchases "Shake Dice" or "Blow Dice" action from shop
+2. On the game board, corresponding action button(s) appear below "Roll Dice"
+3. User clicks action button (e.g., "Shake")
+4. Dice animate with the shake/blow effect
+5. Unlocked dice show scrambled placeholder state (question marks or swirl icons)
+6. User must still click "Roll Dice" to actually roll and reveal new values
+7. Multiple actions can be triggered in sequence before rolling
 
 ---
 
-## Implementation Steps
+## Animation Designs
 
-### Step 1: Create `user_purchases` Table
+### Shake Dice Animation
+- All unlocked dice rapidly shake left-right for ~800ms
+- Dice jiggle with increasing intensity, then settle
+- Sound of dice rattling (visual only, no audio)
+- After animation: dice faces show "?" placeholders
 
-Create a new table to track which items users have purchased.
-
-```text
-Table: user_purchases
-+-------------+-------------+----------------------------+
-| Column      | Type        | Notes                      |
-+-------------+-------------+----------------------------+
-| id          | UUID        | Primary key                |
-| user_id     | UUID        | References auth user       |
-| item_id     | TEXT        | Shop item identifier       |
-| purchased_at| TIMESTAMPTZ | When purchase was made     |
-+-------------+-------------+----------------------------+
-Constraints: UNIQUE(user_id, item_id) - prevent duplicate purchases
-```
-
-**RLS Policies:**
-- SELECT: Users can read their own purchases
-- INSERT: Blocked (WITH CHECK false) - only edge function can insert
-- UPDATE/DELETE: Not allowed
+### Blow Dice Animation
+- Visual "wind" effect sweeps across the dice from left to right
+- Dice slightly rotate/tilt as if blown by wind
+- Floating particle effects (small dots) drift across
+- After animation: dice faces show spiral/swirl placeholders
 
 ---
 
-### Step 2: Create `purchase-item` Edge Function
+## Technical Implementation
 
-A new secure backend function that handles the entire purchase flow atomically:
+### Step 1: Add New Keyframe Animations
 
-**Endpoint:** `POST /functions/v1/purchase-item`
+Add to `tailwind.config.ts`:
+- `dice-shake-intense`: Rapid back-and-forth shaking with increasing amplitude
+- `dice-blow`: Slight rotation and bounce as if hit by wind
+- `wind-particles`: Floating particles moving right to left
 
-**Request Body:**
-```text
-{ "itemId": "golden_dice" }
-```
+### Step 2: Update Dice Component
 
-**Server-side validation:**
-1. Authenticate user via JWT claims
-2. Verify item exists in catalog (hardcoded item list to prevent spoofing)
-3. Check user hasn't already purchased this item
-4. Verify user has sufficient credit balance
-5. Deduct credits using `decrement_user_credits` function (new)
-6. Insert purchase record
-7. Return success with updated balance
+Modify `Dice.tsx` to:
+- Add new prop: `isScrambled: boolean` - shows placeholder instead of dots
+- Add new prop: `animationType?: 'shake' | 'blow' | null` - triggers action animation
+- When `isScrambled` is true, render a "?" or swirl icon instead of dot pattern
+- Apply animation classes based on `animationType`
 
-**Error responses:**
-- 401: Unauthorized
-- 400: Invalid item ID
-- 400: Already owned
-- 400: Insufficient credits
-- 500: Server error
+### Step 3: Create Action Buttons Component
 
----
+Create `src/components/ActionButtons.tsx`:
+- Accepts `purchasedItems`, `activeAction`, and `onActionClick` props
+- Filters shop items to show only owned actions
+- Renders secondary/outline styled buttons below main roll button
+- Each button shows emoji + action name (e.g., "🫨 Shake" and "💨 Blow")
+- Only visible when user owns at least one action
 
-### Step 3: Create `decrement_user_credits` Database Function
+### Step 4: Update GameBoard State Management
 
-Similar to `increment_user_credits`, but for deducting credits:
+Modify `GameBoard.tsx` to:
+- Add new state: `isScrambled: boolean` - tracks if dice are in scrambled state
+- Add new state: `currentAction: 'shake' | 'blow' | null` - tracks active animation
+- Add `triggerAction(actionType)` function that:
+  1. Sets `currentAction` to trigger animation
+  2. After animation duration, sets `isScrambled = true`
+  3. Clears `currentAction` after animation completes
+- Pass new props to `Dice` components
+- When `rollDice()` is called, clear `isScrambled` state
+- Pass owned actions to render action buttons
 
-```text
-Function: decrement_user_credits(p_user_id UUID, p_amount INTEGER)
-- SECURITY DEFINER (bypasses RLS)
-- Validates amount is positive and within bounds
-- Checks balance >= amount before deducting
-- Raises exception if insufficient funds
-- Atomic update to prevent race conditions
-```
+### Step 5: Update Index Page Props
 
----
-
-### Step 4: Create `useUserPurchases` Hook
-
-A new React hook to fetch and manage purchased items:
-
-```text
-Hook: useUserPurchases(userId)
-
-Returns:
-- purchasedItems: string[] (list of owned item IDs)
-- isLoading: boolean
-- purchaseItem: (itemId) => Promise<result>
-- refetchPurchases: () => void
-```
+Modify `Index.tsx` to:
+- Pass `purchasedItems` array to `GameBoard`
+- Pass `activeAction` setting (for potential future use)
 
 ---
 
-### Step 5: Update Shop UI Components
+## Visual States for Scrambled Dice
 
-**Shop.tsx changes:**
-- Fetch user's purchases via new hook
-- Pass ownership status to item cards
-- Handle purchase button click with confirmation
-
-**Item Card updates:**
-- Show "Owned" badge for purchased items
-- Change button from "Unlock" to "Owned" with checkmark
-- Keep "Unlock" button enabled for unpurchased items with sufficient balance
-- Show "Not enough credits" state when balance is too low
-
-**ShopItemModal updates:**
-- Add purchase confirmation flow
-- Show loading state during purchase
-- Display success/error feedback via toast
+When `isScrambled = true`, dice will show:
+- A question mark "?" icon in the center
+- Subtle pulsing animation to indicate "ready to roll"
+- Maintains skin styling (golden, diamond, etc.)
 
 ---
 
-## Security Considerations
+## File Changes Summary
 
-1. **Item catalog is hardcoded server-side** - Prevents users from purchasing non-existent items or manipulating prices
-
-2. **All credit operations use SECURITY DEFINER functions** - Atomic updates prevent race conditions
-
-3. **RLS blocks direct inserts** - Only edge function with service role can create purchase records
-
-4. **JWT validation required** - All requests authenticated via auth claims
-
-5. **Idempotent purchases** - UNIQUE constraint prevents duplicate purchases even with concurrent requests
-
----
-
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `supabase/functions/purchase-item/index.ts` | Edge function for secure purchases |
-| `src/hooks/useUserPurchases.ts` | Hook to fetch and manage purchases |
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/config.toml` | Add `purchase-item` function config |
-| `src/pages/Shop.tsx` | Integrate purchase flow, ownership display |
-| `src/components/ShopItemModal.tsx` | Add purchase confirmation UI |
-| `src/integrations/supabase/types.ts` | Auto-updated after migration |
-
-## Database Changes
-
-| Change | Type |
-|--------|------|
-| Create `user_purchases` table | Migration |
-| Create `decrement_user_credits` function | Migration |
-| RLS policies for `user_purchases` | Migration |
+| File | Type | Changes |
+|------|------|---------|
+| `tailwind.config.ts` | Modify | Add shake/blow keyframe animations |
+| `src/components/Dice.tsx` | Modify | Add `isScrambled` and `animationType` props, render placeholder |
+| `src/components/ActionButtons.tsx` | Create | New component for action buttons |
+| `src/components/GameBoard.tsx` | Modify | Add scrambled state, action handling, render action buttons |
+| `src/pages/Index.tsx` | Modify | Pass `purchasedItems` to GameBoard |
+| `src/components/PracticeMode.tsx` | Modify | Add action button support for practice mode (optional) |
 
 ---
 
 ## Technical Details
 
-### Edge Function: purchase-item
+### New Tailwind Animations
 
 ```text
-Flow:
-1. Parse JWT, extract userId
-2. Parse request body for itemId
-3. Lookup item in SHOP_ITEMS constant (same as shopItems.ts)
-4. Query user_purchases for existing ownership
-5. Query user_credits for current balance
-6. If balance < price: return error
-7. Call decrement_user_credits RPC
-8. Insert into user_purchases
-9. Return { success: true, newBalance, item }
+Keyframes to add:
+
+dice-shake-intense:
+  0%, 100%: translateX(0) rotate(0deg)
+  10%: translateX(-3px) rotate(-2deg)
+  20%: translateX(3px) rotate(2deg)
+  30%: translateX(-5px) rotate(-3deg)
+  40%: translateX(5px) rotate(3deg)
+  50%: translateX(-7px) rotate(-4deg)
+  60%: translateX(7px) rotate(4deg)
+  70%: translateX(-5px) rotate(-3deg)
+  80%: translateX(5px) rotate(2deg)
+  90%: translateX(-2px) rotate(-1deg)
+
+dice-blow:
+  0%: translateX(0) rotate(0deg) scale(1)
+  20%: translateX(4px) rotate(3deg) scale(1.02)
+  40%: translateX(8px) rotate(5deg) scale(1.05)
+  60%: translateX(4px) rotate(3deg) scale(1.02)
+  80%: translateX(2px) rotate(1deg) scale(1.01)
+  100%: translateX(0) rotate(0deg) scale(1)
 ```
 
-### Frontend Purchase Flow
+### Dice Component Props Update
 
 ```text
-User clicks "Unlock" button
-    ↓
-Show confirmation dialog: "Spend X credits on Item?"
-    ↓
-User confirms
-    ↓
-Call supabase.functions.invoke('purchase-item', { itemId })
-    ↓
-On success: Show toast, update UI, refetch purchases & credits
-    ↓
-On error: Show error toast with message
+interface DiceProps {
+  value: number;
+  isLocked: boolean;
+  isRolling: boolean;
+  isScrambled?: boolean;        // NEW - shows placeholder
+  animationType?: 'shake' | 'blow' | null;  // NEW - triggers animation
+  onClick: () => void;
+  disabled?: boolean;
+  skin?: DiceSkin;
+}
 ```
 
-### UI States for Each Item
+### GameBoard State Updates
 
 ```text
-┌─────────────────────────────────────────────┐
-│ Item Card States:                           │
-│                                             │
-│ 1. OWNED: Green "Owned ✓" badge, no button  │
-│ 2. CAN_BUY: "Unlock for X credits" button   │
-│ 3. TOO_EXPENSIVE: Grayed button, tooltip    │
-└─────────────────────────────────────────────┘
+New state:
+- isScrambled: boolean (default: false)
+- currentAction: 'shake' | 'blow' | null (default: null)
+
+Flow when action button clicked:
+1. Set currentAction to 'shake' or 'blow'
+2. Start animation duration timer (800ms)
+3. After animation: set isScrambled = true, currentAction = null
+
+Flow when "Roll Dice" clicked:
+1. Set isScrambled = false
+2. Continue with existing roll logic
 ```
 
+### Action Buttons Layout
+
+```text
++----------------------------------+
+|         🎲 Roll Dice             |  <- Primary button (existing)
++----------------------------------+
+
++---------------+  +---------------+
+|  🫨 Shake     |  |  💨 Blow      |  <- Secondary buttons (new)
++---------------+  +---------------+
+```
+
+---
+
+## Edge Cases
+
+1. **Already scrambled**: Clicking action again re-triggers animation but dice stay scrambled
+2. **During rolling**: Action buttons disabled while dice are rolling
+3. **Game complete**: Action buttons hidden/disabled after game completion
+4. **No owned actions**: Action buttons section not rendered at all
+5. **First roll**: Can use actions before first roll (dice start as empty, become scrambled)
+
+---
+
+## Accessibility
+
+- Action buttons have proper aria-labels
+- Announce "Dice scrambled, ready to roll" to screen readers after action
+- Buttons are keyboard accessible
+- Animation respects `prefers-reduced-motion` media query
