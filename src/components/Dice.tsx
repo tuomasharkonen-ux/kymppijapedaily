@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { Lock } from "lucide-react";
+import { Lock, HelpCircle, Wind } from "lucide-react";
 
 export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
+export type DiceAnimationType = 'shake' | 'blow' | null;
 
 interface DiceProps {
   value: number;
@@ -11,6 +12,8 @@ interface DiceProps {
   onClick: () => void;
   disabled?: boolean;
   skin?: DiceSkin;
+  isScrambled?: boolean;
+  animationType?: DiceAnimationType;
 }
 
 
@@ -79,8 +82,42 @@ const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: D
   );
 };
 
-export const Dice = ({ value, isLocked, isRolling, onClick, disabled, skin = "default" }: DiceProps) => {
+// Scrambled state placeholder - shows "?" or wind icon
+const ScrambledPlaceholder = ({ type, skin = "default" }: { type: 'shake' | 'blow' | null; skin?: DiceSkin }) => {
+  const iconColor = skinStyles[skin].dot;
+  const IconComponent = type === 'blow' ? Wind : HelpCircle;
+  
+  return (
+    <div className="absolute inset-0 flex items-center justify-center animate-scramble-pulse">
+      <IconComponent 
+        className={cn(
+          "w-6 h-6 md:w-8 md:h-8",
+          iconColor.replace('bg-', 'text-').replace('foreground', 'foreground')
+        )} 
+      />
+    </div>
+  );
+};
+
+export const Dice = ({ 
+  value, 
+  isLocked, 
+  isRolling, 
+  onClick, 
+  disabled, 
+  skin = "default",
+  isScrambled = false,
+  animationType = null
+}: DiceProps) => {
   const [displayValue, setDisplayValue] = useState(value);
+  const [lastScrambleType, setLastScrambleType] = useState<'shake' | 'blow' | null>(null);
+
+  // Track the last action type for showing appropriate placeholder
+  useEffect(() => {
+    if (animationType) {
+      setLastScrambleType(animationType);
+    }
+  }, [animationType]);
 
   useEffect(() => {
     if (isRolling) {
@@ -103,12 +140,23 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled, skin = "de
   }, [isRolling, value]);
 
   const styles = skinStyles[skin];
+  
+  // Determine which animation class to apply
+  const getAnimationClass = () => {
+    if (isRolling) return "animate-dice-roll";
+    if (animationType === 'shake' && !isLocked) return "animate-dice-shake-intense";
+    if (animationType === 'blow' && !isLocked) return "animate-dice-blow";
+    return "";
+  };
+
+  // Show scrambled state only for unlocked dice
+  const showScrambled = isScrambled && !isLocked && !isRolling;
 
   return (
     <button
       onClick={onClick}
       disabled={disabled || isRolling}
-      aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? 'locked' : 'unlocked'}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
+      aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? 'locked' : 'unlocked'}${isScrambled ? ', scrambled' : ''}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
       aria-pressed={isLocked}
       className={cn(
         "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md transition-transform duration-300",
@@ -118,12 +166,16 @@ export const Dice = ({ value, isLocked, isRolling, onClick, disabled, skin = "de
           ? "border-primary ring-2 ring-primary/50 animate-pulse-glow" 
           : styles.border + " hover:border-primary/50",
         styles.glow,
-        isRolling && "animate-dice-roll",
+        getAnimationClass(),
         !isRolling && !disabled && "hover:scale-105 cursor-pointer",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <DiceDotsWithSkin value={displayValue} skin={skin} />
+      {showScrambled ? (
+        <ScrambledPlaceholder type={lastScrambleType} skin={skin} />
+      ) : (
+        <DiceDotsWithSkin value={displayValue} skin={skin} />
+      )}
       {isLocked && (
         <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary-foreground" />
