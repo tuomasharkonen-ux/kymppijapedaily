@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShopItemModal } from "@/components/ShopItemModal";
+import { PurchaseSuccessModal } from "@/components/PurchaseSuccessModal";
 import { shopItems, type ShopItem } from "@/lib/shopItems";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
@@ -11,10 +12,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Coins, Store, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
+interface PurchaseSuccess {
+  item: ShopItem;
+  newBalance: number;
+}
+
 const Shop = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<PurchaseSuccess | null>(null);
   
   const { userCredits, isLoading: creditsLoading, refetchBadges } = useBadges(user?.id || null);
   const { isOwned, isLoading: purchasesLoading, purchaseItem, isPurchasing } = useUserPurchases(user?.id || null);
@@ -32,8 +39,13 @@ const Shop = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handlePurchaseSuccess = () => {
+  const handlePurchaseSuccess = (item: ShopItem, newBalance: number) => {
+    setPurchaseSuccess({ item, newBalance });
     refetchBadges();
+  };
+
+  const handleCloseSuccessModal = () => {
+    setPurchaseSuccess(null);
   };
 
   if (authLoading) {
@@ -221,7 +233,19 @@ const Shop = () => {
         canAfford={selectedItem ? userCredits >= selectedItem.price : false}
         onPurchase={purchaseItem}
         isPurchasing={isPurchasing}
-        onPurchaseSuccess={handlePurchaseSuccess}
+        onPurchaseSuccess={(newBalance) => {
+          if (selectedItem) {
+            handlePurchaseSuccess(selectedItem, newBalance);
+          }
+        }}
+      />
+
+      {/* Purchase success celebration modal */}
+      <PurchaseSuccessModal
+        item={purchaseSuccess?.item ?? null}
+        isOpen={!!purchaseSuccess}
+        onClose={handleCloseSuccessModal}
+        newBalance={purchaseSuccess?.newBalance ?? 0}
       />
     </div>
   );

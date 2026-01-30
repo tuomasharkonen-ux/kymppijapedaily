@@ -30,7 +30,7 @@ interface ShopItemModalProps {
   canAfford: boolean;
   onPurchase: (itemId: string) => Promise<PurchaseResult>;
   isPurchasing: boolean;
-  onPurchaseSuccess: () => void;
+  onPurchaseSuccess: (newBalance: number) => void;
 }
 
 export const ShopItemModal = ({
@@ -55,11 +55,7 @@ export const ShopItemModal = ({
     const result = await onPurchase(item.id);
     
     if (result.success) {
-      toast({
-        title: "🎉 Purchase successful!",
-        description: `You now own ${result.itemName}! New balance: ${result.newBalance} credits`,
-      });
-      onPurchaseSuccess();
+      onPurchaseSuccess(result.newBalance ?? 0);
       setShowConfirm(false);
       onClose();
     } else {
