@@ -59,7 +59,7 @@ const Index = () => {
     settings,
     isLoading: settingsLoading,
     updateSkin,
-    updateAction,
+    toggleAction,
   } = useUserSettings(user?.id || null);
 
   // Get the active skin as DiceSkin type
@@ -155,7 +155,7 @@ Personal best: ${bestScore}`;
                 ← Back to Daily Game
               </Button>
             </div>
-            <PracticeMode isLoggedIn activeSkin={activeSkin} purchasedItems={purchasedItems} />
+            <PracticeMode isLoggedIn activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} />
           </div> : <div className="space-y-6">
             {hasPlayedToday && !justCompletedGame ? <>
                 <Card>
@@ -185,13 +185,13 @@ Personal best: ${bestScore}`;
                 <CustomizationSection
                   purchasedItems={purchasedItems}
                   activeSkin={settings.activeSkin}
-                  activeAction={settings.activeAction}
+                  activeActions={settings.activeActions}
                   onSkinChange={updateSkin}
-                  onActionChange={updateAction}
+                  onActionToggle={toggleAction}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} />
+                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
@@ -202,9 +202,9 @@ Personal best: ${bestScore}`;
                 <CustomizationSection
                   purchasedItems={purchasedItems}
                   activeSkin={settings.activeSkin}
-                  activeAction={settings.activeAction}
+                  activeActions={settings.activeActions}
                   onSkinChange={updateSkin}
-                  onActionChange={updateAction}
+                  onActionToggle={toggleAction}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 

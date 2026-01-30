@@ -15,6 +15,7 @@ interface GameBoardProps {
   onShareClick?: () => void;
   activeSkin?: DiceSkin;
   purchasedItems?: string[];
+  activeActions?: string[];
 }
 
 interface DiceState {
@@ -22,7 +23,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [] }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [] }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -268,6 +269,7 @@ Personal best: ${bestScore}`;
 
               <ActionButtons
                 purchasedItems={purchasedItems}
+                activeActions={activeActions}
                 onActionClick={triggerAction}
                 disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
                 isAnimating={currentAction !== null}

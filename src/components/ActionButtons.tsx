@@ -5,6 +5,7 @@ export type ActionType = 'shake' | 'blow';
 
 interface ActionButtonsProps {
   purchasedItems: string[];
+  activeActions: string[];
   onActionClick: (actionType: ActionType) => void;
   disabled?: boolean;
   isAnimating?: boolean;
@@ -16,23 +17,27 @@ const actionItemMap: Record<string, ActionType> = {
 };
 
 export const ActionButtons = ({ 
-  purchasedItems, 
+  purchasedItems,
+  activeActions,
   onActionClick, 
   disabled = false,
   isAnimating = false 
 }: ActionButtonsProps) => {
-  // Filter to only show owned action items
-  const ownedActions = shopItems.filter(
-    item => item.category === 'action' && purchasedItems.includes(item.id)
+  // Filter to only show actions that are both owned AND active
+  const availableActions = shopItems.filter(
+    item => 
+      item.category === 'action' && 
+      purchasedItems.includes(item.id) &&
+      activeActions.includes(item.id)
   );
 
-  if (ownedActions.length === 0) {
+  if (availableActions.length === 0) {
     return null;
   }
 
   return (
     <div className="flex gap-2 justify-center mt-3">
-      {ownedActions.map((action) => {
+      {availableActions.map((action) => {
         const actionType = actionItemMap[action.id];
         if (!actionType) return null;
         

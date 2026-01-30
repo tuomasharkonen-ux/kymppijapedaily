@@ -168,19 +168,19 @@ export type Database = {
       }
       user_settings: {
         Row: {
-          active_action: string | null
+          active_action: string[] | null
           active_skin: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          active_action?: string | null
+          active_action?: string[] | null
           active_skin?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          active_action?: string | null
+          active_action?: string[] | null
           active_skin?: string | null
           updated_at?: string | null
           user_id?: string
