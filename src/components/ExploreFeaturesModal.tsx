@@ -52,7 +52,7 @@ const features: FeatureSlide[] = [
     title: "Daily Challenge",
     badge: "Core Feature",
     description:
-      "A fresh game awaits every day at midnight! Same starting dice for all players. Lock all 10 dice on the same number in as few throws as possible.",
+      "A fresh game awaits every day at midnight! Lock all 10 dice on the same number in as few throws as possible.",
     preview: (
       <div className="flex flex-col items-center gap-2 py-2">
         <div className="flex gap-0.5">
