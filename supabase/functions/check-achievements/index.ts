@@ -157,10 +157,10 @@ Deno.serve(async (req) => {
       throw gameError;
     }
 
-    // Fetch all user's games for streak calculation
+    // Fetch all user's games for streak calculation and winning numbers
     const { data: allGames, error: allGamesError } = await supabase
       .from('game_records')
-      .select('played_date')
+      .select('played_date, winning_number')
       .eq('user_id', userId)
       .order('played_date', { ascending: false });
 
@@ -175,6 +175,10 @@ Deno.serve(async (req) => {
     const verifiedStreak = calculateStreak(allGames?.map(g => g.played_date) || []);
     const isFirstGame = allGames?.length === 1 && todayGame !== null;
     const verifiedInitialDice = getSeededDice(userId, today);
+    
+    // Check if user has won with all 6 numbers
+    const allWinningNumbers = new Set(allGames?.map(g => g.winning_number) || []);
+    const hasAllSixNumbers = [1, 2, 3, 4, 5, 6].every(n => allWinningNumbers.has(n));
 
     console.log('Verified values:', {
       throws: verifiedThrows,
@@ -315,6 +319,9 @@ Deno.serve(async (req) => {
       // Check locked_numbers (special straight 1-5)
       // We can verify this by checking if the winning dice include a straight
       // For now, we skip this check as it requires tracking locked order during game
+
+      // Check jack_of_all_dice (won with all 6 numbers)
+      await checkAndAwardBadge('jack_of_all_dice', hasAllSixNumbers);
     }
 
     // Check feature_used (share feature) - this is the only client-trusted value

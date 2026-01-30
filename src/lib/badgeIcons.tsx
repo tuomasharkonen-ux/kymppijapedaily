@@ -25,6 +25,7 @@ import {
   Calendar,
   CalendarDays,
   TrendingUp,
+  Dices,
   type LucideIcon,
 } from "lucide-react";
 
@@ -72,6 +73,9 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   special_date_birthday: Cake,
   special_date_ny: PartyPopper,
   special_date_xmas: TreeDeciduous,
+  
+  // Collection badges
+  jack_of_all_dice: Dices,
 };
 
 export const getBadgeIcon = (badgeId: string): LucideIcon => {
