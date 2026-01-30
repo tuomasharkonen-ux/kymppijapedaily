@@ -255,14 +255,18 @@ export const ExploreFeaturesModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <Carousel 
-          className="w-full" 
+        <Carousel
+          className="w-full"
           setApi={setApi}
           opts={{ loop: true }}
         >
-          <CarouselContent>
+          {/*
+            Override the default carousel "-ml-4 / pl-4" spacing.
+            On small viewports this can visually shift the slide content.
+          */}
+          <CarouselContent className="ml-0">
             {features.map((feature) => (
-              <CarouselItem key={feature.id}>
+              <CarouselItem key={feature.id} className="pl-0">
                 <Card className="border-0 shadow-none">
                   <CardContent className="flex flex-col items-center p-2 sm:p-4 space-y-2">
                     <div className="flex items-center gap-2">
