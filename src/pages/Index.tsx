@@ -32,6 +32,7 @@ const Index = () => {
     personalBest,
     personalWorst,
     averageThrows,
+    previousAverage,
     favoriteNumber,
     currentStreak,
     rankByAverage,
@@ -69,10 +70,25 @@ const Index = () => {
     const today = format(new Date(), "dd.MM.yyyy");
     const diceEmojis = "🎲".repeat(todayResult.throws_count);
     const bestScore = personalBest && personalBest < todayResult.throws_count ? personalBest : todayResult.throws_count;
+    
+    // Build average line with movement indicator
+    let averageLine = "";
+    if (averageThrows !== null) {
+      averageLine = `Average: ${averageThrows}`;
+      if (previousAverage !== null) {
+        const diff = averageThrows - previousAverage;
+        if (diff !== 0) {
+          const arrow = diff < 0 ? '↓' : '↑';
+          const absDiff = Math.abs(diff).toFixed(1);
+          averageLine += ` (${arrow}${absDiff})`;
+        }
+      }
+    }
+    
     const shareText = `Kymppijape daily ${today}
 Throws today: ${todayResult.throws_count}
 ${diceEmojis}
-Personal best: ${bestScore}`;
+Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}`;
     try {
       await navigator.clipboard.writeText(shareText);
       setShowCopied(true);
