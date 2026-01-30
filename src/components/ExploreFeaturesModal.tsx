@@ -189,7 +189,7 @@ const features: FeatureSlide[] = [
                 ? "bg-primary text-primary-foreground"
                 : day === 6
                 ? "bg-primary/30 text-primary border border-dashed border-primary"
-                : "bg-muted text-muted-foreground"
+                : "bg-muted/50 text-muted-foreground"
             }`}
           >
             {day <= 5 ? "✓" : day}

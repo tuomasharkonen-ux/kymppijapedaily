@@ -145,7 +145,7 @@ const Shop = () => {
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
                     {/* Item icon */}
-                    <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-3xl relative">
+                    <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center text-3xl relative">
                       <span aria-hidden="true">{item.emoji}</span>
                       {owned && (
                         <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
