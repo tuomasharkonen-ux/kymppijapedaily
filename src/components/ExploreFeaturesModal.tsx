@@ -278,7 +278,7 @@ export const ExploreFeaturesModal = ({
               {features.map((feature) => (
                 <CarouselItem key={feature.id} className="pl-0">
                   <Card className="border-0 shadow-none">
-                    <CardContent className="flex flex-col items-center p-2 sm:p-4 space-y-2">
+                    <CardContent className="flex flex-col items-center p-4 sm:p-6 space-y-3">
                       <div className="flex items-center gap-2">
                         {feature.icon}
                         <h3 className="font-semibold text-base sm:text-lg">{feature.title}</h3>
