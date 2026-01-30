@@ -165,11 +165,11 @@ Personal best: ${bestScore}`;
                     <p className="text-muted-foreground mb-4">
                       You've already played today's Kymppijape. New game unlocks at midnight!
                     </p>
-                    <Button onClick={copyResultToClipboard} size="lg" className="min-w-[220px]" variant={showCopied ? "secondary" : "default"}>
+                    <Button onClick={copyResultToClipboard} size="lg" className="w-full" variant={showCopied ? "secondary" : "default"}>
                       {showCopied ? "✓ Copied to clipboard!" : <><span aria-hidden="true">📋</span> Share Result with Friends</>}
                     </Button>
                     <div className="mt-4">
-                      <Button variant="outline" onClick={() => setShowPracticeMode(true)} aria-label="Play Practice Mode">
+                      <Button variant="outline" onClick={() => setShowPracticeMode(true)} aria-label="Play Practice Mode" className="w-full">
                         <span aria-hidden="true">🎯</span> Play Practice Mode
                       </Button>
                     </div>
