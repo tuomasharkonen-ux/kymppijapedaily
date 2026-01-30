@@ -229,8 +229,8 @@ Personal best: ${bestScore}`;
           {hasStarted ? (
             <>
               <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-muted-foreground">
-                  Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+              <div className="text-sm text-muted-foreground">
+                  Throws: <span className="font-bold text-foreground text-2xl">{throwCount}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
