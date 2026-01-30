@@ -25,9 +25,9 @@ const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; gl
     glow: "shadow-[0_0_15px_rgba(147,197,253,0.6)]",
   },
   german_supermarket_dice: {
-    bg: "bg-gradient-to-br from-yellow-400 via-blue-500 to-red-500",
-    border: "border-yellow-500",
-    dot: "bg-white",
+    bg: "bg-yellow-400",
+    border: "border-red-600 border-[3px]",
+    dot: "bg-blue-600",
   },
 };
 
