@@ -22,7 +22,7 @@ const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; gl
     bg: "bg-gradient-to-br from-cyan-200 via-blue-300 to-purple-300",
     border: "border-blue-400",
     dot: "bg-blue-900",
-    glow: "animate-diamond-sparkle",
+    glow: "shadow-[0_0_15px_rgba(147,197,253,0.6)]",
   },
   german_supermarket_dice: {
     bg: "bg-yellow-400",
