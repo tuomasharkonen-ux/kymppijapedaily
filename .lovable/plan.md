@@ -1,81 +1,109 @@
 
+# Add Average Throws to Share Text
 
-# Fix Shake Detection for Mobile Devices
+## Overview
 
-## Problem Summary
+Add the current average throw count and its movement indicator (up/down) to the shareable result text that gets copied to clipboard.
 
-The shake detection feature isn't working because **iOS requires permission requests to be triggered by a user gesture** (like a button tap). The current code tries to request permission automatically when the component mounts, which iOS blocks silently.
+## Current Share Format
 
-## Solution Overview
+```
+Kymppijape daily 30.01.2026
+Throws today: 15
+🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲
+Personal best: 12
+```
 
-Add a permission prompt that appears when the user first tries to use the Shake action feature, requesting motion sensor access through a button tap.
+## New Share Format
+
+```
+Kymppijape daily 30.01.2026
+Throws today: 15
+🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲
+Personal best: 12
+Average: 18.5 (↓0.3)
+```
+
+The arrow shows improvement (lower is better in this game):
+- **↓** (down arrow) = average decreased = improvement
+- **↑** (up arrow) = average increased = got worse
+- No arrow if this is the first game or average stayed the same
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Update the Shake Detection Hook
+### Step 1: Track Previous Average in useGameRecords Hook
 
-Modify `useShakeDetection.ts` to:
-- Remove the automatic permission request from `useEffect`
-- Only add the motion listener after permission is confirmed
-- Track permission status internally
-- Add a `permissionStatus` state that can be checked externally
+Modify `useGameRecords.ts` to calculate the previous average (before today's game):
 
-### Step 2: Add Permission Request Flow to GameBoard
+- Add new state: `previousAverage`
+- When calculating stats, also compute what the average was before today's result
+- This is calculated by excluding today's result from the calculation
 
-When the user has purchased and activated the Shake action:
-- Check if motion permission has been granted
-- If not, show a prompt or button asking them to "Enable Shake Detection"
-- When they tap the button, call the permission request
-- Store the result (granted/denied) in localStorage for persistence
+### Step 2: Return Previous Average from Hook
 
-### Step 3: Add Visual Feedback
+Add `previousAverage` to the return object so it's available in the Index page.
 
-- Show a small indicator or toast when shake detection is enabled
-- If permission was denied, show a message explaining how to enable it in browser settings
+### Step 3: Update Share Text in Index.tsx
+
+Modify the `copyResultToClipboard` function to:
+- Include the current average
+- Calculate the difference from previous average
+- Add appropriate arrow indicator (↓ for improvement, ↑ for worse)
+- Format the difference with sign (+/-) or as improvement/decline
 
 ---
 
 ## Technical Details
 
-### Updated Hook API
+### Calculating Previous Average
 
-The hook will expose:
-- `permissionStatus`: 'unknown' | 'granted' | 'denied' | 'not-supported'
-- `requestPermission`: Function to call on user gesture
-- `isListening`: Whether the motion listener is active
+```typescript
+// In useGameRecords.ts
+if (userRecords.length > 1 && todayData) {
+  // Filter out today's result to get previous average
+  const previousRecords = userRecords.filter(r => r.played_date !== today);
+  const prevSum = previousRecords.reduce((acc, r) => acc + r.throws_count, 0);
+  const prevAvg = prevSum / previousRecords.length;
+  setPreviousAverage(Math.round(prevAvg * 10) / 10);
+} else {
+  setPreviousAverage(null); // First game, no previous average
+}
+```
 
-### Permission Storage
+### Share Text Construction
 
-Use localStorage key `shake_motion_permission` to remember:
-- Whether permission was previously granted (skip re-asking)
-- Whether it was denied (show instructions instead)
-
-### UI Changes
-
-Add a conditional banner or modal in GameBoard that appears when:
-- User has Shake action enabled
-- Permission hasn't been granted yet
-
-The banner will have a button: "Enable Shake to Shake" that triggers the permission request.
+```typescript
+// In Index.tsx copyResultToClipboard
+let averageLine = `Average: ${averageThrows}`;
+if (previousAverage !== null && averageThrows !== null) {
+  const diff = averageThrows - previousAverage;
+  if (diff !== 0) {
+    const arrow = diff < 0 ? '↓' : '↑';
+    const absDiff = Math.abs(diff).toFixed(1);
+    averageLine += ` (${arrow}${absDiff})`;
+  }
+}
+```
 
 ---
 
 ## Files to Modify
 
-1. **`src/hooks/useShakeDetection.ts`** - Refactor permission handling
-2. **`src/components/GameBoard.tsx`** - Add permission request UI
-3. **`src/components/ActionButtons.tsx`** (optional) - Show indicator for shake-enabled state
+1. **`src/hooks/useGameRecords.ts`**
+   - Add `previousAverage` state
+   - Calculate previous average excluding today's result
+   - Return `previousAverage` in the hook
+
+2. **`src/pages/Index.tsx`**
+   - Destructure `previousAverage` from hook
+   - Update `copyResultToClipboard` to include average with movement indicator
 
 ---
 
-## Expected Outcome
+## Edge Cases
 
-After implementation:
-- iOS users will see a prompt to enable shake detection
-- Tapping the enable button triggers the native iOS permission dialog
-- Once granted, shaking the phone will trigger the Shake action
-- Android users may not need the prompt (permission granted automatically)
-- Desktop users will not see the shake option at all
-
+- **First game ever**: No previous average to compare - show just "Average: X" without movement
+- **Average unchanged**: Show just "Average: X" without arrow
+- **No today result**: Share button shouldn't be visible anyway (already handled)
