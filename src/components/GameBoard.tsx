@@ -149,11 +149,17 @@ Personal best: ${bestScore}`;
   const triggerAction = (actionType: ActionType) => {
     if (isRolling || gameComplete) return;
     
+    // If dice aren't started yet, show them first
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+    
+    // Set scrambled state immediately (icons appear with animation)
+    setIsScrambled(true);
     setCurrentAction(actionType);
     
-    // After animation completes, set scrambled state
+    // After animation completes, clear the action but keep scrambled
     setTimeout(() => {
-      setIsScrambled(true);
       setCurrentAction(null);
     }, 800);
   };
