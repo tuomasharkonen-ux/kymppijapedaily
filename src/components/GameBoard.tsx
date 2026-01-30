@@ -282,9 +282,9 @@ Personal best: ${bestScore}`;
               />
             </>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-6">Ready for today's challenge?</p>
-              <Button onClick={rollDice} disabled={isRolling || currentAction !== null} size="lg" className="min-w-[200px]" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+            <div className="py-8">
+              <p className="text-muted-foreground mb-6 text-center">Ready for today's challenge?</p>
+              <Button onClick={rollDice} disabled={isRolling || currentAction !== null} size="lg" className="w-full" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
                 {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
               <ActionButtons
