@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ActionButtons, ActionType } from "./ActionButtons";
-import { useShakeDetection } from "@/hooks/useShakeDetection";
+import { useShakeDetection, MotionPermissionStatus } from "@/hooks/useShakeDetection";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
+import { Smartphone } from "lucide-react";
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number, initialDice: number[]) => void;
@@ -177,12 +179,28 @@ Personal best: ${bestScore}`;
   }, [isShakeActionActive, isRolling, gameComplete, currentAction, triggerAction]);
 
   // Use shake detection hook
-  useShakeDetection({
+  const { permissionStatus, requestPermission, isListening, isSupported } = useShakeDetection({
     onShake: handlePhoneShake,
     enabled: isShakeActionActive && !isRolling && !gameComplete && currentAction === null,
     threshold: 15,
     timeout: 1000,
   });
+
+  // Handle permission request button click
+  const handleEnableShake = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast.success("Shake detection enabled! 📱 Shake your phone to trigger the dice.");
+    } else {
+      toast.error("Motion permission denied. Check your browser settings to enable.");
+    }
+  };
+
+  // Show permission prompt if shake is active but permission not granted
+  const showShakePermissionPrompt = isShakeActionActive && 
+    isSupported && 
+    permissionStatus !== 'granted' && 
+    permissionStatus !== 'not-supported';
 
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
@@ -256,6 +274,18 @@ Personal best: ${bestScore}`;
                   Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
                 </div>
               </div>
+
+              {showShakePermissionPrompt && (
+                <Alert className="mb-4">
+                  <Smartphone className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between gap-2">
+                    <span className="text-sm">Enable shake detection to shake dice by shaking your phone!</span>
+                    <Button size="sm" variant="secondary" onClick={handleEnableShake}>
+                      Enable
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
                 {dice.map((d, i) => (
