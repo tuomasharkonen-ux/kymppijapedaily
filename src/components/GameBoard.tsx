@@ -19,6 +19,9 @@ interface GameBoardProps {
   activeSkin?: DiceSkin;
   purchasedItems?: string[];
   activeActions?: string[];
+  onCopyResult?: () => Promise<void>;
+  isStatsLoading?: boolean;
+  showCopied?: boolean;
 }
 
 interface DiceState {
@@ -26,7 +29,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [] }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -46,34 +49,6 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   // Action states
   const [isScrambled, setIsScrambled] = useState(false);
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
-
-  const [showCopied, setShowCopied] = useState(false);
-
-  const copyResultToClipboard = async () => {
-    if (!winningNumber) return;
-
-    const today = format(new Date(), "dd.MM.yyyy");
-    const diceEmojis = "🎲".repeat(throwCount);
-    const bestScore = personalBest && personalBest < throwCount ? personalBest : throwCount;
-    
-    const shareText = `Kymppijape daily ${today}
-Throws today: ${throwCount}
-${diceEmojis}
-Personal best: ${bestScore}`;
-
-    try {
-      await navigator.clipboard.writeText(shareText);
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
-      
-      // Trigger share feature achievement check
-      if (onShareClick) {
-        await onShareClick();
-      }
-    } catch {
-      toast.error("Failed to copy");
-    }
-  };
 
   useEffect(() => {
     if (hasPlayedToday) {
@@ -252,12 +227,19 @@ Personal best: ${bestScore}`;
             All 10 dice showing {winningNumber}!
           </p>
           <Button 
-            onClick={copyResultToClipboard}
+            onClick={onCopyResult}
+            disabled={isStatsLoading}
             size="lg"
             className="animate-pop-in min-w-[220px]"
             variant={showCopied ? "secondary" : "default"}
           >
-            {showCopied ? "✓ Copied to clipboard!" : <><span aria-hidden="true">📋</span> Share Result with Friends</>}
+            {isStatsLoading ? (
+              <><span aria-hidden="true">⏳</span> Loading stats...</>
+            ) : showCopied ? (
+              "✓ Copied to clipboard!"
+            ) : (
+              <><span aria-hidden="true">📋</span> Share Result with Friends</>
+            )}
           </Button>
         </div>
       )}
