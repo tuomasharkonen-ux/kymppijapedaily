@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from "react";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
-import { ExploreFeaturesModal } from "./ExploreFeaturesModal";
+import { FeaturesCarousel } from "./FeaturesCarousel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AuthForm } from "./AuthForm";
 import { useShakeDetection } from "@/hooks/useShakeDetection";
 import { toast } from "sonner";
-import { CalendarDays, Award, ShoppingBag, Trophy, Sparkles, Smartphone } from "lucide-react";
+import { Smartphone } from "lucide-react";
 
 interface DiceState {
   value: number;
@@ -43,7 +43,6 @@ export const PracticeMode = ({
   const [hasStarted, setHasStarted] = useState(false);
   const [isScrambled, setIsScrambled] = useState(false);
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
-  const [showExploreModal, setShowExploreModal] = useState(false);
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
@@ -221,37 +220,10 @@ export const PracticeMode = ({
               <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-center mb-4">
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-primary" />
-                    <span>Daily challenges with global competition</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-primary" />
-                    <span>20+ badges to unlock and earn credits</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <ShoppingBag className="h-4 w-4 text-primary" />
-                    <span>Dice Pro Shop with skins & actions</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-primary" />
-                    <span>Leaderboards, stats & streaks</span>
-                  </li>
-                </ul>
-              </div>
-              <button
-                onClick={() => setShowExploreModal(true)}
-                className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-1"
-              >
-                <Sparkles className="h-3 w-3" />
-                Explore all features
-              </button>
+              <FeaturesCarousel />
               <AuthForm onSuccess={() => {}} defaultToSignUp />
             </CardContent>
           </Card>}
-        <ExploreFeaturesModal open={showExploreModal} onOpenChange={setShowExploreModal} />
       </div>;
   }
   return <div className="space-y-6">
@@ -342,36 +314,9 @@ export const PracticeMode = ({
             <CardDescription>Sign up or sign in to unlock all features!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-center mb-2">
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  <span>Daily challenges with global competition</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-primary" />
-                  <span>20+ badges to unlock and earn credits</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <ShoppingBag className="h-4 w-4 text-primary" />
-                  <span>Dice Pro Shop with skins & actions</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-primary" />
-                  <span>Leaderboards, stats & streaks</span>
-                </li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setShowExploreModal(true)}
-              className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-1"
-            >
-              <Sparkles className="h-3 w-3" />
-              Explore all features
-            </button>
+            <FeaturesCarousel />
             <AuthForm onSuccess={() => {}} />
           </CardContent>
         </Card>}
-      <ExploreFeaturesModal open={showExploreModal} onOpenChange={setShowExploreModal} />
     </div>;
 };
