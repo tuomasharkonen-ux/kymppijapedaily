@@ -283,11 +283,6 @@ export const ExploreFeaturesModal = ({
                         {feature.icon}
                         <h3 className="font-semibold text-base sm:text-lg">{feature.title}</h3>
                       </div>
-                      {feature.badge && (
-                        <Badge variant={feature.badgeVariant || "default"} className="text-[10px]">
-                          {feature.badge}
-                        </Badge>
-                      )}
                       <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed px-2">
                         {feature.description}
                       </p>
