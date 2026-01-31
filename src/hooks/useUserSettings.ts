@@ -105,11 +105,43 @@ export const useUserSettings = (userId: string | null) => {
     [userId, settings.activeActions]
   );
 
+  // Activate an action (add to active list if not already present)
+  const activateAction = useCallback(
+    async (actionId: string) => {
+      if (!userId) return;
+
+      // Skip if already active
+      if (settings.activeActions.includes(actionId)) return;
+
+      const newActions = [...settings.activeActions, actionId];
+
+      try {
+        const { error } = await supabase
+          .from("user_settings")
+          .upsert(
+            { user_id: userId, active_action: newActions },
+            { onConflict: "user_id" }
+          );
+
+        if (error) {
+          console.error("Error activating action:", error);
+          return;
+        }
+
+        setSettings((prev) => ({ ...prev, activeActions: newActions }));
+      } catch (error) {
+        console.error("Error activating action:", error);
+      }
+    },
+    [userId, settings.activeActions]
+  );
+
   return {
     settings,
     isLoading,
     updateSkin,
     toggleAction,
+    activateAction,
     refetchSettings: fetchSettings,
   };
 };

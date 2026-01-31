@@ -8,6 +8,7 @@ import { PurchaseSuccessModal } from "@/components/PurchaseSuccessModal";
 import { shopItems, type ShopItem } from "@/lib/shopItems";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Coins, Store, Check } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
@@ -25,6 +26,7 @@ const Shop = () => {
   
   const { userCredits, isLoading: creditsLoading, refetchBadges } = useBadges(user?.id || null);
   const { isOwned, isLoading: purchasesLoading, purchaseItem, isPurchasing } = useUserPurchases(user?.id || null);
+  const { updateSkin, activateAction } = useUserSettings(user?.id || null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,7 +41,14 @@ const Shop = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handlePurchaseSuccess = (item: ShopItem, newBalance: number) => {
+  const handlePurchaseSuccess = async (item: ShopItem, newBalance: number) => {
+    // Auto-activate the purchased item
+    if (item.category === 'skin') {
+      await updateSkin(item.id);
+    } else if (item.category === 'action') {
+      await activateAction(item.id);
+    }
+    
     setPurchaseSuccess({ item, newBalance });
     refetchBadges();
   };
