@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
 import { ExploreFeaturesModal } from "./ExploreFeaturesModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AuthForm } from "./AuthForm";
-import { CalendarDays, Award, ShoppingBag, Trophy, Sparkles } from "lucide-react";
+import { useShakeDetection } from "@/hooks/useShakeDetection";
+import { toast } from "sonner";
+import { CalendarDays, Award, ShoppingBag, Trophy, Sparkles, Smartphone } from "lucide-react";
 
 interface DiceState {
   value: number;
@@ -94,7 +97,7 @@ export const PracticeMode = ({
     }, 600);
   };
 
-  const triggerAction = (actionType: DiceAnimationType) => {
+  const triggerAction = useCallback((actionType: DiceAnimationType) => {
     if (isRolling || gameComplete) return;
     
     // If dice aren't started yet, show them first
@@ -110,7 +113,42 @@ export const PracticeMode = ({
     setTimeout(() => {
       setCurrentAction(null);
     }, 800);
+  }, [isRolling, gameComplete, hasStarted]);
+
+  // Check if shake action is available (owned and active)
+  const isShakeActionActive = purchasedItems.includes('shake_dice_action') && 
+    activeActions.includes('shake_dice_action');
+
+  // Handle phone shake detection
+  const handlePhoneShake = useCallback(() => {
+    if (isShakeActionActive && !isRolling && !gameComplete && currentAction === null) {
+      triggerAction('shake');
+    }
+  }, [isShakeActionActive, isRolling, gameComplete, currentAction, triggerAction]);
+
+  // Use shake detection hook
+  const { permissionStatus, requestPermission, isSupported } = useShakeDetection({
+    onShake: handlePhoneShake,
+    enabled: isShakeActionActive && !isRolling && !gameComplete && currentAction === null,
+    threshold: 15,
+    timeout: 1000,
+  });
+
+  // Handle permission request button click
+  const handleEnableShake = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast.success("Shake detection enabled! 📱 Shake your phone to trigger the dice.");
+    } else {
+      toast.error("Motion permission denied. Check your browser settings to enable.");
+    }
   };
+
+  // Show permission prompt if shake is active but permission not granted
+  const showShakePermissionPrompt = isShakeActionActive && 
+    isSupported && 
+    permissionStatus !== 'granted' && 
+    permissionStatus !== 'not-supported';
   const toggleLock = (index: number) => {
     if (isRolling || gameComplete) return;
     setDice(prev => {
@@ -237,6 +275,18 @@ export const PracticeMode = ({
                   Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
                 </div>
               </div>
+
+              {showShakePermissionPrompt && (
+                <Alert className="mb-4">
+                  <Smartphone className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between gap-2">
+                    <span className="text-sm">Enable shake detection to shake dice by shaking your phone!</span>
+                    <Button size="sm" variant="secondary" onClick={handleEnableShake}>
+                      Enable
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
                 {dice.map((d, i) => (
