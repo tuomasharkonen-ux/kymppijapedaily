@@ -1,109 +1,94 @@
 
-# Add Average Throws to Share Text
+# Unify Share Text Across All Share Buttons
 
-## Overview
+## Problem
 
-Add the current average throw count and its movement indicator (up/down) to the shareable result text that gets copied to clipboard.
+There are two separate share buttons with different logic:
+1. **GameBoard share button** - appears right after completing a game (doesn't include average)
+2. **Index.tsx share button** - on the "come back tomorrow" screen (includes average with movement indicator)
 
-## Current Share Format
+The GameBoard component has its own `copyResultToClipboard` function that's missing the average throws data.
 
-```
-Kymppijape daily 30.01.2026
-Throws today: 15
-🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲
-Personal best: 12
-```
+## Solution
 
-## New Share Format
-
-```
-Kymppijape daily 30.01.2026
-Throws today: 15
-🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲🎲
-Personal best: 12
-Average: 18.5 (↓0.3)
-```
-
-The arrow shows improvement (lower is better in this game):
-- **↓** (down arrow) = average decreased = improvement
-- **↑** (up arrow) = average increased = got worse
-- No arrow if this is the first game or average stayed the same
+Pass the share function from `Index.tsx` down to `GameBoard` as a callback, along with a loading state to ensure stats are ready before sharing.
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Track Previous Average in useGameRecords Hook
+### Step 1: Update GameBoard Props
 
-Modify `useGameRecords.ts` to calculate the previous average (before today's game):
+Add new props to `GameBoard`:
+- `onCopyResult`: Callback function to handle the share action
+- `isStatsLoading`: Boolean indicating if stats are still loading after game completion
 
-- Add new state: `previousAverage`
-- When calculating stats, also compute what the average was before today's result
-- This is calculated by excluding today's result from the calculation
+### Step 2: Update GameBoard Component
 
-### Step 2: Return Previous Average from Hook
+- Remove the internal `copyResultToClipboard` function
+- Remove internal `showCopied` state (will be managed by parent)
+- Accept new props: `onCopyResult`, `isStatsLoading`, `showCopied`
+- Update the share button to call `onCopyResult` and show loading state when `isStatsLoading` is true
 
-Add `previousAverage` to the return object so it's available in the Index page.
+### Step 3: Update Index.tsx
 
-### Step 3: Update Share Text in Index.tsx
-
-Modify the `copyResultToClipboard` function to:
-- Include the current average
-- Calculate the difference from previous average
-- Add appropriate arrow indicator (↓ for improvement, ↑ for worse)
-- Format the difference with sign (+/-) or as improvement/decline
+- Pass `copyResultToClipboard` function to `GameBoard` as `onCopyResult`
+- Pass `isLoading` from `useGameRecords` as `isStatsLoading`
+- Pass `showCopied` state to `GameBoard`
 
 ---
 
 ## Technical Details
 
-### Calculating Previous Average
+### Updated GameBoard Props Interface
 
 ```typescript
-// In useGameRecords.ts
-if (userRecords.length > 1 && todayData) {
-  // Filter out today's result to get previous average
-  const previousRecords = userRecords.filter(r => r.played_date !== today);
-  const prevSum = previousRecords.reduce((acc, r) => acc + r.throws_count, 0);
-  const prevAvg = prevSum / previousRecords.length;
-  setPreviousAverage(Math.round(prevAvg * 10) / 10);
-} else {
-  setPreviousAverage(null); // First game, no previous average
+interface GameBoardProps {
+  // ... existing props
+  onCopyResult?: () => Promise<void>;  // Share handler from parent
+  isStatsLoading?: boolean;            // Stats loading state
+  showCopied?: boolean;                // Copied feedback state
 }
 ```
 
-### Share Text Construction
+### Share Button in GameBoard
 
 ```typescript
-// In Index.tsx copyResultToClipboard
-let averageLine = `Average: ${averageThrows}`;
-if (previousAverage !== null && averageThrows !== null) {
-  const diff = averageThrows - previousAverage;
-  if (diff !== 0) {
-    const arrow = diff < 0 ? '↓' : '↑';
-    const absDiff = Math.abs(diff).toFixed(1);
-    averageLine += ` (${arrow}${absDiff})`;
-  }
-}
+<Button 
+  onClick={onCopyResult}
+  disabled={isStatsLoading}
+  size="lg"
+  variant={showCopied ? "secondary" : "default"}
+>
+  {isStatsLoading ? (
+    <>Loading stats...</>
+  ) : showCopied ? (
+    "Copied to clipboard!"
+  ) : (
+    <>Share Result with Friends</>
+  )}
+</Button>
 ```
 
 ---
 
 ## Files to Modify
 
-1. **`src/hooks/useGameRecords.ts`**
-   - Add `previousAverage` state
-   - Calculate previous average excluding today's result
-   - Return `previousAverage` in the hook
+1. **`src/components/GameBoard.tsx`**
+   - Add new props: `onCopyResult`, `isStatsLoading`, `showCopied`
+   - Remove internal `copyResultToClipboard` function
+   - Remove internal `showCopied` state
+   - Update share button to use passed props
 
 2. **`src/pages/Index.tsx`**
-   - Destructure `previousAverage` from hook
-   - Update `copyResultToClipboard` to include average with movement indicator
+   - Pass `copyResultToClipboard` as `onCopyResult` to GameBoard
+   - Pass `isLoading` as `isStatsLoading`
+   - Pass `showCopied` state to GameBoard
 
 ---
 
-## Edge Cases
+## Expected Result
 
-- **First game ever**: No previous average to compare - show just "Average: X" without movement
-- **Average unchanged**: Show just "Average: X" without arrow
-- **No today result**: Share button shouldn't be visible anyway (already handled)
+- Both share buttons (after game completion and on "come back tomorrow" screen) will use the same share text with average throws and movement indicator
+- The share button will show a loading state until stats are updated after saving the game result
+- Consistent user experience across all share interactions
