@@ -11,7 +11,7 @@ import { getSeededDice } from "@/lib/utils";
 import { Smartphone } from "lucide-react";
 
 interface GameBoardProps {
-  onGameComplete: (throws: number, winningNumber: number, initialDice: number[]) => void;
+  onGameComplete: (throws: number, winningNumber: number, initialDice: number[], usedAction: boolean) => void;
   hasPlayedToday: boolean;
   personalBest: number | null;
   userId: string;
@@ -45,6 +45,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [usedActionDuringGame, setUsedActionDuringGame] = useState(false);
 
   // Action states
   const [isScrambled, setIsScrambled] = useState(false);
@@ -132,6 +133,9 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
       setHasStarted(true);
     }
     
+    // Track that an action was used during this game
+    setUsedActionDuringGame(true);
+    
     // Set scrambled state immediately (icons appear with animation)
     setIsScrambled(true);
     setCurrentAction(actionType);
@@ -190,7 +194,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         setGameComplete(true);
         setJustCompletedGame(true);
         triggerConfetti();
-        onGameComplete(throwCount, winner, initialDiceValues);
+        onGameComplete(throwCount, winner, initialDiceValues, usedActionDuringGame);
       }
       
       return newDice;

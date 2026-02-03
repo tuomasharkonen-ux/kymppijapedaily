@@ -57,6 +57,7 @@ const triggerTypeLabels: Record<string, string> = {
   under_par: "Beat your personal average",
   personal_best: "Set a new personal best score",
   total_games: "Play a certain number of games",
+  action_win: "Win using a shake or blow action",
 };
 
 export const BadgeModal = ({ badge, earnedAt, isOpen, onClose }: BadgeModalProps) => {

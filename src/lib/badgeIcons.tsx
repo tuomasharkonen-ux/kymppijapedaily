@@ -43,6 +43,7 @@ import {
   Users,
   Megaphone,
   Rocket,
+  Hand,
   type LucideIcon,
 } from "lucide-react";
 
@@ -131,6 +132,9 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   games_100: Trophy,
   games_365: Crown,
   games_1000: Gem,
+  
+  // Action badges
+  action_hero: Hand,
 };
 
 export const getBadgeIcon = (badgeId: string): LucideIcon => {

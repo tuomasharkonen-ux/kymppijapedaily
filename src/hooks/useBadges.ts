@@ -89,13 +89,13 @@ export const useBadges = (userId: string | null) => {
     setPendingBadges((prev) => prev.slice(1));
   };
 
-  const checkAndAwardBadges = useCallback(async () => {
+  const checkAndAwardBadges = useCallback(async (usedAction: boolean = false) => {
     if (!userId) return;
 
     try {
       // Server validates all game data from database - no client data needed
       const { data, error } = await supabase.functions.invoke("check-achievements", {
-        body: {},
+        body: { usedAction },
       });
 
       if (error) {
