@@ -24,6 +24,12 @@ interface EarnedBadge {
   isNew: boolean;
 }
 
+interface GameRecord {
+  played_date: string;
+  winning_number: number;
+  throws_count: number;
+}
+
 // Seeded random number generator using mulberry32 algorithm (must match client)
 function seededRandom(seed: string): () => number {
   let hash = 0;
@@ -93,6 +99,54 @@ function calculateStreak(playedDates: string[]): number {
   return streak;
 }
 
+// Check if today is Friday the 13th
+function isFriday13(date: Date): boolean {
+  return date.getDay() === 5 && date.getDate() === 13;
+}
+
+// Check for consecutive days with same winning number
+function getConsecutiveSameWinCount(games: GameRecord[]): number {
+  if (games.length < 2) return games.length;
+  
+  // Sort by date descending (most recent first)
+  const sorted = [...games].sort((a, b) => 
+    new Date(b.played_date).getTime() - new Date(a.played_date).getTime()
+  );
+  
+  let count = 1;
+  const targetNumber = sorted[0].winning_number;
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const prevDate = new Date(sorted[i - 1].played_date);
+    const currDate = new Date(sorted[i].played_date);
+    
+    // Check if consecutive day
+    const dayDiff = Math.floor((prevDate.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (dayDiff === 1 && sorted[i].winning_number === targetNumber) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  
+  return count;
+}
+
+// Count how many times a specific number was won
+function getWinCountForNumber(games: GameRecord[], number: number): number {
+  return games.filter(g => g.winning_number === number).length;
+}
+
+// Get max wins for any single number
+function getMaxWinsForAnyNumber(games: GameRecord[]): number {
+  const counts: Record<number, number> = {};
+  games.forEach(g => {
+    counts[g.winning_number] = (counts[g.winning_number] || 0) + 1;
+  });
+  return Math.max(...Object.values(counts), 0);
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -138,9 +192,10 @@ Deno.serve(async (req) => {
     const clientContext: GameContext = await req.json();
     console.log('Client context received:', clientContext);
 
-    // Get today's date in YYYY-MM-DD format (server-side, cannot be spoofed)
-    const today = new Date().toISOString().split('T')[0];
-    const playDateForBadges = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }).replace('/', '-');
+    // Get today's date in various formats (server-side, cannot be spoofed)
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const playDateForBadges = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }).replace('/', '-');
     
     console.log('Server date:', today, 'Badge date:', playDateForBadges);
 
@@ -157,10 +212,10 @@ Deno.serve(async (req) => {
       throw gameError;
     }
 
-    // Fetch all user's games for streak calculation and winning numbers
+    // Fetch all user's games for calculations
     const { data: allGames, error: allGamesError } = await supabase
       .from('game_records')
-      .select('played_date, winning_number')
+      .select('played_date, winning_number, throws_count')
       .eq('user_id', userId)
       .order('played_date', { ascending: false });
 
@@ -169,23 +224,43 @@ Deno.serve(async (req) => {
       throw allGamesError;
     }
 
+    const typedGames: GameRecord[] = allGames || [];
+    const totalGamesPlayed = typedGames.length;
+
     // Calculate verified values server-side
     const verifiedThrows = todayGame?.throws_count ?? 0;
     const verifiedWinningNumber = todayGame?.winning_number ?? 0;
-    const verifiedStreak = calculateStreak(allGames?.map(g => g.played_date) || []);
-    const isFirstGame = allGames?.length === 1 && todayGame !== null;
+    const verifiedStreak = calculateStreak(typedGames.map(g => g.played_date));
+    const isFirstGame = typedGames.length === 1 && todayGame !== null;
     const verifiedInitialDice = getSeededDice(userId, today);
     
+    // Calculate performance metrics
+    const gamesExcludingToday = typedGames.filter(g => g.played_date !== today);
+    const previousAverage = gamesExcludingToday.length > 0 
+      ? gamesExcludingToday.reduce((sum, g) => sum + g.throws_count, 0) / gamesExcludingToday.length 
+      : null;
+    const previousBest = gamesExcludingToday.length > 0 
+      ? Math.min(...gamesExcludingToday.map(g => g.throws_count)) 
+      : null;
+    
     // Check if user has won with all 6 numbers
-    const allWinningNumbers = new Set(allGames?.map(g => g.winning_number) || []);
+    const allWinningNumbers = new Set(typedGames.map(g => g.winning_number));
     const hasAllSixNumbers = [1, 2, 3, 4, 5, 6].every(n => allWinningNumbers.has(n));
+    
+    // Consistency calculations
+    const consecutiveSameWins = getConsecutiveSameWinCount(typedGames);
+    const maxWinsForAnyNumber = getMaxWinsForAnyNumber(typedGames);
 
     console.log('Verified values:', {
       throws: verifiedThrows,
       winningNumber: verifiedWinningNumber,
       streak: verifiedStreak,
       isFirstGame,
-      initialDice: verifiedInitialDice,
+      totalGamesPlayed,
+      previousAverage,
+      previousBest,
+      consecutiveSameWins,
+      maxWinsForAnyNumber,
     });
 
     // Fetch all badges
@@ -211,6 +286,22 @@ Deno.serve(async (req) => {
 
     const existingBadgeIds = new Set(existingUserBadges?.map(ub => ub.badge_id) || []);
     console.log('Existing badge IDs:', Array.from(existingBadgeIds));
+
+    // Fetch user purchases for shop badges
+    const { data: userPurchases, error: purchasesError } = await supabase
+      .from('user_purchases')
+      .select('item_id')
+      .eq('user_id', userId);
+
+    if (purchasesError) {
+      console.error('Error fetching purchases:', purchasesError);
+    }
+
+    const purchasedItems = userPurchases || [];
+    const skinCount = purchasedItems.filter(p => p.item_id.startsWith('skin_')).length;
+
+    // Count share badges to track share count
+    const shareBadgeCount = existingUserBadges?.filter(ub => ub.badge_id === 'special_share').length || 0;
 
     const newlyEarnedBadges: EarnedBadge[] = [];
     let totalCreditsEarned = 0;
@@ -239,8 +330,6 @@ Deno.serve(async (req) => {
       // Insert the badge (using service role, bypasses RLS)
       const { error: insertError } = await supabase
         .from('user_badges')
-        // Explicitly set earned_at so "earned today" checks work even if the
-        // column has no DEFAULT now() in the database.
         .insert({ user_id: userId, badge_id: badgeId, earned_at: new Date().toISOString() });
 
       if (insertError) {
@@ -269,7 +358,7 @@ Deno.serve(async (req) => {
         await checkAndAwardBadge(`throws_${verifiedThrows}`, true);
       }
 
-      // Check starter_match badges (5-9 matching dice on first throw)
+      // Check starter_match badges (5-10 matching dice on first throw)
       const diceCounts: Record<number, number> = {};
       verifiedInitialDice.forEach(d => {
         diceCounts[d] = (diceCounts[d] || 0) + 1;
@@ -278,14 +367,14 @@ Deno.serve(async (req) => {
       console.log('Initial dice max match:', maxMatch);
       
       // Award applicable starter badges (from highest to lowest to get all)
-      for (let i = 9; i >= 5; i--) {
+      for (let i = 10; i >= 5; i--) {
         if (maxMatch >= i) {
           await checkAndAwardBadge(`starter_${i}`, true);
         }
       }
 
-      // Check daily_streak milestone badges (10, 30, 50, 100, 365)
-      const streakMilestones = [10, 30, 50, 100, 365];
+      // Check daily_streak milestone badges (3, 7, 10, 30, 50, 100, 200, 365)
+      const streakMilestones = [3, 7, 10, 30, 50, 100, 200, 365];
       for (const milestone of streakMilestones) {
         if (verifiedStreak >= milestone) {
           await checkAndAwardBadge(`streak_${milestone}`, true);
@@ -293,7 +382,6 @@ Deno.serve(async (req) => {
       }
 
       // Check daily streak_add (repeatable daily reward, but only once per day)
-      // Only award if this badge hasn't been earned today
       const { data: todayStreakBadge } = await supabase
         .from('user_badges')
         .select('id')
@@ -311,22 +399,88 @@ Deno.serve(async (req) => {
         '09-09': 'special_date_birthday',
         '01-01': 'special_date_ny',
         '12-25': 'special_date_xmas',
+        '02-14': 'special_date_valentine',
+        '03-17': 'special_date_stpatrick',
+        '10-31': 'special_date_halloween',
+        '02-29': 'special_date_leap',
+        '06-21': 'special_date_summer',
+        '12-21': 'special_date_winter',
       };
       if (dateMatches[playDateForBadges]) {
         await checkAndAwardBadge(dateMatches[playDateForBadges], true);
       }
-
-      // Check locked_numbers (special straight 1-5)
-      // We can verify this by checking if the winning dice include a straight
-      // For now, we skip this check as it requires tracking locked order during game
+      
+      // Check Friday the 13th
+      if (isFriday13(now)) {
+        await checkAndAwardBadge('special_date_friday13', true);
+      }
 
       // Check jack_of_all_dice (won with all 6 numbers)
       await checkAndAwardBadge('jack_of_all_dice', hasAllSixNumbers);
+
+      // === MILESTONE BADGES (total games played) ===
+      const gameMilestones = [10, 50, 100, 365, 1000];
+      for (const milestone of gameMilestones) {
+        if (totalGamesPlayed >= milestone) {
+          await checkAndAwardBadge(`games_${milestone}`, true);
+        }
+      }
+
+      // === PERFORMANCE BADGES ===
+      // Under par: beat your average
+      if (previousAverage !== null && verifiedThrows < previousAverage) {
+        await checkAndAwardBadge('under_par', true);
+      }
+      
+      // Personal record: beat your best
+      if (previousBest !== null && verifiedThrows < previousBest) {
+        await checkAndAwardBadge('personal_record', true);
+      }
+
+      // === CONSISTENCY BADGES ===
+      // Groundhog Day: 3 consecutive days with same number
+      if (consecutiveSameWins >= 3) {
+        await checkAndAwardBadge('groundhog_day', true);
+      }
+      
+      // Lucky Number: win with same number 5 times total
+      if (maxWinsForAnyNumber >= 5) {
+        await checkAndAwardBadge('lucky_number', true);
+      }
+      
+      // Master of One: win with same number 10 times total
+      if (maxWinsForAnyNumber >= 10) {
+        await checkAndAwardBadge('master_of_one', true);
+      }
+
+      // === SHOP BADGES ===
+      // First Purchase
+      if (purchasedItems.length >= 1) {
+        await checkAndAwardBadge('first_purchase', true);
+      }
+      
+      // Skin Collector badges
+      if (skinCount >= 3) {
+        await checkAndAwardBadge('skin_collector_3', true);
+      }
+      if (skinCount >= 5) {
+        await checkAndAwardBadge('skin_collector_5', true);
+      }
     }
 
     // Check feature_used (share feature) - this is the only client-trusted value
     if (clientContext.featureUsed === 'share') {
-      await checkAndAwardBadge('special_share', true);
+      // Always award the share badge as a repeatable action
+      await checkAndAwardBadge('special_share', true, true);
+      
+      // Check share count milestones (count includes the one we just added)
+      const newShareCount = shareBadgeCount + 1;
+      if (newShareCount >= 5) {
+        await checkAndAwardBadge('share_5', true);
+      }
+      if (newShareCount >= 10) {
+        await checkAndAwardBadge('share_10', true);
+      }
     }
 
     // Update user credits atomically if any badges were earned
