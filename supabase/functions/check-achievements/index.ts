@@ -7,6 +7,7 @@ const corsHeaders = {
 
 interface GameContext {
   featureUsed?: string;
+  usedAction?: boolean;
 }
 
 interface Badge {
@@ -465,6 +466,12 @@ Deno.serve(async (req) => {
       }
       if (skinCount >= 5) {
         await checkAndAwardBadge('skin_collector_5', true);
+      }
+      
+      // === ACTION BADGES ===
+      // Action Hero: won using shake or blow action
+      if (clientContext.usedAction === true) {
+        await checkAndAwardBadge('action_hero', true);
       }
     }
 

@@ -118,12 +118,12 @@ Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}`;
     });
     return () => subscription.unsubscribe();
   }, []);
-  const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[]) => {
+  const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
     setJustCompletedGame(true);
     await saveGameResult(throws, winningNumber);
 
     // Check for achievements (server validates all data from database)
-    await checkAndAwardBadges();
+    await checkAndAwardBadges(usedAction);
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
