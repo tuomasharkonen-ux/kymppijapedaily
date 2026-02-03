@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { DicePreview } from "./DicePreview";
 import { ActionPreview } from "./ActionPreview";
 import {
-  CalendarDays,
   Award,
   ShoppingBag,
   Trophy,
@@ -46,33 +45,6 @@ interface FeatureSlide {
 }
 
 const features: FeatureSlide[] = [
-  {
-    id: "daily-challenge",
-    icon: <CalendarDays className="h-6 w-6 text-primary" />,
-    title: "Daily Challenge",
-    badge: "Core Feature",
-    description:
-      "A fresh game awaits every day at midnight! Lock all 10 dice on the same number in as few throws as possible.",
-    preview: (
-      <div className="flex flex-col items-center gap-2 py-2">
-        <div className="flex gap-0.5">
-          {[1, 1, 1, 3, 1, 1, 2, 1, 1, 1].map((v, i) => (
-            <div
-              key={i}
-              className={`w-5 h-5 rounded border-2 flex items-center justify-center text-[10px] font-bold ${
-                v === 1
-                  ? "bg-primary/20 border-primary text-primary"
-                  : "bg-muted border-border text-muted-foreground"
-              }`}
-            >
-              {v}
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] text-muted-foreground">Lock matching dice to win!</p>
-      </div>
-    ),
-  },
   {
     id: "badges",
     icon: <Award className="h-6 w-6 text-primary" />,
