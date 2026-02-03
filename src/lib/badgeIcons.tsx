@@ -26,6 +26,23 @@ import {
   CalendarDays,
   TrendingUp,
   Dices,
+  Heart,
+  Clover,
+  Ghost,
+  Skull,
+  Snowflake,
+  Sun,
+  ShoppingBag,
+  Palette,
+  Paintbrush,
+  Repeat,
+  Hash,
+  Trophy,
+  TrendingDown,
+  Gamepad2,
+  Users,
+  Megaphone,
+  Rocket,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,10 +63,13 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   win_6: Dice6,
   
   // Streak milestones
+  streak_3: Calendar,
+  streak_7: CalendarDays,
   streak_10: Calendar,
   streak_30: CalendarDays,
   streak_50: TrendingUp,
   streak_100: Crown,
+  streak_200: Rocket,
   streak_365: Gem,
   
   // Starter match badges
@@ -58,6 +78,7 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   starter_7: Star,
   starter_8: Crown,
   starter_9: Gem,
+  starter_10: Crown, // Perfect Start - Legendary
   
   // Throw count badges
   throws_6: Medal,
@@ -74,8 +95,42 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   special_date_ny: PartyPopper,
   special_date_xmas: TreeDeciduous,
   
+  // New holiday badges
+  special_date_valentine: Heart,
+  special_date_stpatrick: Clover,
+  special_date_halloween: Ghost,
+  special_date_friday13: Skull,
+  special_date_leap: Calendar,
+  special_date_summer: Sun,
+  special_date_winter: Snowflake,
+  
   // Collection badges
   jack_of_all_dice: Dices,
+  
+  // Social badges
+  share_5: Users,
+  share_10: Megaphone,
+  
+  // Shop badges
+  first_purchase: ShoppingBag,
+  skin_collector_3: Palette,
+  skin_collector_5: Paintbrush,
+  
+  // Consistency badges
+  groundhog_day: Repeat,
+  lucky_number: Hash,
+  master_of_one: Target,
+  
+  // Performance badges
+  under_par: TrendingDown,
+  personal_record: Trophy,
+  
+  // Milestone badges (games played)
+  games_10: Gamepad2,
+  games_50: Medal,
+  games_100: Trophy,
+  games_365: Crown,
+  games_1000: Gem,
 };
 
 export const getBadgeIcon = (badgeId: string): LucideIcon => {

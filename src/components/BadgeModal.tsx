@@ -49,6 +49,14 @@ const triggerTypeLabels: Record<string, string> = {
   feature_used: "Use a game feature",
   date_match: "Play on a special date",
   locked_numbers: "Lock specific numbers before rolling",
+  share_count: "Share your results multiple times",
+  first_purchase: "Make your first shop purchase",
+  skin_collection: "Collect dice skins from the shop",
+  repeat_win: "Win with the same number on consecutive days",
+  win_count_same: "Win with the same number multiple times",
+  under_par: "Beat your personal average",
+  personal_best: "Set a new personal best score",
+  total_games: "Play a certain number of games",
 };
 
 export const BadgeModal = ({ badge, earnedAt, isOpen, onClose }: BadgeModalProps) => {
