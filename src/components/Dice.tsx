@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { Lock, HelpCircle, Wind } from "lucide-react";
+import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 
 export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
-export type DiceAnimationType = 'shake' | 'blow' | null;
+export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
 
 interface DiceProps {
   value: number;
@@ -82,10 +82,22 @@ const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: D
   );
 };
 
-// Scrambled state placeholder - shows "?" or wind icon
-const ScrambledPlaceholder = ({ type, skin = "default" }: { type: 'shake' | 'blow' | null; skin?: DiceSkin }) => {
+// Scrambled state placeholder - shows "?" or wind icon or angry face
+const ScrambledPlaceholder = ({ type, skin = "default" }: { type: 'shake' | 'blow' | 'insult' | null; skin?: DiceSkin }) => {
   const iconColor = skinStyles[skin].dot;
-  const IconComponent = type === 'blow' ? Wind : HelpCircle;
+  
+  const getIcon = () => {
+    switch (type) {
+      case 'blow':
+        return Wind;
+      case 'insult':
+        return Angry;
+      default:
+        return HelpCircle;
+    }
+  };
+  
+  const IconComponent = getIcon();
   
   return (
     <div className="absolute inset-0 flex items-center justify-center animate-scramble-pulse">
@@ -110,7 +122,7 @@ export const Dice = ({
   animationType = null
 }: DiceProps) => {
   const [displayValue, setDisplayValue] = useState(value);
-  const [lastScrambleType, setLastScrambleType] = useState<'shake' | 'blow' | null>(null);
+  const [lastScrambleType, setLastScrambleType] = useState<'shake' | 'blow' | 'insult' | null>(null);
 
   // Track the last action type for showing appropriate placeholder
   useEffect(() => {
@@ -118,6 +130,17 @@ export const Dice = ({
       setLastScrambleType(animationType);
     }
   }, [animationType]);
+
+  const [isCowering, setIsCowering] = useState(false);
+  
+  // Handle insult cowering animation
+  useEffect(() => {
+    if (animationType === 'insult' && !isLocked) {
+      setIsCowering(true);
+      const timeout = setTimeout(() => setIsCowering(false), 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [animationType, isLocked]);
 
   useEffect(() => {
     if (isRolling) {
@@ -146,6 +169,7 @@ export const Dice = ({
     if (isRolling) return "animate-dice-roll";
     if (animationType === 'shake' && !isLocked) return "animate-dice-shake-intense";
     if (animationType === 'blow' && !isLocked) return "animate-dice-blow";
+    if (isCowering && !isLocked) return "animate-dice-cower";
     return "";
   };
 
