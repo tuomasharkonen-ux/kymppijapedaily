@@ -149,29 +149,25 @@ export const useGameRecords = (userId: string | null) => {
   const saveGameResult = async (throws: number, winningNumber: number) => {
     if (!userId) return;
 
-    try {
-      // Use secure edge function instead of direct insert
-      // This prevents score manipulation and ensures server-side date validation
-      const { data, error } = await supabase.functions.invoke('save-game-result', {
-        body: { 
-          throws_count: throws, 
-          winning_number: winningNumber 
-        }
-      });
-
-      if (error) throw error;
-      
-      // Check for application-level errors from the edge function
-      if (data?.error) {
-        throw new Error(data.error);
+    // Save the game - this is the critical path
+    const { data, error } = await supabase.functions.invoke('save-game-result', {
+      body: { 
+        throws_count: throws, 
+        winning_number: winningNumber 
       }
+    });
 
-      // Refresh records after saving
-      await fetchRecords();
-    } catch (error) {
-      console.error("Error saving game result:", error);
-      throw error; // Re-throw so the caller can handle it
+    if (error) throw error;
+    
+    // Check for application-level errors from the edge function
+    if (data?.error) {
+      throw new Error(data.error);
     }
+
+    // Refresh records in the background (non-blocking)
+    fetchRecords().catch(console.error);
+    
+    return data;
   };
 
   useEffect(() => {
