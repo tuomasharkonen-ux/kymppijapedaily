@@ -62,8 +62,10 @@ export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
       setIsAnimating(true);
       if (actionId === "insult_dice_action") {
         setShowInsult(true);
+      } else {
+        // Only auto-clear animation for non-insult actions
+        setTimeout(() => setIsAnimating(false), 800);
       }
-      setTimeout(() => setIsAnimating(false), 800);
     };
 
     // Initial trigger
@@ -74,6 +76,7 @@ export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
     const interval = setInterval(() => {
       if (actionId === "insult_dice_action") {
         setShowInsult(false);
+        setIsAnimating(false);
         // Small delay before showing next insult
         setTimeout(() => {
           setCurrentInsultIndex(prev => (prev + 1) % sampleInsults.length);
