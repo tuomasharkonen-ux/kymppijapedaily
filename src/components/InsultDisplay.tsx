@@ -26,7 +26,7 @@ export const InsultDisplay = ({ insult, onComplete }: InsultDisplayProps) => {
         } else {
           clearInterval(typeInterval);
           
-          // Wait 2 seconds then fade out
+          // Wait a bit then fade out
           setTimeout(() => {
             setIsExiting(true);
             setTimeout(() => {
@@ -34,7 +34,7 @@ export const InsultDisplay = ({ insult, onComplete }: InsultDisplayProps) => {
               setDisplayedText("");
               onComplete?.();
             }, 300);
-          }, 2000);
+          }, 3000);
         }
       }, 30);
 
