@@ -315,7 +315,7 @@ export const PracticeMode = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <FeaturesCarousel />
-            <AuthForm onSuccess={() => {}} />
+            <AuthForm onSuccess={() => {}} defaultToSignUp />
           </CardContent>
         </Card>}
     </div>;
