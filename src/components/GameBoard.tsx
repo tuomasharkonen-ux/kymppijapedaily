@@ -287,9 +287,8 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                 </Alert>
               )}
 
-              <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
-
-              <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+              <div className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+                <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
                 {dice.map((d, i) => (
                   <Dice
                     key={i}
