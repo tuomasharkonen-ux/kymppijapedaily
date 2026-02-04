@@ -54,4 +54,13 @@ export const shopItems: ShopItem[] = [
     price: 300,
     category: 'action',
   },
+  {
+    id: 'insult_dice_action',
+    emoji: '🤬',
+    name: 'Insult Your Dice',
+    shortDescription: 'Verbally abuse your dice for better luck!',
+    longDescription: 'Channel your inner rage at those underperforming cubes! Scientific studies (that we made up) show that insulting your dice improves luck by 0%. But it feels AMAZING. Choose from 50 increasingly unhinged insults that would make a sailor blush. Warning: Dice have feelings too. We think.',
+    price: 300,
+    category: 'action',
+  },
 ];

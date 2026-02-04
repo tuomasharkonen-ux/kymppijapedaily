@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ActionButtons, ActionType } from "./ActionButtons";
+import { InsultDisplay } from "./InsultDisplay";
 import { useShakeDetection, MotionPermissionStatus } from "@/hooks/useShakeDetection";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
+import { getRandomInsult } from "@/lib/diceInsults";
 import { Smartphone } from "lucide-react";
 
 interface GameBoardProps {
@@ -50,6 +52,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   // Action states
   const [isScrambled, setIsScrambled] = useState(false);
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
+  const [currentInsult, setCurrentInsult] = useState<string | null>(null);
 
   useEffect(() => {
     if (hasPlayedToday) {
@@ -106,6 +109,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     setIsRolling(true);
     setIsScrambled(false); // Clear scrambled state when rolling
     setCurrentAction(null);
+    setCurrentInsult(null); // Clear any insult when rolling
     const isFirstRoll = !hasStarted;
     
     if (!hasStarted) {
@@ -124,7 +128,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     }, 600);
   };
 
-  // Handle action button clicks (Shake/Blow)
+  // Handle action button clicks (Shake/Blow/Insult)
   const triggerAction = useCallback((actionType: ActionType) => {
     if (isRolling || gameComplete) return;
     
@@ -140,11 +144,21 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     setIsScrambled(true);
     setCurrentAction(actionType);
     
+    // For insult action, pick a random insult
+    if (actionType === 'insult') {
+      setCurrentInsult(getRandomInsult());
+    }
+    
     // After animation completes, clear the action but keep scrambled
     setTimeout(() => {
       setCurrentAction(null);
     }, 800);
   }, [isRolling, gameComplete, hasStarted]);
+
+  // Clear insult when it completes
+  const handleInsultComplete = useCallback(() => {
+    setCurrentInsult(null);
+  }, []);
 
   // Check if shake action is available (owned and active)
   const isShakeActionActive = purchasedItems.includes('shake_dice_action') && 
@@ -272,6 +286,8 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                   </AlertDescription>
                 </Alert>
               )}
+
+              <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
 
               <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
                 {dice.map((d, i) => (

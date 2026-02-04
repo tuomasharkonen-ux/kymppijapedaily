@@ -158,6 +158,12 @@ export default {
 			'80%': { transform: 'translateX(2px) rotate(1deg) scale(1.01)' },
 			'100%': { transform: 'translateX(0) rotate(0deg) scale(1)' }
 		},
+		'dice-cower': {
+			'0%, 100%': { transform: 'scale(1) rotate(0deg)' },
+			'25%': { transform: 'scale(0.92) rotate(-3deg)' },
+			'50%': { transform: 'scale(0.88) rotate(2deg)' },
+			'75%': { transform: 'scale(0.92) rotate(-1deg)' }
+		},
 		'scramble-pulse': {
 			'0%, 100%': { opacity: '1', transform: 'scale(1)' },
 			'50%': { opacity: '0.7', transform: 'scale(0.95)' }
@@ -198,6 +204,7 @@ export default {
 			'border-glow': 'border-glow 2.5s ease-in-out infinite',
 			'dice-shake-intense': 'dice-shake-intense 0.8s ease-in-out',
 			'dice-blow': 'dice-blow 0.8s ease-in-out',
+			'dice-cower': 'dice-cower 0.8s ease-in-out',
 			'scramble-pulse': 'scramble-pulse 1.5s ease-in-out infinite',
 			'diamond-sparkle': 'diamond-sparkle 3s ease-in-out infinite'
 		},

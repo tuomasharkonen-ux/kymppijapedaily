@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { shopItems } from "@/lib/shopItems";
 
-export type ActionType = 'shake' | 'blow';
+export type ActionType = 'shake' | 'blow' | 'insult';
 
 interface ActionButtonsProps {
   purchasedItems: string[];
@@ -14,6 +14,13 @@ interface ActionButtonsProps {
 const actionItemMap: Record<string, ActionType> = {
   'shake_dice_action': 'shake',
   'blow_dice_action': 'blow',
+  'insult_dice_action': 'insult',
+};
+
+const actionLabels: Record<ActionType, string> = {
+  shake: 'Shake',
+  blow: 'Blow',
+  insult: 'Insult',
 };
 
 export const ActionButtons = ({ 
@@ -52,7 +59,7 @@ export const ActionButtons = ({
             className="flex-1"
           >
             <span aria-hidden="true">{action.emoji}</span>
-            <span className="ml-1">{actionType === 'shake' ? 'Shake' : 'Blow'}</span>
+            <span className="ml-1">{actionLabels[actionType]}</span>
           </Button>
         );
       })}
