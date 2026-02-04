@@ -477,15 +477,14 @@ Deno.serve(async (req) => {
 
     // Check feature_used (share feature) - this is the only client-trusted value
     if (clientContext.featureUsed === 'share') {
-      // Always award the share badge as a repeatable action
-      await checkAndAwardBadge('special_share', true, true);
+      // Award the share badge (non-repeatable - only once)
+      await checkAndAwardBadge('special_share', true, false);
       
-      // Check share count milestones (count includes the one we just added)
-      const newShareCount = shareBadgeCount + 1;
-      if (newShareCount >= 5) {
+      // Share count milestones are also non-repeatable
+      if (shareBadgeCount >= 5) {
         await checkAndAwardBadge('share_5', true);
       }
-      if (newShareCount >= 10) {
+      if (shareBadgeCount >= 10) {
         await checkAndAwardBadge('share_10', true);
       }
     }
