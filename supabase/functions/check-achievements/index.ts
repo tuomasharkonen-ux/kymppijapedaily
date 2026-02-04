@@ -428,14 +428,14 @@ Deno.serve(async (req) => {
       }
 
       // === PERFORMANCE BADGES ===
-      // Under par: beat your average
+      // Under par: beat your average (repeatable)
       if (previousAverage !== null && verifiedThrows < previousAverage) {
-        await checkAndAwardBadge('under_par', true);
+        await checkAndAwardBadge('under_par', true, true);
       }
       
-      // Personal record: beat your best
+      // Personal record: beat your best (repeatable)
       if (previousBest !== null && verifiedThrows < previousBest) {
-        await checkAndAwardBadge('personal_record', true);
+        await checkAndAwardBadge('personal_record', true, true);
       }
 
       // === CONSISTENCY BADGES ===
