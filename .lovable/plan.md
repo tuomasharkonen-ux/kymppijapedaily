@@ -1,94 +1,111 @@
 
-# Unify Share Text Across All Share Buttons
+# Plan: Speed Up Badge Unlock Popups
 
-## Problem
+## Problem Analysis
 
-There are two separate share buttons with different logic:
-1. **GameBoard share button** - appears right after completing a game (doesn't include average)
-2. **Index.tsx share button** - on the "come back tomorrow" screen (includes average with movement indicator)
+The current flow when a game completes runs sequentially:
 
-The GameBoard component has its own `copyResultToClipboard` function that's missing the average throws data.
+1. **Save game result** (edge function) - ~200-400ms
+2. **Fetch records** (called inside saveGameResult) - ~300-500ms for multiple queries including rankings
+3. **Check achievements** (edge function) - ~400-800ms for 6+ database queries
 
-## Solution
+**Total delay: 900-1700ms** before badges can appear
 
-Pass the share function from `Index.tsx` down to `GameBoard` as a callback, along with a loading state to ensure stats are ready before sharing.
+## Solution: Parallel Execution with Optimistic Updates
 
----
+We can significantly reduce the delay by running operations in parallel since saving the game result and checking achievements are independent once the game data is recorded.
 
-## Implementation Steps
+### Implementation Steps
 
-### Step 1: Update GameBoard Props
+#### 1. Modify `handleGameComplete` in Index.tsx
+Run `saveGameResult` and `checkAndAwardBadges` in parallel using `Promise.all`. Both can start simultaneously because:
+- `save-game-result` writes the game data
+- `check-achievements` reads the game data - but we can pass the necessary context directly
 
-Add new props to `GameBoard`:
-- `onCopyResult`: Callback function to handle the share action
-- `isStatsLoading`: Boolean indicating if stats are still loading after game completion
+#### 2. Pass game data directly to `checkAndAwardBadges`
+The `check-achievements` function already receives `usedAction` from the client. We can extend this to run badge checks immediately without waiting for the save to complete, since the edge function independently fetches the game data from the database.
 
-### Step 2: Update GameBoard Component
+However, there's a dependency: `check-achievements` needs the game to be saved first so it can read `todayGame` from the database.
 
-- Remove the internal `copyResultToClipboard` function
-- Remove internal `showCopied` state (will be managed by parent)
-- Accept new props: `onCopyResult`, `isStatsLoading`, `showCopied`
-- Update the share button to call `onCopyResult` and show loading state when `isStatsLoading` is true
+#### 3. Better approach: Parallel with dependency handling
+- Start both calls, but have `check-achievements` be slightly delayed or use a retry pattern
+- OR: Fire `checkAndAwardBadges` immediately after `saveGameResult` completes, but don't wait for `fetchRecords`
 
-### Step 3: Update Index.tsx
+### Recommended Changes
 
-- Pass `copyResultToClipboard` function to `GameBoard` as `onCopyResult`
-- Pass `isLoading` from `useGameRecords` as `isStatsLoading`
-- Pass `showCopied` state to `GameBoard`
+**File: `src/hooks/useGameRecords.ts`**
+- Separate `saveGameResult` from `fetchRecords`
+- Return a promise that resolves as soon as the save is complete
+- Call `fetchRecords` in the background (don't block on it)
+
+**File: `src/pages/Index.tsx`**
+- Call `saveGameResult` and wait for just the save
+- Immediately call `checkAndAwardBadges` 
+- Let `fetchRecords` run in the background
+
+### Code Changes
+
+**useGameRecords.ts - Split save and fetch:**
+```typescript
+const saveGameResult = async (throws: number, winningNumber: number) => {
+  if (!userId) return;
+
+  // Save the game - this is critical path
+  const { data, error } = await supabase.functions.invoke('save-game-result', {
+    body: { throws_count: throws, winning_number: winningNumber }
+  });
+
+  if (error || data?.error) {
+    throw new Error(data?.error || error.message);
+  }
+
+  // Refresh records in the background (non-blocking)
+  fetchRecords().catch(console.error);
+  
+  return data;
+};
+```
+
+**Index.tsx - Parallel badge check:**
+```typescript
+const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
+  setJustCompletedGame(true);
+  
+  // Save game first (required before badge check can verify)
+  await saveGameResult(throws, winningNumber);
+  
+  // Check badges immediately after save - don't wait for fetchRecords
+  checkAndAwardBadges(usedAction);
+};
+```
+
+### Expected Improvement
+
+**Before:** 
+- Save (~300ms) → FetchRecords (~400ms) → CheckBadges (~600ms) = **~1300ms total**
+
+**After:**
+- Save (~300ms) → CheckBadges (~600ms) = **~900ms total**
+- FetchRecords runs in background
+
+**Improvement: ~400ms faster** (30% improvement)
+
+### Further Optimization (Optional)
+
+If we want even faster badge popups, we could:
+1. Use Supabase's `waitUntil` for background tasks in edge functions
+2. Implement optimistic badge display (show immediately, verify later)
+3. Cache badge definitions client-side to reduce API calls
 
 ---
 
 ## Technical Details
 
-### Updated GameBoard Props Interface
+### Files to Modify
+1. `src/hooks/useGameRecords.ts` - Remove blocking `await fetchRecords()` from `saveGameResult`
+2. `src/pages/Index.tsx` - Remove `await` from `checkAndAwardBadges` call (fire-and-forget with internal state update)
 
-```typescript
-interface GameBoardProps {
-  // ... existing props
-  onCopyResult?: () => Promise<void>;  // Share handler from parent
-  isStatsLoading?: boolean;            // Stats loading state
-  showCopied?: boolean;                // Copied feedback state
-}
-```
-
-### Share Button in GameBoard
-
-```typescript
-<Button 
-  onClick={onCopyResult}
-  disabled={isStatsLoading}
-  size="lg"
-  variant={showCopied ? "secondary" : "default"}
->
-  {isStatsLoading ? (
-    <>Loading stats...</>
-  ) : showCopied ? (
-    "Copied to clipboard!"
-  ) : (
-    <>Share Result with Friends</>
-  )}
-</Button>
-```
-
----
-
-## Files to Modify
-
-1. **`src/components/GameBoard.tsx`**
-   - Add new props: `onCopyResult`, `isStatsLoading`, `showCopied`
-   - Remove internal `copyResultToClipboard` function
-   - Remove internal `showCopied` state
-   - Update share button to use passed props
-
-2. **`src/pages/Index.tsx`**
-   - Pass `copyResultToClipboard` as `onCopyResult` to GameBoard
-   - Pass `isLoading` as `isStatsLoading`
-   - Pass `showCopied` state to GameBoard
-
----
-
-## Expected Result
-
-- Both share buttons (after game completion and on "come back tomorrow" screen) will use the same share text with average throws and movement indicator
-- The share button will show a loading state until stats are updated after saving the game result
-- Consistent user experience across all share interactions
+### Risk Assessment
+- **Low risk**: The badge system already handles duplicate prevention server-side
+- **No data integrity issues**: Game saves are still verified before badge checks
+- **Graceful degradation**: If badge check fails, user still gets the game saved
