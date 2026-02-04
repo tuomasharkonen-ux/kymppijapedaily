@@ -47,11 +47,13 @@ export const InsultDisplay = ({ insult, onComplete }: InsultDisplayProps) => {
   return (
     <div
       className={cn(
-        "absolute left-1/2 -translate-x-1/2 bottom-full mb-3 z-10",
+        "absolute left-1/2 bottom-full mb-3 z-10",
         "bg-destructive text-destructive-foreground rounded-lg p-3 md:p-4 shadow-lg",
         "border-2 border-destructive-foreground/20",
         "transition-all duration-300 w-[90%] max-w-sm",
-        isExiting ? "opacity-0 scale-95" : "opacity-100 scale-100 animate-pop-in"
+        isExiting 
+          ? "opacity-0 scale-95 -translate-x-1/2" 
+          : "opacity-100 scale-100 -translate-x-1/2 animate-fade-in"
       )}
       role="alert"
       aria-live="assertive"
