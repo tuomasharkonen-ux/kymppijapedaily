@@ -196,7 +196,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     permissionStatus !== 'not-supported';
 
   const toggleLock = (index: number) => {
-    if (isRolling || gameComplete) return;
+    if (isRolling || gameComplete || isScrambled) return;
     
     setDice(prev => {
       const newDice = [...prev];
