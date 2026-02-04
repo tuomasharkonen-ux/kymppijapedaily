@@ -1,12 +1,14 @@
 import React, { useState, useCallback } from "react";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
+import { InsultDisplay } from "./InsultDisplay";
 import { FeaturesCarousel } from "./FeaturesCarousel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AuthForm } from "./AuthForm";
 import { useShakeDetection } from "@/hooks/useShakeDetection";
+import { getRandomInsult } from "@/lib/diceInsults";
 import { toast } from "sonner";
 import { Smartphone } from "lucide-react";
 
@@ -43,6 +45,7 @@ export const PracticeMode = ({
   const [hasStarted, setHasStarted] = useState(false);
   const [isScrambled, setIsScrambled] = useState(false);
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
+  const [currentInsult, setCurrentInsult] = useState<string | null>(null);
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
@@ -108,11 +111,21 @@ export const PracticeMode = ({
     setIsScrambled(true);
     setCurrentAction(actionType);
     
+    // For insult action, pick a random insult
+    if (actionType === 'insult') {
+      setCurrentInsult(getRandomInsult());
+    }
+    
     // After animation completes, clear the action but keep scrambled
     setTimeout(() => {
       setCurrentAction(null);
     }, 800);
   }, [isRolling, gameComplete, hasStarted]);
+
+  // Clear insult when it completes
+  const handleInsultComplete = useCallback(() => {
+    setCurrentInsult(null);
+  }, []);
 
   // Check if shake action is available (owned and active)
   const isShakeActionActive = purchasedItems.includes('shake_dice_action') && 
@@ -259,6 +272,8 @@ export const PracticeMode = ({
                   </AlertDescription>
                 </Alert>
               )}
+
+              <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
 
               <div className="grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
                 {dice.map((d, i) => (
