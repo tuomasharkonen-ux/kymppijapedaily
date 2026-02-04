@@ -120,10 +120,12 @@ Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}`;
   }, []);
   const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
     setJustCompletedGame(true);
+    
+    // Save game first (required before badge check can verify)
     await saveGameResult(throws, winningNumber);
-
-    // Check for achievements (server validates all data from database)
-    await checkAndAwardBadges(usedAction);
+    
+    // Check badges immediately after save - don't wait for fetchRecords
+    checkAndAwardBadges(usedAction);
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();
