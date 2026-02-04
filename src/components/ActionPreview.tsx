@@ -54,24 +54,35 @@ const sampleInsults = [
 export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentInsultIndex, setCurrentInsultIndex] = useState(0);
+  const [showInsult, setShowInsult] = useState(false);
 
   // Auto-trigger animation loop
   useEffect(() => {
     const triggerAnimation = () => {
       setIsAnimating(true);
+      if (actionId === "insult_dice_action") {
+        setShowInsult(true);
+      }
       setTimeout(() => setIsAnimating(false), 800);
     };
 
     // Initial trigger
     triggerAnimation();
 
-    // Loop every 2.5 seconds
+    // Loop - longer interval for insults to let them be readable
+    const loopInterval = actionId === "insult_dice_action" ? 4000 : 2500;
     const interval = setInterval(() => {
-      triggerAnimation();
       if (actionId === "insult_dice_action") {
-        setCurrentInsultIndex(prev => (prev + 1) % sampleInsults.length);
+        setShowInsult(false);
+        // Small delay before showing next insult
+        setTimeout(() => {
+          setCurrentInsultIndex(prev => (prev + 1) % sampleInsults.length);
+          triggerAnimation();
+        }, 300);
+      } else {
+        triggerAnimation();
       }
-    }, 2500);
+    }, loopInterval);
     return () => clearInterval(interval);
   }, [actionId]);
 
@@ -107,14 +118,18 @@ export const ActionPreview = ({ actionId }: ActionPreviewProps) => {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Insult speech bubble preview */}
-      {isInsult && isAnimating && (
-        <div className="relative bg-destructive text-destructive-foreground rounded-lg px-3 py-2 text-xs max-w-[200px] text-center animate-pop-in">
-          <div 
-            className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-destructive"
-            aria-hidden="true"
-          />
-          🤬 {sampleInsults[currentInsultIndex].slice(0, 40)}...
+      {/* Fixed height container for insult speech bubble to prevent layout shift */}
+      {isInsult && (
+        <div className="h-14 flex items-end justify-center">
+          {showInsult && (
+            <div className="relative bg-destructive text-destructive-foreground rounded-lg px-3 py-2 text-xs max-w-[200px] text-center animate-pop-in">
+              <div 
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-destructive"
+                aria-hidden="true"
+              />
+              🤬 {sampleInsults[currentInsultIndex].slice(0, 40)}...
+            </div>
+          )}
         </div>
       )}
       
