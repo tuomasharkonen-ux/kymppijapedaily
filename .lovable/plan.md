@@ -1,111 +1,227 @@
 
-# Plan: Speed Up Badge Unlock Popups
 
-## Problem Analysis
+# Plan: Add Framer Motion for Smooth Animations and Micro-Interactions
 
-The current flow when a game completes runs sequentially:
+## Overview
 
-1. **Save game result** (edge function) - ~200-400ms
-2. **Fetch records** (called inside saveGameResult) - ~300-500ms for multiple queries including rankings
-3. **Check achievements** (edge function) - ~400-800ms for 6+ database queries
+This plan introduces Framer Motion to replace and enhance the current CSS-based animations throughout Kymppijape Daily. Framer Motion provides physics-based animations, gesture support, and layout animations that will make the game feel more polished and responsive.
 
-**Total delay: 900-1700ms** before badges can appear
+## Current State Analysis
 
-## Solution: Parallel Execution with Optimistic Updates
+The app currently uses:
+- Tailwind CSS keyframe animations defined in `tailwind.config.ts` (dice-roll, dice-shake-intense, dice-blow, dice-cower, pop-in, pulse-glow, etc.)
+- CSS transitions for hover states and basic effects
+- `tailwindcss-animate` plugin for radix-ui component animations
 
-We can significantly reduce the delay by running operations in parallel since saving the game result and checking achievements are independent once the game data is recorded.
+### Current Animation Inventory
+| Component | Current Animation | Improvement Opportunity |
+|-----------|------------------|------------------------|
+| Dice.tsx | CSS keyframes for roll/shake/blow/cower | Spring physics, stagger effects |
+| GameBoard/PracticeMode | CSS animate-border-glow, animate-pop-in | Layout animations, presence |
+| BadgeUnlockModal | CSS pop-in, epic-entrance, legendary-entrance | Orchestrated sequences |
+| InsultDisplay | CSS fade-in with manual translate | AnimatePresence exit animations |
+| ResultsPanel | Static grid | Staggered entrance animations |
+| BadgesSection | Static grid | Grid layout animations |
+| ActionButtons | Basic hover | Tap feedback, spring hover |
+| Stat counters | None | Animated number counting |
 
-### Implementation Steps
+---
 
-#### 1. Modify `handleGameComplete` in Index.tsx
-Run `saveGameResult` and `checkAndAwardBadges` in parallel using `Promise.all`. Both can start simultaneously because:
-- `save-game-result` writes the game data
-- `check-achievements` reads the game data - but we can pass the necessary context directly
+## Implementation Plan
 
-#### 2. Pass game data directly to `checkAndAwardBadges`
-The `check-achievements` function already receives `usedAction` from the client. We can extend this to run badge checks immediately without waiting for the save to complete, since the edge function independently fetches the game data from the database.
+### Phase 1: Setup and Core Components
 
-However, there's a dependency: `check-achievements` needs the game to be saved first so it can read `todayGame` from the database.
+**1.1 Install Framer Motion**
+- Add `framer-motion` package to dependencies
 
-#### 3. Better approach: Parallel with dependency handling
-- Start both calls, but have `check-achievements` be slightly delayed or use a retry pattern
-- OR: Fire `checkAndAwardBadges` immediately after `saveGameResult` completes, but don't wait for `fetchRecords`
+**1.2 Create Animation Utilities**
+- Create `src/lib/animations.ts` with reusable motion variants:
+  - `fadeIn`, `fadeOut` - basic opacity transitions
+  - `popIn` - scale + opacity spring animation
+  - `slideUp`, `slideDown` - vertical slide animations
+  - `staggerContainer` - parent variant for staggered children
+  - `staggerItem` - child variant for staggered animations
 
-### Recommended Changes
+**1.3 Create Motion Wrapper Components**
+- Create `src/components/motion/MotionDiv.tsx` - pre-configured motion.div with common patterns
+- Create `src/components/motion/AnimatedNumber.tsx` - smooth number counting animation
 
-**File: `src/hooks/useGameRecords.ts`**
-- Separate `saveGameResult` from `fetchRecords`
-- Return a promise that resolves as soon as the save is complete
-- Call `fetchRecords` in the background (don't block on it)
+---
 
-**File: `src/pages/Index.tsx`**
-- Call `saveGameResult` and wait for just the save
-- Immediately call `checkAndAwardBadges` 
-- Let `fetchRecords` run in the background
+### Phase 2: Dice Component Enhancements
 
-### Code Changes
+**2.1 Refactor Dice.tsx**
+Convert from CSS animations to Framer Motion:
+- **Rolling animation**: Replace `animate-dice-roll` with `motion.button` using `rotate` and `scale` with spring physics
+- **Shake animation**: Use `motion.button` with `x` and `rotate` oscillations via keyframe array
+- **Blow animation**: Animate `x`, `rotate`, `scale` with spring physics
+- **Cower animation**: Animate `scale` with wobble effect
+- **Lock/unlock**: Add spring-based scale pulse when toggling lock state
+- **Hover state**: Replace CSS `hover:scale-105` with `whileHover` for smoother feel
 
-**useGameRecords.ts - Split save and fetch:**
-```typescript
-const saveGameResult = async (throws: number, winningNumber: number) => {
-  if (!userId) return;
+**2.2 Dice Dots Animation**
+- Animate dots appearance when dice value changes using `AnimatePresence` and `motion.div`
+- Stagger dot animations for visual interest
 
-  // Save the game - this is critical path
-  const { data, error } = await supabase.functions.invoke('save-game-result', {
-    body: { throws_count: throws, winning_number: winningNumber }
-  });
+**2.3 Scrambled State Transition**
+- Use `AnimatePresence` for smooth icon swap transitions
+- Add subtle rotation animation to scrambled icons
 
-  if (error || data?.error) {
-    throw new Error(data?.error || error.message);
-  }
+---
 
-  // Refresh records in the background (non-blocking)
-  fetchRecords().catch(console.error);
-  
-  return data;
-};
-```
+### Phase 3: Game Board Improvements
 
-**Index.tsx - Parallel badge check:**
-```typescript
-const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
-  setJustCompletedGame(true);
-  
-  // Save game first (required before badge check can verify)
-  await saveGameResult(throws, winningNumber);
-  
-  // Check badges immediately after save - don't wait for fetchRecords
-  checkAndAwardBadges(usedAction);
-};
-```
+**3.1 GameBoard.tsx and PracticeMode.tsx**
+- **Initial card glow**: Convert `animate-border-glow` to Framer Motion `boxShadow` animation
+- **Stats counters**: Use `AnimatedNumber` component for throw count and locked count
+- **Dice grid**: Add staggered entrance animation when game starts
+- **Win celebration**: Orchestrated animation sequence (dice bounce, then text pop-in)
+- **Button states**: Add `whileTap` scale-down feedback
 
-### Expected Improvement
+**3.2 ActionButtons.tsx**
+- Add `whileHover` scale and glow effects
+- Add `whileTap` scale-down for tactile feedback
+- Animate button appearance with stagger when multiple actions available
 
-**Before:** 
-- Save (~300ms) → FetchRecords (~400ms) → CheckBadges (~600ms) = **~1300ms total**
+---
 
-**After:**
-- Save (~300ms) → CheckBadges (~600ms) = **~900ms total**
-- FetchRecords runs in background
+### Phase 4: UI Component Polish
 
-**Improvement: ~400ms faster** (30% improvement)
+**4.1 InsultDisplay.tsx**
+- Wrap in `AnimatePresence` for proper exit animations
+- Replace CSS fade with Framer Motion `opacity` and `y` animation
+- Add subtle `scale` bounce on entrance
+- Animate speech bubble tail separately
 
-### Further Optimization (Optional)
+**4.2 ResultsPanel.tsx**
+- Add staggered entrance for stat cards
+- Use `AnimatedNumber` for all numeric values
+- Add hover micro-interaction on stat cards
 
-If we want even faster badge popups, we could:
-1. Use Supabase's `waitUntil` for background tasks in edge functions
-2. Implement optimistic badge display (show immediately, verify later)
-3. Cache badge definitions client-side to reduce API calls
+**4.3 BadgesSection.tsx**
+- Staggered entrance for badge grid
+- Add spring hover effect on individual badges
+- Layout animation when badges are added
+
+**4.4 BadgeUnlockModal.tsx**
+- Replace CSS entrance animations with Framer Motion sequences
+- Create orchestrated animation: backdrop fade, modal scale-in, icon bounce, text fade-in
+- Add subtle floating animation for legendary badges
+
+---
+
+### Phase 5: Additional Enhancements
+
+**5.1 Page Transitions**
+- Add route transition animations using `AnimatePresence` at router level
+- Fade/slide between pages
+
+**5.2 Loading States**
+- Replace `animate-pulse` with smoother Framer Motion pulse
+- Add skeleton shimmer effects
+
+**5.3 Toast/Notification Animations**
+- Enhance sonner toast entrance/exit if customizable
 
 ---
 
 ## Technical Details
 
-### Files to Modify
-1. `src/hooks/useGameRecords.ts` - Remove blocking `await fetchRecords()` from `saveGameResult`
-2. `src/pages/Index.tsx` - Remove `await` from `checkAndAwardBadges` call (fire-and-forget with internal state update)
+### New File Structure
+```text
+src/
+  lib/
+    animations.ts          # Reusable motion variants
+  components/
+    motion/
+      index.ts             # Barrel export
+      MotionDiv.tsx        # Pre-configured motion wrapper
+      AnimatedNumber.tsx   # Counting number animation
+      StaggerContainer.tsx # Container for staggered children
+```
 
-### Risk Assessment
-- **Low risk**: The badge system already handles duplicate prevention server-side
-- **No data integrity issues**: Game saves are still verified before badge checks
-- **Graceful degradation**: If badge check fails, user still gets the game saved
+### Animation Variants Example (`src/lib/animations.ts`)
+```typescript
+export const popIn = {
+  initial: { scale: 0, opacity: 0 },
+  animate: { 
+    scale: 1, 
+    opacity: 1,
+    transition: { type: "spring", stiffness: 500, damping: 30 }
+  },
+  exit: { scale: 0.8, opacity: 0 }
+};
+
+export const staggerContainer = {
+  animate: {
+    transition: { staggerChildren: 0.05 }
+  }
+};
+
+export const staggerItem = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 }
+};
+```
+
+### Dice Animation Configuration
+```typescript
+// Spring physics for dice animations
+const diceSpring = { type: "spring", stiffness: 300, damping: 20 };
+
+// Shake animation using keyframes
+const shakeAnimation = {
+  x: [-3, 3, -5, 5, -7, 7, -5, 5, -2, 0],
+  rotate: [-2, 2, -3, 3, -4, 4, -3, 2, -1, 0],
+  transition: { duration: 0.8 }
+};
+```
+
+### AnimatedNumber Component
+```typescript
+// Uses useMotionValue and useTransform for smooth counting
+const AnimatedNumber = ({ value, duration = 0.5 }) => {
+  const motionValue = useMotionValue(0);
+  const rounded = useTransform(motionValue, (v) => Math.round(v));
+  
+  useEffect(() => {
+    animate(motionValue, value, { duration });
+  }, [value]);
+  
+  return <motion.span>{rounded}</motion.span>;
+};
+```
+
+---
+
+## Migration Strategy
+
+1. **Keep CSS fallbacks**: Maintain existing Tailwind animations initially as fallbacks
+2. **Incremental adoption**: Convert components one by one, testing each
+3. **Remove CSS animations**: Once Framer Motion versions are stable, remove unused CSS keyframes from `tailwind.config.ts`
+
+---
+
+## Performance Considerations
+
+- Use `layout` prop sparingly (only where needed for layout shifts)
+- Leverage `willChange` hints for frequently animated elements
+- Use `useReducedMotion` hook to respect user preferences
+- Prefer `transform` and `opacity` animations (GPU-accelerated)
+
+---
+
+## Summary
+
+| Area | Key Changes |
+|------|-------------|
+| Package | Add `framer-motion` dependency |
+| Dice animations | Spring physics, stagger effects, gesture feedback |
+| Game board | Animated counters, orchestrated win sequence |
+| Modals | Sequenced entrance animations |
+| Stats/Badges | Staggered grid animations |
+| Buttons | Tap/hover micro-interactions |
+| Numbers | Smooth counting animations |
+
+This implementation will make the game feel significantly more polished and responsive, with physics-based animations that feel natural and satisfying to interact with.
+
