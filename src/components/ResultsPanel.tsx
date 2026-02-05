@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+ import { Link } from "react-router-dom";
+ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+ import { AnimatedNumber } from "@/components/motion";
+ import { staggerContainer, staggerItem } from "@/lib/animations";
 interface GameRecord {
   throws_count: number;
   winning_number: number;
@@ -49,57 +52,100 @@ export const ResultsPanel = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {todayResult ? <>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+         {todayResult ? <>
+             <motion.div 
+               className="grid grid-cols-3 gap-3"
+               variants={staggerContainer}
+               initial="initial"
+               animate="animate"
+             >
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Today</p>
                 <p className="text-2xl font-bold text-primary">
                   {todayResult.throws_count}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
-              </div>
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+               </motion.div>
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Best</p>
                 <p className="text-2xl font-bold text-primary">
                   {personalBest || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
-              </div>
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+               </motion.div>
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Worst</p>
                 <p className="text-2xl font-bold text-destructive">
                   {personalWorst || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+               </motion.div>
+             </motion.div>
+ 
+             <motion.div 
+               className="grid grid-cols-3 gap-3"
+               variants={staggerContainer}
+               initial="initial"
+               animate="animate"
+             >
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Average</p>
                 <p className="text-2xl font-bold text-primary">
                   {averageThrows || "-"}
                 </p>
                 <p className="text-xs text-muted-foreground">throws</p>
-              </div>
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+               </motion.div>
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Games</p>
                 <p className="text-2xl font-bold text-primary">
                   {gamesPlayed}
                 </p>
                 <p className="text-xs text-muted-foreground">played</p>
-              </div>
-              <div className="rounded-lg p-3 text-center bg-[#d6fae9]">
+               </motion.div>
+               <motion.div 
+                 className="rounded-lg p-3 text-center bg-[#d6fae9]"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Streak</p>
                 <p className="text-2xl font-bold text-primary">
                   {currentStreak}
                 </p>
                 <p className="text-xs text-muted-foreground"><span aria-hidden="true">🔥</span> days</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card border rounded-lg p-3 text-center">
+               </motion.div>
+             </motion.div>
+ 
+             <motion.div 
+               className="grid grid-cols-2 gap-3"
+               variants={staggerContainer}
+               initial="initial"
+               animate="animate"
+             >
+               <motion.div 
+                 className="bg-card border rounded-lg p-3 text-center"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Rank (Best)</p>
                 <p className="text-2xl font-bold">
                   {rankByBest && totalPlayers ? `#${rankByBest}` : "-"}
@@ -108,8 +154,12 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
                 </p>
-              </div>
-              <div className="bg-card border rounded-lg p-3 text-center">
+               </motion.div>
+               <motion.div 
+                 className="bg-card border rounded-lg p-3 text-center"
+                 variants={staggerItem}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-xs text-muted-foreground">Rank (Avg)</p>
                 <p className="text-2xl font-bold">
                   {rankByAverage && totalPlayers ? `#${rankByAverage}` : "-"}
@@ -118,8 +168,8 @@ export const ResultsPanel = ({
                 <p className="text-xs text-muted-foreground">
                   {totalPlayers ? `of ${totalPlayers} players` : ""}
                 </p>
-              </div>
-            </div>
+               </motion.div>
+             </motion.div>
 
             <div className="text-center">
               <Link to="/leaderboard">
@@ -129,11 +179,17 @@ export const ResultsPanel = ({
               </Link>
             </div>
 
-            {favoriteNumber && <div className="bg-card border rounded-lg p-3 text-center">
+             {favoriteNumber && <motion.div 
+                 className="bg-card border rounded-lg p-3 text-center"
+                 initial={{ opacity: 0, y: 10 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.3 }}
+                 whileHover={{ scale: 1.02 }}
+               >
                 <p className="text-sm text-muted-foreground">Your favorite number</p>
                 <p className="text-3xl font-bold text-primary">{favoriteNumber} <span aria-hidden="true">⭐</span></p>
                 <p className="text-xs text-muted-foreground">Most used across all games</p>
-              </div>}
+               </motion.div>}
           </> : <div className="text-center py-4">
             <p className="text-muted-foreground">
               Play today's game to see your stats!

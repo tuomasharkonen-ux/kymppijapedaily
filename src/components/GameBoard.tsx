@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+ import React, { useState, useEffect, useMemo, useCallback } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import { format } from "date-fns";
 import { getSeededDice } from "@/lib/utils";
 import { getRandomInsult } from "@/lib/diceInsults";
 import { Smartphone } from "lucide-react";
+ import { AnimatedNumber } from "@/components/motion";
+ import { staggerContainer, staggerItem, popIn, fadeInUp } from "@/lib/animations";
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number, initialDice: number[], usedAction: boolean) => void;
@@ -236,46 +239,77 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
       </div>
       
-      {gameComplete && winningNumber && (
-        <div className="text-center animate-pop-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">
-            Kymppijape! <span aria-hidden="true">🎉</span>
-          </h2>
-          <p className="text-lg text-muted-foreground mb-4">
-            All 10 dice showing {winningNumber}!
-          </p>
-          <Button 
-            onClick={onCopyResult}
-            disabled={isStatsLoading}
-            size="lg"
-            className="animate-pop-in min-w-[220px]"
-            variant={showCopied ? "secondary" : "default"}
-          >
-            {isStatsLoading ? (
-              <><span aria-hidden="true">⏳</span> Loading stats...</>
-            ) : showCopied ? (
-              "✓ Copied to clipboard!"
-            ) : (
-              <><span aria-hidden="true">📋</span> Share Result with Friends</>
-            )}
-          </Button>
-        </div>
-      )}
+       <AnimatePresence>
+         {gameComplete && winningNumber && (
+           <motion.div 
+             className="text-center"
+             variants={popIn}
+             initial="initial"
+             animate="animate"
+             exit="exit"
+           >
+             <motion.h2 
+               className="text-4xl md:text-5xl font-bold text-primary mb-2"
+               initial={{ scale: 0.5, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.1 }}
+             >
+               Kymppijape! <span aria-hidden="true">🎉</span>
+             </motion.h2>
+             <motion.p 
+               className="text-lg text-muted-foreground mb-4"
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.3 }}
+             >
+               All 10 dice showing {winningNumber}!
+             </motion.p>
+             <motion.div
+               initial={{ opacity: 0, scale: 0.9 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ delay: 0.5 }}
+             >
+               <Button 
+                 onClick={onCopyResult}
+                 disabled={isStatsLoading}
+                 size="lg"
+                 className="min-w-[220px]"
+                 variant={showCopied ? "secondary" : "default"}
+               >
+                 {isStatsLoading ? (
+                   <><span aria-hidden="true">⏳</span> Loading stats...</>
+                 ) : showCopied ? (
+                   "✓ Copied to clipboard!"
+                 ) : (
+                   <><span aria-hidden="true">📋</span> Share Result with Friends</>
+                 )}
+               </Button>
+             </motion.div>
+           </motion.div>
+         )}
+       </AnimatePresence>
 
       <Card className={!hasStarted ? "animate-border-glow" : ""}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? (
             <>
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex flex-col items-center">
-                  <span className="font-bold text-foreground text-3xl md:text-4xl">{throwCount}</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="font-bold text-foreground text-3xl md:text-4xl">{dice.filter(d => d.isLocked).length}/10</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
-                </div>
-              </div>
+               <motion.div 
+                 className="flex justify-between items-center mb-4"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ duration: 0.3 }}
+               >
+                 <div className="flex flex-col items-center">
+                   <AnimatedNumber value={throwCount} className="font-bold text-foreground text-3xl md:text-4xl" />
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
+                 </div>
+                 <div className="flex flex-col items-center">
+                   <span className="font-bold text-foreground text-3xl md:text-4xl">
+                     <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
+                   </span>
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
+                 </div>
+               </motion.div>
 
               {showShakePermissionPrompt && (
                 <Alert className="mb-4">
@@ -289,22 +323,28 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                 </Alert>
               )}
 
-              <div className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+               <motion.div 
+                 className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6"
+                 variants={staggerContainer}
+                 initial="initial"
+                 animate="animate"
+               >
                 <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
-                {dice.map((d, i) => (
-                  <Dice
-                    key={i}
-                    value={d.value}
-                    isLocked={d.isLocked}
-                    isRolling={isRolling && !d.isLocked}
-                    onClick={() => toggleLock(i)}
-                    disabled={gameComplete}
-                    skin={activeSkin}
-                    isScrambled={isScrambled}
-                    animationType={currentAction}
-                  />
-                ))}
-              </div>
+                 {dice.map((d, i) => (
+                   <motion.div key={i} variants={staggerItem}>
+                     <Dice
+                       value={d.value}
+                       isLocked={d.isLocked}
+                       isRolling={isRolling && !d.isLocked}
+                       onClick={() => toggleLock(i)}
+                       disabled={gameComplete}
+                       skin={activeSkin}
+                       isScrambled={isScrambled}
+                       animationType={currentAction}
+                     />
+                   </motion.div>
+                 ))}
+               </motion.div>
 
               <p className="text-center text-sm text-muted-foreground mb-4">
                 {gameComplete 
