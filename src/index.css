@@ -165,9 +165,4 @@ All colors MUST be HSL.
      font-family: var(--font-display);
      @apply text-[1.3em];
    }
- 
-   button, .btn, [role="button"] {
-     font-family: var(--font-display);
-     @apply text-[1.1em];
-   }
 }
