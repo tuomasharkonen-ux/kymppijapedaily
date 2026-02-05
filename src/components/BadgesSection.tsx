@@ -1,7 +1,9 @@
-import { useState } from "react";
+ import { useState } from "react";
+ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeModal } from "./BadgeModal";
 import { Skeleton } from "@/components/ui/skeleton";
+ import { Button } from "@/components/ui/button";
 import { getBadgeIcon } from "@/lib/badgeIcons";
 import type { UserBadge, Badge } from "@/hooks/useBadges";
 interface BadgesSectionProps {
@@ -86,6 +88,14 @@ export const BadgesSection = ({
                 </button>;
           })}
           </div>
+ 
+           <div className="text-center pt-2">
+             <Link to="/badges">
+               <Button variant="link" className="text-sm">
+                 View All Badges →
+               </Button>
+             </Link>
+           </div>
         </CardContent>
       </Card>
 
