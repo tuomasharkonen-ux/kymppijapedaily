@@ -12,6 +12,8 @@ import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useProfile } from "@/hooks/useProfile";
+import { UsernamePromptModal } from "@/components/UsernamePromptModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -62,6 +64,16 @@ const Index = () => {
     updateSkin,
     toggleAction,
   } = useUserSettings(user?.id || null);
+
+  // Profile hook for username
+  const {
+    profile,
+    isLoading: profileLoading,
+    updateUsername,
+  } = useProfile(user?.id || null);
+
+  // Show username prompt for logged-in users without a profile
+  const showUsernamePrompt = !!user && !profileLoading && !profile;
 
   // Get the active skin as DiceSkin type
   const activeSkin: DiceSkin = (settings.activeSkin as DiceSkin) || "default";
@@ -235,6 +247,12 @@ Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}`;
 
         {/* Badge unlock modal */}
         <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />
+
+        {/* Username prompt for new users */}
+        <UsernamePromptModal
+          isOpen={showUsernamePrompt}
+          onComplete={updateUsername}
+        />
 
         {/* Footer with Terms link */}
         <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
