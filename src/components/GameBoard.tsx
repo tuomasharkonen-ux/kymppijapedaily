@@ -300,11 +300,11 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                  transition={{ duration: 0.3 }}
                >
                  <div className="flex flex-col items-center">
-                   <AnimatedNumber value={throwCount} className="font-bold text-foreground text-3xl md:text-4xl" />
+                     <AnimatedNumber value={throwCount} className="font-display font-bold text-foreground text-4xl md:text-5xl" />
                    <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
                  </div>
                  <div className="flex flex-col items-center">
-                   <span className="font-bold text-foreground text-3xl md:text-4xl">
+                     <span className="font-display font-bold text-foreground text-4xl md:text-5xl">
                      <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
                    </span>
                    <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
