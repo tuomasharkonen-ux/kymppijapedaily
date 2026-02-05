@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+ import React, { useState, useCallback } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
 import { InsultDisplay } from "./InsultDisplay";
@@ -11,6 +12,8 @@ import { useShakeDetection } from "@/hooks/useShakeDetection";
 import { getRandomInsult } from "@/lib/diceInsults";
 import { toast } from "sonner";
 import { Smartphone } from "lucide-react";
+ import { AnimatedNumber } from "@/components/motion";
+ import { staggerContainer, staggerItem, popIn } from "@/lib/animations";
 
 interface DiceState {
   value: number;
@@ -210,22 +213,52 @@ export const PracticeMode = ({
 
   if (gameComplete && winningNumber) {
     const percentileInfo = getPercentileText(throwCount);
-    return <div className="space-y-6">
-        <div className="text-center animate-pop-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary mb-2">Kymppijape! <span aria-hidden="true">🎉</span></h2>
-          <div className="py-4">
-            <p className="text-lg text-muted-foreground mb-2">
-              All 10 dice showing {winningNumber} in {throwCount} throws!
-            </p>
-            <p className={`text-sm ${percentileInfo.highlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-              {percentileInfo.text}
-            </p>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">(Practice mode - result not saved)</p>
-          <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
-            <span aria-hidden="true">🎲</span> Play Again
-          </Button>
-        </div>
+     return <div className="space-y-6">
+         <motion.div 
+           className="text-center"
+           variants={popIn}
+           initial="initial"
+           animate="animate"
+         >
+           <motion.h2 
+             className="text-4xl md:text-5xl font-bold text-primary mb-2"
+             initial={{ scale: 0.5, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.1 }}
+           >
+             Kymppijape! <span aria-hidden="true">🎉</span>
+           </motion.h2>
+           <motion.div 
+             className="py-4"
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.3 }}
+           >
+             <p className="text-lg text-muted-foreground mb-2">
+               All 10 dice showing {winningNumber} in {throwCount} throws!
+             </p>
+             <p className={`text-sm ${percentileInfo.highlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+               {percentileInfo.text}
+             </p>
+           </motion.div>
+           <motion.p 
+             className="text-sm text-muted-foreground mb-4"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             transition={{ delay: 0.4 }}
+           >
+             (Practice mode - result not saved)
+           </motion.p>
+           <motion.div
+             initial={{ opacity: 0, scale: 0.9 }}
+             animate={{ opacity: 1, scale: 1 }}
+             transition={{ delay: 0.5 }}
+           >
+             <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
+               <span aria-hidden="true">🎲</span> Play Again
+             </Button>
+           </motion.div>
+         </motion.div>
 
         {!isLoggedIn && <Card>
             <CardHeader className="text-center pb-2">
@@ -252,16 +285,23 @@ export const PracticeMode = ({
       <Card className={!hasStarted ? "animate-border-glow" : ""}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? <>
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex flex-col items-center">
-                  <span className="font-bold text-foreground text-3xl md:text-4xl">{throwCount}</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="font-bold text-foreground text-3xl md:text-4xl">{dice.filter(d => d.isLocked).length}/10</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
-                </div>
-              </div>
+               <motion.div 
+                 className="flex justify-between items-center mb-4"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ duration: 0.3 }}
+               >
+                 <div className="flex flex-col items-center">
+                   <AnimatedNumber value={throwCount} className="font-bold text-foreground text-3xl md:text-4xl" />
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
+                 </div>
+                 <div className="flex flex-col items-center">
+                   <span className="font-bold text-foreground text-3xl md:text-4xl">
+                     <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
+                   </span>
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
+                 </div>
+               </motion.div>
 
               {showShakePermissionPrompt && (
                 <Alert className="mb-4">
@@ -275,22 +315,28 @@ export const PracticeMode = ({
                 </Alert>
               )}
 
-              <div className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6">
+               <motion.div 
+                 className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6"
+                 variants={staggerContainer}
+                 initial="initial"
+                 animate="animate"
+               >
                 <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
-                {dice.map((d, i) => (
-                  <Dice
-                    key={i}
-                    value={d.value}
-                    isLocked={d.isLocked}
-                    isRolling={isRolling && !d.isLocked}
-                    onClick={() => toggleLock(i)}
-                    disabled={gameComplete}
-                    skin={activeSkin}
-                    isScrambled={isScrambled && !d.isLocked}
-                    animationType={!d.isLocked ? currentAction : null}
-                  />
-                ))}
-              </div>
+                 {dice.map((d, i) => (
+                   <motion.div key={i} variants={staggerItem}>
+                     <Dice
+                       value={d.value}
+                       isLocked={d.isLocked}
+                       isRolling={isRolling && !d.isLocked}
+                       onClick={() => toggleLock(i)}
+                       disabled={gameComplete}
+                       skin={activeSkin}
+                       isScrambled={isScrambled && !d.isLocked}
+                       animationType={!d.isLocked ? currentAction : null}
+                     />
+                   </motion.div>
+                 ))}
+               </motion.div>
 
               <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
 

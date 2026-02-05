@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface InsultDisplayProps {
@@ -42,33 +43,45 @@ export const InsultDisplay = ({ insult, onComplete }: InsultDisplayProps) => {
     }
   }, [insult, onComplete]);
 
-  if (!isVisible || !insult) return null;
-
-  return (
-    <div
-      className={cn(
-        "absolute left-1/2 bottom-full mb-3 z-10",
-        "bg-destructive text-destructive-foreground rounded-lg p-3 md:p-4 shadow-lg",
-        "border-2 border-destructive-foreground/20",
-        "transition-all duration-300 w-[90%] max-w-sm",
-        isExiting 
-          ? "opacity-0 scale-95 -translate-x-1/2" 
-          : "opacity-100 scale-100 -translate-x-1/2 animate-fade-in"
-      )}
-      role="alert"
-      aria-live="assertive"
-    >
-      {/* Speech bubble tail */}
-      <div 
-        className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-destructive"
-        aria-hidden="true"
-      />
-      
-      <p className="text-sm md:text-base font-medium text-center">
-        <span aria-hidden="true" className="mr-1">🤬</span>
-        {displayedText}
-        <span className="animate-pulse">|</span>
-      </p>
-    </div>
-  );
+ 
+   return (
+     <AnimatePresence>
+       {isVisible && insult && !isExiting && (
+         <motion.div
+           className={cn(
+             "absolute left-1/2 bottom-full mb-3 z-10 -translate-x-1/2",
+             "bg-destructive text-destructive-foreground rounded-lg p-3 md:p-4 shadow-lg",
+             "border-2 border-destructive-foreground/20",
+             "w-[90%] max-w-sm"
+           )}
+           initial={{ opacity: 0, scale: 0.8, y: 10 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 0.9, y: -5 }}
+           transition={{ type: "spring", stiffness: 500, damping: 30 }}
+           role="alert"
+           aria-live="assertive"
+         >
+           {/* Speech bubble tail */}
+           <motion.div 
+             className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-destructive"
+             aria-hidden="true"
+             initial={{ scale: 0 }}
+             animate={{ scale: 1 }}
+             transition={{ delay: 0.1, type: "spring", stiffness: 500 }}
+           />
+           
+           <p className="text-sm md:text-base font-medium text-center">
+             <span aria-hidden="true" className="mr-1">🤬</span>
+             {displayedText}
+             <motion.span 
+               animate={{ opacity: [1, 0, 1] }}
+               transition={{ duration: 0.8, repeat: Infinity }}
+             >
+               |
+             </motion.span>
+           </p>
+         </motion.div>
+       )}
+     </AnimatePresence>
+   );
 };
