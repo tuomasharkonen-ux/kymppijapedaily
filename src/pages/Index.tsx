@@ -100,7 +100,9 @@ const Index = () => {
     const shareText = `Kymppijape daily ${today}
 Throws today: ${todayResult.throws_count}
 ${diceEmojis}
-Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}`;
+ Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}
+ 
+ kymppijape.com`;
     try {
       await navigator.clipboard.writeText(shareText);
       setShowCopied(true);
