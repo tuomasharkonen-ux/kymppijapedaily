@@ -1,5 +1,5 @@
- import React, { useState, useCallback } from "react";
- import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
 import { InsultDisplay } from "./InsultDisplay";
@@ -11,9 +11,10 @@ import { AuthForm } from "./AuthForm";
 import { useShakeDetection } from "@/hooks/useShakeDetection";
 import { getRandomInsult } from "@/lib/diceInsults";
 import { toast } from "sonner";
-import { Smartphone } from "lucide-react";
+import { Smartphone, Share2 } from "lucide-react";
  import { AnimatedNumber } from "@/components/motion";
  import { staggerContainer, staggerItem, popIn } from "@/lib/animations";
+import { format } from "date-fns";
 
 interface DiceState {
   value: number;
@@ -34,6 +35,40 @@ interface PracticeModeProps {
   activeActions?: string[];
 }
 
+const PRACTICE_RESULT_KEY = "kymppijape_practice_result";
+
+interface StoredPracticeResult {
+  throwCount: number;
+  winningNumber: number;
+  date: string;
+}
+
+const getStoredResult = (): StoredPracticeResult | null => {
+  try {
+    const stored = localStorage.getItem(PRACTICE_RESULT_KEY);
+    if (!stored) return null;
+    const result: StoredPracticeResult = JSON.parse(stored);
+    const today = format(new Date(), "yyyy-MM-dd");
+    if (result.date === today) {
+      return result;
+    }
+    // Clear old result
+    localStorage.removeItem(PRACTICE_RESULT_KEY);
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const storeResult = (throwCount: number, winningNumber: number) => {
+  const result: StoredPracticeResult = {
+    throwCount,
+    winningNumber,
+    date: format(new Date(), "yyyy-MM-dd"),
+  };
+  localStorage.setItem(PRACTICE_RESULT_KEY, JSON.stringify(result));
+};
+
 export const PracticeMode = ({
   isLoggedIn = false,
   activeSkin = "default",
@@ -49,6 +84,21 @@ export const PracticeMode = ({
   const [isScrambled, setIsScrambled] = useState(false);
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
   const [currentInsult, setCurrentInsult] = useState<string | null>(null);
+  const [showCopied, setShowCopied] = useState(false);
+
+  // Check for stored result on mount (non-logged in users only)
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const storedResult = getStoredResult();
+      if (storedResult) {
+        setThrowCount(storedResult.throwCount);
+        setWinningNumber(storedResult.winningNumber);
+        setGameComplete(true);
+        setHasStarted(true);
+      }
+    }
+  }, [isLoggedIn]);
+
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
     if (allLocked) {
@@ -176,6 +226,10 @@ export const PracticeMode = ({
       if (winner !== null) {
         setWinningNumber(winner);
         setGameComplete(true);
+        // Store result for non-logged in users
+        if (!isLoggedIn) {
+          storeResult(throwCount + 1, winner); // +1 because throw count hasn't updated yet in this render
+        }
         triggerConfetti();
       }
       return newDice;
@@ -202,6 +256,25 @@ export const PracticeMode = ({
     if (throws <= 22) return 85;
     if (throws <= 28) return 95;
     return 99;
+  };
+
+  const copyResultToClipboard = async () => {
+    const today = format(new Date(), "dd.MM.yyyy");
+    const diceEmojis = "🎲".repeat(throwCount);
+    
+    const shareText = `Kymppijape Practice ${today}
+Throws: ${throwCount}
+${diceEmojis}
+
+Play at: https://kymppijapedaily.lovable.app`;
+    
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
   };
 
   const getPercentileText = (throws: number): { text: string; highlight: boolean } => {
@@ -250,13 +323,26 @@ export const PracticeMode = ({
              (Practice mode - result not saved)
            </motion.p>
            <motion.div
+             className="flex flex-col gap-3"
              initial={{ opacity: 0, scale: 0.9 }}
              animate={{ opacity: 1, scale: 1 }}
              transition={{ delay: 0.5 }}
            >
-             <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
-               <span aria-hidden="true">🎲</span> Play Again
-             </Button>
+             {!isLoggedIn && (
+               <Button 
+                 onClick={copyResultToClipboard} 
+                 size="lg" 
+                 variant={showCopied ? "secondary" : "default"}
+                 className="w-full"
+               >
+                 {showCopied ? "✓ Copied to clipboard!" : <><Share2 className="h-4 w-4 mr-2" /> Share Result</>}
+               </Button>
+             )}
+             {isLoggedIn && (
+               <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
+                 <span aria-hidden="true">🎲</span> Play Again
+               </Button>
+             )}
            </motion.div>
          </motion.div>
 
