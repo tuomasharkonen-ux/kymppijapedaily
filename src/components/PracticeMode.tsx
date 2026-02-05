@@ -262,11 +262,11 @@ export const PracticeMode = ({
     const today = format(new Date(), "dd.MM.yyyy");
     const diceEmojis = "🎲".repeat(throwCount);
     
-    const shareText = `Kymppijape Practice ${today}
+    const shareText = `Kymppijape Daily ${today}
 Throws: ${throwCount}
 ${diceEmojis}
 
-Play at: https://kymppijapedaily.lovable.app`;
+kymppijape.com`;
     
     try {
       await navigator.clipboard.writeText(shareText);
@@ -320,7 +320,7 @@ Play at: https://kymppijapedaily.lovable.app`;
              animate={{ opacity: 1 }}
              transition={{ delay: 0.4 }}
            >
-             (Practice mode - result not saved)
+             {isLoggedIn ? "(Practice mode - result not saved)" : "Come back tomorrow for another try!"}
            </motion.p>
            <motion.div
              className="flex flex-col gap-3"
