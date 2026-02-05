@@ -267,11 +267,13 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
           {hasStarted ? (
             <>
               <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-muted-foreground">
-                  Throws: <span className="font-bold text-foreground text-lg">{throwCount}</span>
+                <div className="flex flex-col items-center">
+                  <span className="font-bold text-foreground text-3xl md:text-4xl">{throwCount}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Locked: <span className="font-bold text-foreground">{dice.filter(d => d.isLocked).length}/10</span>
+                <div className="flex flex-col items-center">
+                  <span className="font-bold text-foreground text-3xl md:text-4xl">{dice.filter(d => d.isLocked).length}/10</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
                 </div>
               </div>
 
