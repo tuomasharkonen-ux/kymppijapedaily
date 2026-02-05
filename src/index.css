@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap");
+ @import url("https://fonts.googleapis.com/css2?family=Jersey+25&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,6 +75,8 @@ All colors MUST be HSL.
     --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 
     --font-mono: 'Inconsolata', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+ 
+     --font-display: 'Jersey 25', cursive;
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 
@@ -157,4 +160,8 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+ 
+   h1, h2, h3, h4, h5, h6 {
+     font-family: var(--font-display);
+   }
 }

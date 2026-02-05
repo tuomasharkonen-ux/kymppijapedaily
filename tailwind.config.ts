@@ -250,7 +250,11 @@ export default {
   				'Liberation Mono',
   				'Courier New',
   				'monospace'
-  			]
+ 			],
+ 			display: [
+ 				'Jersey 25',
+ 				'cursive'
+ 			]
   		}
   	}
   },
