@@ -69,33 +69,26 @@ import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
    const dotColor = skinStyles[skin].dot;
  
    return (
-     <AnimatePresence mode="wait">
-       <motion.div
-         key={value}
-         initial={{ opacity: 0, scale: 0.8 }}
-         animate={{ opacity: 1, scale: 1 }}
-         exit={{ opacity: 0, scale: 0.8 }}
-         transition={{ duration: 0.15 }}
-         className="absolute inset-0"
-       >
-         {positions.map((pos, index) => (
-           <motion.div
-             key={`${value}-${pos}`}
-             initial={{ scale: 0 }}
-             animate={{ scale: 1 }}
-             transition={{ 
-               ...springs.bouncy,
-               delay: index * 0.02,
-             }}
-             className={cn(
-               "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
-               dotColor,
-               positionClasses[pos]
-             )}
-           />
-         ))}
-       </motion.div>
-     </AnimatePresence>
+     <>
+       {positions.map((pos, index) => (
+         <motion.div
+           key={`${value}-${pos}-${index}`}
+           initial={{ opacity: 0, scale: 0 }}
+           animate={{ opacity: 1, scale: 1 }}
+           transition={{ 
+             type: "spring",
+             stiffness: 500,
+             damping: 25,
+             delay: index * 0.015,
+           }}
+           className={cn(
+             "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
+             dotColor,
+             positionClasses[pos]
+           )}
+         />
+       ))}
+     </>
    );
  };
  
