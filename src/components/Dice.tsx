@@ -64,31 +64,23 @@ import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
    "bottom-right": "bottom-2 right-2",
  };
  
-const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: DiceSkin }) => {
+ const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: DiceSkin }) => {
    const positions = value > 0 ? (dotPositions[value] || []) : [];
    const dotColor = skinStyles[skin].dot;
  
    return (
-    <div className="absolute inset-0">
-      {positions.map((pos, index) => (
-        <motion.div
-          key={`${value}-${pos}-${index}`}
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            type: "tween",
-            duration: 0.12,
-            ease: "easeOut",
-            delay: index * 0.01,
-          }}
-          className={cn(
-            "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
-            dotColor,
-            positionClasses[pos]
-          )}
-        />
-      ))}
-    </div>
+     <>
+       {positions.map((pos, index) => (
+         <div
+           key={index}
+           className={cn(
+             "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
+             dotColor,
+             positionClasses[pos]
+           )}
+         />
+       ))}
+     </>
    );
  };
  
@@ -213,44 +205,30 @@ const getScrambleIcon = (type: DiceAnimationType) => {
        whileHover={!disabled && !isRolling ? hoverScale : undefined}
        whileTap={!disabled && !isRolling ? tapScale : undefined}
       >
-        <AnimatePresence mode="wait" initial={false}>
-          {showScrambled ? (
-            <motion.div
-              key="scrambled"
-              className="absolute inset-0 flex items-center justify-center"
-              initial={{ opacity: 0, rotate: -10, scale: 0.95 }}
-              animate={{
-                opacity: 1,
-                rotate: [0, 5, -5, 0],
-                scale: [0.95, 1, 0.95],
-              }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <ScrambleIcon
-                className={cn(
-                  "w-6 h-6 md:w-8 md:h-8",
-                  iconColor.replace("bg-", "text-")
-                )}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`dots-${displayValue}`}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.12 }}
-            >
-              <DiceDotsWithSkin value={displayValue} skin={skin} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {showScrambled ? (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center"
+            animate={{
+              opacity: [0.5, 1, 0.5],
+              rotate: [0, 5, -5, 0],
+              scale: [0.9, 1, 0.9],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <ScrambleIcon
+              className={cn(
+                "w-6 h-6 md:w-8 md:h-8",
+                iconColor.replace("bg-", "text-")
+              )}
+            />
+          </motion.div>
+        ) : (
+          <DiceDotsWithSkin value={displayValue} skin={skin} />
+        )}
        
        {/* Lock indicator with animation */}
        <AnimatePresence>
