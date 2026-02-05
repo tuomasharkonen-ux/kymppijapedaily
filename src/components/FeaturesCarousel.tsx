@@ -33,7 +33,7 @@ const features: FeatureSlide[] = [
     icon: <Award className="h-6 w-6 text-primary" />,
     title: "Achievement Badges",
     description:
-      "Unlock 20+ unique badges by playing skillfully! Earn credits for each badge. From streak masters to lucky number hunters.",
+      "Unlock 50+ unique badges by playing skillfully! Earn credits for each badge. From streak masters to lucky number hunters.",
     preview: (
       <div className="flex flex-wrap items-center justify-center gap-1.5 py-2">
         {[
