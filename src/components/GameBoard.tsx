@@ -1,6 +1,7 @@
- import React, { useState, useEffect, useMemo, useCallback } from "react";
- import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
+import { type ThrowAnimationStyle } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,6 +25,7 @@ interface GameBoardProps {
   activeSkin?: DiceSkin;
   purchasedItems?: string[];
   activeActions?: string[];
+  activeThrowAnimation?: ThrowAnimationStyle;
   onCopyResult?: () => Promise<void>;
   isStatsLoading?: boolean;
   showCopied?: boolean;
@@ -34,7 +36,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -341,6 +343,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                        skin={activeSkin}
                        isScrambled={isScrambled}
                        animationType={currentAction}
+                       throwAnimation={activeThrowAnimation}
                      />
                    </motion.div>
                  ))}

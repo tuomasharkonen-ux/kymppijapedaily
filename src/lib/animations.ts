@@ -135,12 +135,40 @@
    exit: { scale: 0.95, opacity: 0, y: 10, transition: { duration: 0.15 } },
  };
  
- // Legendary badge floating effect
- export const floatingAnimation = {
-   y: [-2, 2, -2],
-   transition: {
-     duration: 3,
-     repeat: Infinity,
-     ease: "easeInOut",
-   },
- };
+// Legendary badge floating effect
+export const floatingAnimation = {
+  y: [-2, 2, -2],
+  transition: {
+    duration: 3,
+    repeat: Infinity,
+    ease: "easeInOut",
+  },
+};
+
+// Throw animation styles
+export type ThrowAnimationStyle = 'default' | 'turbo_spin_throw' | 'bounce_drop_throw';
+
+export const getThrowAnimation = (style: ThrowAnimationStyle) => {
+  switch (style) {
+    case 'turbo_spin_throw':
+      return {
+        rotate: [0, 180, 360, 540, 720],
+        scale: [1, 0.85, 1.1, 0.9, 1],
+        filter: ["blur(0px)", "blur(2px)", "blur(3px)", "blur(1px)", "blur(0px)"],
+        transition: { duration: 0.6, ease: "easeInOut" as const },
+      };
+    case 'bounce_drop_throw':
+      return {
+        y: [-60, 0, -20, 0, -8, 0],
+        scale: [0.8, 1.1, 0.95, 1.05, 0.98, 1],
+        rotate: [0, 15, -10, 5, -2, 0],
+        transition: { duration: 0.7, ease: "easeOut" as const },
+      };
+    default:
+      return {
+        rotate: [0, 90, 180, 270, 360],
+        scale: [1, 0.9, 1.05, 0.95, 1],
+        transition: { duration: 0.55, ease: "easeInOut" as const },
+      };
+  }
+};
