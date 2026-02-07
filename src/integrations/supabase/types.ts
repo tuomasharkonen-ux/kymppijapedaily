@@ -170,18 +170,21 @@ export type Database = {
         Row: {
           active_action: string[] | null
           active_skin: string | null
+          active_throw_animation: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           active_action?: string[] | null
           active_skin?: string | null
+          active_throw_animation?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           active_action?: string[] | null
           active_skin?: string | null
+          active_throw_animation?: string | null
           updated_at?: string | null
           user_id?: string
         }

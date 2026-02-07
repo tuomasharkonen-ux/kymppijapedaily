@@ -26,7 +26,7 @@ const Shop = () => {
   
   const { userCredits, isLoading: creditsLoading, refetchBadges } = useBadges(user?.id || null);
   const { isOwned, isLoading: purchasesLoading, purchaseItem, isPurchasing } = useUserPurchases(user?.id || null);
-  const { updateSkin, activateAction } = useUserSettings(user?.id || null);
+  const { updateSkin, activateAction, updateThrowAnimation } = useUserSettings(user?.id || null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,6 +47,8 @@ const Shop = () => {
       await updateSkin(item.id);
     } else if (item.category === 'action') {
       await activateAction(item.id);
+    } else if (item.category === 'throw_animation') {
+      await updateThrowAnimation(item.id);
     }
     
     setPurchaseSuccess({ item, newBalance });

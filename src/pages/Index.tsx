@@ -8,6 +8,7 @@ import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { DiceProShopCard } from "@/components/DiceProShopCard";
 import { CustomizationSection } from "@/components/CustomizationSection";
+import { type ThrowAnimationStyle } from "@/lib/animations";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
@@ -77,6 +78,7 @@ const Index = () => {
 
   // Get the active skin as DiceSkin type
   const activeSkin: DiceSkin = (settings.activeSkin as DiceSkin) || "default";
+  const activeThrowAnimation: ThrowAnimationStyle = (settings.activeThrowAnimation as ThrowAnimationStyle) || "default";
   const copyResultToClipboard = async () => {
     if (!todayResult) return;
     const today = format(new Date(), "dd.MM.yyyy");
@@ -223,7 +225,7 @@ ${diceEmojis}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} />
+                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 

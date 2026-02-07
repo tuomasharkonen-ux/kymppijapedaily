@@ -1,22 +1,23 @@
- import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
- import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow } from "@/lib/animations";
+import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
 
- export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
- export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
+export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
  
- interface DiceProps {
-   value: number;
-   isLocked: boolean;
-   isRolling: boolean;
-   onClick: () => void;
-   disabled?: boolean;
-   skin?: DiceSkin;
-   isScrambled?: boolean;
-   animationType?: DiceAnimationType;
- }
+interface DiceProps {
+  value: number;
+  isLocked: boolean;
+  isRolling: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  skin?: DiceSkin;
+  isScrambled?: boolean;
+  animationType?: DiceAnimationType;
+  throwAnimation?: ThrowAnimationStyle;
+}
  
  // Skin-specific styles
  const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; glow?: string }> = {
@@ -95,16 +96,17 @@ const getScrambleIcon = (type: DiceAnimationType) => {
   }
 };
  
- export const Dice = ({ 
-   value, 
-   isLocked, 
-   isRolling, 
-   onClick, 
-   disabled, 
-   skin = "default",
-   isScrambled = false,
-   animationType = null
- }: DiceProps) => {
+export const Dice = ({ 
+  value, 
+  isLocked, 
+  isRolling, 
+  onClick, 
+  disabled, 
+  skin = "default",
+  isScrambled = false,
+  animationType = null,
+  throwAnimation = "default"
+}: DiceProps) => {
    const [displayValue, setDisplayValue] = useState(value);
    const [lastScrambleType, setLastScrambleType] = useState<DiceAnimationType>(null);
    const [currentAnimation, setCurrentAnimation] = useState<'idle' | 'rolling' | 'shake' | 'blow' | 'cower'>('idle');
@@ -161,25 +163,21 @@ const getScrambleIcon = (type: DiceAnimationType) => {
    const styles = skinStyles[skin];
    const showScrambled = isScrambled && !isLocked && !isRolling;
  
-   // Get animation props based on current state
-   const getAnimateValue = () => {
-     switch (currentAnimation) {
-       case 'rolling':
-         return {
-           rotate: [0, 90, 180, 270, 360],
-           scale: [1, 0.9, 1.05, 0.95, 1],
-           transition: { duration: 0.55, ease: "easeInOut" as const },
-         };
-       case 'shake':
-         return diceShake;
-       case 'blow':
-         return diceBlow;
-       case 'cower':
-         return diceCower;
-       default:
-         return { rotate: 0, scale: 1, x: 0, y: 0 };
-     }
-   };
+  // Get animation props based on current state
+  const getAnimateValue = () => {
+    switch (currentAnimation) {
+      case 'rolling':
+        return getThrowAnimation(throwAnimation);
+      case 'shake':
+        return diceShake;
+      case 'blow':
+        return diceBlow;
+      case 'cower':
+        return diceCower;
+      default:
+        return { rotate: 0, scale: 1, x: 0, y: 0 };
+    }
+  };
  
   const ScrambleIcon = getScrambleIcon(lastScrambleType);
   const iconColor = skinStyles[skin].dot;

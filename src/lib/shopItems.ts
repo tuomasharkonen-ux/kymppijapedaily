@@ -5,7 +5,7 @@ export interface ShopItem {
   shortDescription: string;
   longDescription: string;
   price: number;
-  category: 'skin' | 'action';
+  category: 'skin' | 'action' | 'throw_animation';
 }
 
 export const shopItems: ShopItem[] = [
@@ -62,5 +62,23 @@ export const shopItems: ShopItem[] = [
     longDescription: 'Channel your inner rage at those underperforming cubes! Scientific studies (that we made up) show that insulting your dice improves luck by 0%. But it feels AMAZING. Each click unleashes a random insult from 50 increasingly unhinged options that would make a sailor blush. Warning: Dice have feelings too. We think.',
     price: 300,
     category: 'action',
+  },
+  {
+    id: 'turbo_spin_throw',
+    emoji: '🌀',
+    name: 'Turbo Spin',
+    shortDescription: 'Ultra-fast 720° rotation with motion blur!',
+    longDescription: 'Why settle for a boring single rotation when you can have TWO? The Turbo Spin animation sends your dice into a frenzied double spin that would make a figure skater jealous. The motion blur effect adds that extra touch of speed demon energy. Warning: May cause dizziness in susceptible viewers.',
+    price: 200,
+    category: 'throw_animation',
+  },
+  {
+    id: 'bounce_drop_throw',
+    emoji: '⬇️',
+    name: 'Bounce Drop',
+    shortDescription: 'Dice fall from above and bounce before settling!',
+    longDescription: 'Experience the satisfying physics of dice that know how to make an entrance! Watch as your dice dramatically plummet from the heavens, bouncing with delightful elasticity before settling into their final positions. Each bounce builds the suspense. Will it be a good roll? The anticipation is half the fun!',
+    price: 250,
+    category: 'throw_animation',
   },
 ];

@@ -4,18 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 export interface UserSettings {
   activeSkin: string | null;
   activeActions: string[];
+  activeThrowAnimation: string | null;
 }
 
 export const useUserSettings = (userId: string | null) => {
   const [settings, setSettings] = useState<UserSettings>({
     activeSkin: null,
     activeActions: [],
+    activeThrowAnimation: null,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
     if (!userId) {
-      setSettings({ activeSkin: null, activeActions: [] });
+      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null });
       setIsLoading(false);
       return;
     }
@@ -23,7 +25,7 @@ export const useUserSettings = (userId: string | null) => {
     try {
       const { data, error } = await supabase
         .from("user_settings")
-        .select("active_skin, active_action")
+        .select("active_skin, active_action, active_throw_animation")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -36,6 +38,7 @@ export const useUserSettings = (userId: string | null) => {
         setSettings({
           activeSkin: data.active_skin,
           activeActions: data.active_action || [],
+          activeThrowAnimation: data.active_throw_animation,
         });
       }
     } catch (error) {
@@ -136,12 +139,38 @@ export const useUserSettings = (userId: string | null) => {
     [userId, settings.activeActions]
   );
 
+  const updateThrowAnimation = useCallback(
+    async (animationId: string | null) => {
+      if (!userId) return;
+
+      try {
+        const { error } = await supabase
+          .from("user_settings")
+          .upsert(
+            { user_id: userId, active_throw_animation: animationId },
+            { onConflict: "user_id" }
+          );
+
+        if (error) {
+          console.error("Error updating throw animation:", error);
+          return;
+        }
+
+        setSettings((prev) => ({ ...prev, activeThrowAnimation: animationId }));
+      } catch (error) {
+        console.error("Error updating throw animation:", error);
+      }
+    },
+    [userId]
+  );
+
   return {
     settings,
     isLoading,
     updateSkin,
     toggleAction,
     activateAction,
+    updateThrowAnimation,
     refetchSettings: fetchSettings,
   };
 };
