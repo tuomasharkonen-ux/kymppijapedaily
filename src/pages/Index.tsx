@@ -64,6 +64,7 @@ const Index = () => {
     isLoading: settingsLoading,
     updateSkin,
     toggleAction,
+    updateThrowAnimation,
   } = useUserSettings(user?.id || null);
 
   // Profile hook for username
@@ -220,8 +221,10 @@ ${diceEmojis}
                   purchasedItems={purchasedItems}
                   activeSkin={settings.activeSkin}
                   activeActions={settings.activeActions}
+                  activeThrowAnimation={settings.activeThrowAnimation}
                   onSkinChange={updateSkin}
                   onActionToggle={toggleAction}
+                  onThrowAnimationChange={updateThrowAnimation}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
@@ -237,8 +240,10 @@ ${diceEmojis}
                   purchasedItems={purchasedItems}
                   activeSkin={settings.activeSkin}
                   activeActions={settings.activeActions}
+                  activeThrowAnimation={settings.activeThrowAnimation}
                   onSkinChange={updateSkin}
                   onActionToggle={toggleAction}
+                  onThrowAnimationChange={updateThrowAnimation}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 

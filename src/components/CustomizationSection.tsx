@@ -3,14 +3,16 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { shopItems } from "@/lib/shopItems";
-import { Palette, Sparkles } from "lucide-react";
+import { Palette, Sparkles, Zap } from "lucide-react";
 
 interface CustomizationSectionProps {
   purchasedItems: string[];
   activeSkin: string | null;
   activeActions: string[];
+  activeThrowAnimation: string | null;
   onSkinChange: (skinId: string | null) => void;
   onActionToggle: (actionId: string) => void;
+  onThrowAnimationChange: (animationId: string | null) => void;
   isLoading?: boolean;
 }
 
@@ -18,8 +20,10 @@ export const CustomizationSection = ({
   purchasedItems,
   activeSkin,
   activeActions,
+  activeThrowAnimation,
   onSkinChange,
   onActionToggle,
+  onThrowAnimationChange,
   isLoading = false,
 }: CustomizationSectionProps) => {
   const ownedSkins = shopItems.filter(
@@ -27,6 +31,9 @@ export const CustomizationSection = ({
   );
   const ownedActions = shopItems.filter(
     (item) => item.category === "action" && purchasedItems.includes(item.id)
+  );
+  const ownedThrowAnimations = shopItems.filter(
+    (item) => item.category === "throw_animation" && purchasedItems.includes(item.id)
   );
 
   if (isLoading) {
@@ -46,7 +53,7 @@ export const CustomizationSection = ({
     );
   }
 
-  const hasOwnedItems = ownedSkins.length > 0 || ownedActions.length > 0;
+  const hasOwnedItems = ownedSkins.length > 0 || ownedActions.length > 0 || ownedThrowAnimations.length > 0;
 
   if (!hasOwnedItems) {
     return null;
@@ -86,6 +93,39 @@ export const CustomizationSection = ({
                     checked={activeSkin === skin.id}
                     onCheckedChange={(checked) =>
                       onSkinChange(checked ? skin.id : null)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Throw Animations Section */}
+        {ownedThrowAnimations.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Throw Animations
+            </h3>
+            <div className="space-y-3">
+              {ownedThrowAnimations.map((animation) => (
+                <div
+                  key={animation.id}
+                  className="flex items-center justify-between"
+                >
+                  <Label
+                    htmlFor={`animation-${animation.id}`}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-lg">{animation.emoji}</span>
+                    <span>{animation.name}</span>
+                  </Label>
+                  <Switch
+                    id={`animation-${animation.id}`}
+                    checked={activeThrowAnimation === animation.id}
+                    onCheckedChange={(checked) =>
+                      onThrowAnimationChange(checked ? animation.id : null)
                     }
                   />
                 </div>
