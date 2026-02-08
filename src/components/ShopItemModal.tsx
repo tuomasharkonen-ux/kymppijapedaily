@@ -12,7 +12,9 @@ import { Check, Loader2, Coins } from "lucide-react";
 import type { ShopItem } from "@/lib/shopItems";
 import { DicePreview } from "@/components/DicePreview";
 import { ActionPreview } from "@/components/ActionPreview";
+import { ThrowAnimationPreview } from "@/components/ThrowAnimationPreview";
 import type { DiceSkin } from "@/components/Dice";
+import type { ThrowAnimationStyle } from "@/lib/animations";
 
 interface PurchaseResult {
   success: boolean;
@@ -77,6 +79,32 @@ export const ShopItemModal = ({
     onClose();
   };
 
+  const renderPreview = () => {
+    switch (item.category) {
+      case "skin":
+        return <DicePreview skin={item.id as DiceSkin} />;
+      case "action":
+        return <ActionPreview actionId={item.id as "shake_dice_action" | "blow_dice_action" | "insult_dice_action"} />;
+      case "throw_animation":
+        return <ThrowAnimationPreview animationId={item.id as ThrowAnimationStyle} />;
+      default:
+        return null;
+    }
+  };
+
+  const getCategoryLabel = () => {
+    switch (item.category) {
+      case "skin":
+        return "🎨 Dice Skin";
+      case "action":
+        return "🎬 Special Action";
+      case "throw_animation":
+        return "⚡ Throw Animation";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-md">
@@ -97,12 +125,8 @@ export const ShopItemModal = ({
         
         <div className="space-y-4">
           {/* In-game preview */}
-          <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center">
-            {item.category === 'skin' ? (
-              <DicePreview skin={item.id as DiceSkin} />
-            ) : (
-              <ActionPreview actionId={item.id as "shake_dice_action" | "blow_dice_action"} />
-            )}
+          <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center min-h-[100px]">
+            {renderPreview()}
           </div>
           
           {/* Long description */}
@@ -115,7 +139,7 @@ export const ShopItemModal = ({
           {/* Category badge */}
           <div className="flex items-center gap-2">
             <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
-              {item.category === 'skin' ? '🎨 Dice Skin' : '🎬 Special Action'}
+              {getCategoryLabel()}
             </span>
           </div>
           
