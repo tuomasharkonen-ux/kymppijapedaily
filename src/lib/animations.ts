@@ -152,10 +152,10 @@ export const getThrowAnimation = (style: ThrowAnimationStyle) => {
   switch (style) {
     case 'turbo_spin_throw':
       return {
-        rotate: [0, 180, 360, 540, 720],
-        scale: [1, 0.85, 1.1, 0.9, 1],
-        filter: ["blur(0px)", "blur(2px)", "blur(3px)", "blur(1px)", "blur(0px)"],
-        transition: { duration: 0.6, ease: "easeInOut" as const },
+        rotate: [0, 360, 720, 1080, 1440, 1800],
+        scale: [1, 0.8, 1.15, 0.85, 1.1, 1],
+        filter: ["blur(0px)", "blur(3px)", "blur(5px)", "blur(4px)", "blur(2px)", "blur(0px)"],
+        transition: { duration: 0.45, ease: "easeInOut" as const },
       };
     case 'bounce_drop_throw':
       return {
