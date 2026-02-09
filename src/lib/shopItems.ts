@@ -78,7 +78,7 @@ export const shopItems: ShopItem[] = [
     name: 'Bounce Drop',
     shortDescription: 'Dice fall from above and bounce before settling!',
     longDescription: 'Experience the satisfying physics of dice that know how to make an entrance! Watch as your dice dramatically plummet from the heavens, bouncing with delightful elasticity before settling into their final positions. Each bounce builds the suspense. Will it be a good roll? The anticipation is half the fun!',
-    price: 250,
+    price: 200,
     category: 'throw_animation',
   },
 ];
