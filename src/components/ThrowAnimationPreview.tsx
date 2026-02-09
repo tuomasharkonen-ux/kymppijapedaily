@@ -71,7 +71,7 @@ export const ThrowAnimationPreview = ({ animationId }: ThrowAnimationPreviewProp
   const getLabel = () => {
     switch (animationId) {
       case "turbo_spin_throw":
-        return "Turbo Spin preview";
+        return "Turbo Spin 5x preview";
       case "bounce_drop_throw":
         return "Bounce Drop preview";
       default:
