@@ -86,10 +86,13 @@ export const ThrowAnimationPreview = ({ animationId }: ThrowAnimationPreviewProp
           <motion.div
             key={`${key}-${index}`}
             className="relative w-10 h-10 rounded-lg border-2 bg-card border-border shadow-md"
-            animate={isAnimating ? animationVariant : {}}
-            style={{
-              animationDelay: `${index * 50}ms`,
-            }}
+            animate={isAnimating ? {
+              ...animationVariant,
+              transition: {
+                ...animationVariant.transition,
+                delay: index * 0.05,
+              },
+            } : {}}
           >
             <PreviewDiceDots value={value} />
           </motion.div>
