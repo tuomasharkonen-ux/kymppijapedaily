@@ -82,21 +82,28 @@ export const ThrowAnimationPreview = ({ animationId }: ThrowAnimationPreviewProp
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex gap-2">
-        {diceValues.map((value, index) => (
-          <motion.div
-            key={`${key}-${index}`}
-            className="relative w-10 h-10 rounded-lg border-2 bg-card border-border shadow-md"
-            animate={isAnimating ? {
-              ...animationVariant,
-              transition: {
-                ...animationVariant.transition,
-                delay: index * 0.05,
-              },
-            } : {}}
-          >
-            <PreviewDiceDots value={value} />
-          </motion.div>
-        ))}
+        {diceValues.map((value, index) => {
+          const animation = isAnimating ? {
+            rotate: animationVariant.rotate,
+            scale: animationVariant.scale,
+            filter: animationVariant.filter,
+            transition: {
+              duration: animationVariant.transition?.duration ?? 0.55,
+              ease: animationVariant.transition?.ease ?? "easeInOut",
+              delay: index * 0.05,
+            },
+          } : {};
+          
+          return (
+            <motion.div
+              key={`${key}-${index}`}
+              className="relative w-10 h-10 rounded-lg border-2 bg-card border-border shadow-md"
+              animate={animation}
+            >
+              <PreviewDiceDots value={value} />
+            </motion.div>
+          );
+        })}
       </div>
       <p className="text-xs text-muted-foreground">
         {getLabel()}
