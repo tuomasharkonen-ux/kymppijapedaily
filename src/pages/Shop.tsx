@@ -18,6 +18,95 @@ interface PurchaseSuccess {
   newBalance: number;
 }
 
+// Reusable item card component
+interface ShopItemCardProps {
+  item: ShopItem;
+  itemState: "owned" | "can_buy" | "too_expensive";
+  onSelect: () => void;
+  purchasesLoading: boolean;
+}
+
+const ShopItemCard = ({ item, itemState, onSelect, purchasesLoading }: ShopItemCardProps) => {
+  const owned = itemState === "owned";
+  const canBuy = itemState === "can_buy";
+
+  return (
+    <Card className={`overflow-hidden ${owned ? "border-primary/30 bg-primary/5" : ""}`}>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-4">
+          {/* Item icon */}
+          <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center text-3xl relative">
+            <span aria-hidden="true">{item.emoji}</span>
+            {owned && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                <Check className="w-3 h-3 text-primary-foreground" />
+              </div>
+            )}
+          </div>
+          
+          {/* Item details */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-foreground">{item.name}</h3>
+              {owned && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                  Owned
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {item.shortDescription}
+            </p>
+            
+            {/* Price */}
+            {!owned && (
+              <div className="mt-2 flex items-center gap-1">
+                <Coins className="w-4 h-4 text-primary" aria-hidden="true" />
+                <span className="font-bold text-foreground">{item.price}</span>
+                <span className="text-sm text-muted-foreground">credits</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Action buttons */}
+        <div className="flex gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onSelect}
+          >
+            {owned ? "View Details" : "Read More"}
+          </Button>
+          {owned ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex-1"
+              disabled
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Owned
+            </Button>
+          ) : (
+            <Button
+              variant={canBuy ? "default" : "secondary"}
+              size="sm"
+              className="flex-1"
+              disabled={!canBuy || purchasesLoading}
+              onClick={onSelect}
+            >
+              {canBuy ? `Unlock` : "Not enough credits"}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+
 const Shop = () => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -140,92 +229,76 @@ const Shop = () => {
           </CardContent>
         </Card>
 
-        {/* Shop items */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <span aria-hidden="true">🎁</span> Available Items
-          </h2>
-          
-          {shopItems.map((item) => {
-            const itemState = getItemState(item);
-            const owned = itemState === "owned";
-            const canBuy = itemState === "can_buy";
-            
-            return (
-              <Card key={item.id} className={`overflow-hidden ${owned ? "border-primary/30 bg-primary/5" : ""}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Item icon */}
-                    <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-muted/50 flex items-center justify-center text-3xl relative">
-                      <span aria-hidden="true">{item.emoji}</span>
-                      {owned && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Item details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-foreground">{item.name}</h3>
-                        {owned && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                            Owned
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {item.shortDescription}
-                      </p>
-                      
-                      {/* Price */}
-                      {!owned && (
-                        <div className="mt-2 flex items-center gap-1">
-                          <Coins className="w-4 h-4 text-primary" aria-hidden="true" />
-                          <span className="font-bold text-foreground">{item.price}</span>
-                          <span className="text-sm text-muted-foreground">credits</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Action buttons */}
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setSelectedItem(item)}
-                    >
-                      {owned ? "View Details" : "Read More"}
-                    </Button>
-                    {owned ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="flex-1"
-                        disabled
-                      >
-                        <Check className="w-4 h-4 mr-1" />
-                        Owned
-                      </Button>
-                    ) : (
-                      <Button
-                        variant={canBuy ? "default" : "secondary"}
-                        size="sm"
-                        className="flex-1"
-                        disabled={!canBuy || purchasesLoading}
-                        onClick={() => setSelectedItem(item)}
-                      >
-                        {canBuy ? `Unlock` : "Not enough credits"}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        {/* Shop items by category */}
+        <div className="space-y-8">
+          {/* Dice Skins */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <span aria-hidden="true">🎨</span> Dice Skins
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Change how your dice look with exclusive visual styles
+              </p>
+            </div>
+            <div className="space-y-4">
+              {shopItems.filter(item => item.category === 'skin').map((item) => (
+                <ShopItemCard 
+                  key={item.id} 
+                  item={item} 
+                  itemState={getItemState(item)}
+                  onSelect={() => setSelectedItem(item)}
+                  purchasesLoading={purchasesLoading}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Special Actions */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <span aria-hidden="true">🎬</span> Special Actions
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Interact with your dice in fun and unique ways
+              </p>
+            </div>
+            <div className="space-y-4">
+              {shopItems.filter(item => item.category === 'action').map((item) => (
+                <ShopItemCard 
+                  key={item.id} 
+                  item={item} 
+                  itemState={getItemState(item)}
+                  onSelect={() => setSelectedItem(item)}
+                  purchasesLoading={purchasesLoading}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Throw Animations */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <span aria-hidden="true">⚡</span> Throw Animations
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Add dramatic flair to every dice roll
+              </p>
+            </div>
+            <div className="space-y-4">
+              {shopItems.filter(item => item.category === 'throw_animation').map((item) => (
+                <ShopItemCard 
+                  key={item.id} 
+                  item={item} 
+                  itemState={getItemState(item)}
+                  onSelect={() => setSelectedItem(item)}
+                  purchasesLoading={purchasesLoading}
+                />
+              ))}
+            </div>
+          </section>
         </div>
 
         {/* Footer */}
