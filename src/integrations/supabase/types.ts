@@ -74,36 +74,6 @@ export type Database = {
         }
         Relationships: []
       }
-      game_throws: {
-        Row: {
-          created_at: string
-          dice_values: number[]
-          id: string
-          locked_indices: number[]
-          played_date: string
-          throw_number: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          dice_values: number[]
-          id?: string
-          locked_indices?: number[]
-          played_date?: string
-          throw_number: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          dice_values?: number[]
-          id?: string
-          locked_indices?: number[]
-          played_date?: string
-          throw_number?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string | null
