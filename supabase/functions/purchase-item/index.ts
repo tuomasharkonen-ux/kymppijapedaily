@@ -17,6 +17,8 @@ const SHOP_ITEMS: Record<string, { price: number; name: string }> = {
   insult_dice_action: { price: 300, name: "Insult Your Dice" },
   turbo_spin_throw: { price: 200, name: "Turbo Spin" },
   bounce_drop_throw: { price: 200, name: "Bounce Drop" },
+  casino_felt_bg: { price: 300, name: "Casino Felt" },
+  starfield_bg: { price: 500, name: "Starfield" },
 };
 
 Deno.serve(async (req) => {

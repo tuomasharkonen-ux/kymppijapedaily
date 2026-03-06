@@ -5,7 +5,7 @@ export interface ShopItem {
   shortDescription: string;
   longDescription: string;
   price: number;
-  category: 'skin' | 'action' | 'throw_animation';
+  category: 'skin' | 'action' | 'throw_animation' | 'background';
 }
 
 export const shopItems: ShopItem[] = [
@@ -80,5 +80,23 @@ export const shopItems: ShopItem[] = [
     longDescription: 'Experience the satisfying physics of dice that know how to make an entrance! Watch as your dice dramatically plummet from the heavens, bouncing with delightful elasticity before settling into their final positions. Each bounce builds the suspense. Will it be a good roll? The anticipation is half the fun!',
     price: 200,
     category: 'throw_animation',
+  },
+  {
+    id: 'casino_felt_bg',
+    emoji: '🎰',
+    name: 'Casino Felt',
+    shortDescription: 'Classic green casino table with subtle vignette.',
+    longDescription: 'Step into the high-roller lounge with this luxurious casino felt background! The rich green baize creates an authentic gambling atmosphere, complete with a subtle vignette effect that draws all eyes to your dice. Every roll feels like a million-dollar bet in Monte Carlo. Dealer not included.',
+    price: 300,
+    category: 'background',
+  },
+  {
+    id: 'starfield_bg',
+    emoji: '🌌',
+    name: 'Starfield',
+    shortDescription: 'Twinkling stars with a slow cosmic drift.',
+    longDescription: 'Launch your dice into the cosmos with this mesmerizing Starfield background! Hundreds of twinkling stars drift slowly across a deep space canvas, creating an otherworldly atmosphere for every roll. The gentle parallax motion and varying star brightness make each game feel like a journey through the galaxy. Your dice have never looked so astronomical!',
+    price: 500,
+    category: 'background',
   },
 ];

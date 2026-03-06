@@ -148,6 +148,20 @@ export const floatingAnimation = {
 // Throw animation styles
 export type ThrowAnimationStyle = 'default' | 'turbo_spin_throw' | 'bounce_drop_throw';
 
+// Background styles
+export type BackgroundStyle = 'default' | 'casino_felt_bg' | 'starfield_bg';
+
+export const getBackgroundStyles = (style: BackgroundStyle): string => {
+  switch (style) {
+    case 'casino_felt_bg':
+      return 'casino-felt-bg';
+    case 'starfield_bg':
+      return 'starfield-bg';
+    default:
+      return '';
+  }
+};
+
 export const getThrowAnimation = (style: ThrowAnimationStyle) => {
   switch (style) {
     case 'turbo_spin_throw':
