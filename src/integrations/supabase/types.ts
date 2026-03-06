@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      game_throws: {
+        Row: {
+          created_at: string
+          dice_values: number[]
+          id: string
+          locked_indices: number[]
+          played_date: string
+          throw_number: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dice_values: number[]
+          id?: string
+          locked_indices?: number[]
+          played_date?: string
+          throw_number: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dice_values?: number[]
+          id?: string
+          locked_indices?: number[]
+          played_date?: string
+          throw_number?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -169,6 +199,7 @@ export type Database = {
       user_settings: {
         Row: {
           active_action: string[] | null
+          active_background: string | null
           active_skin: string | null
           active_throw_animation: string | null
           updated_at: string | null
@@ -176,6 +207,7 @@ export type Database = {
         }
         Insert: {
           active_action?: string[] | null
+          active_background?: string | null
           active_skin?: string | null
           active_throw_animation?: string | null
           updated_at?: string | null
@@ -183,6 +215,7 @@ export type Database = {
         }
         Update: {
           active_action?: string[] | null
+          active_background?: string | null
           active_skin?: string | null
           active_throw_animation?: string | null
           updated_at?: string | null

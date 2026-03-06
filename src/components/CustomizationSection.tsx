@@ -3,16 +3,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { shopItems } from "@/lib/shopItems";
-import { Palette, Sparkles, Zap } from "lucide-react";
+import { Palette, Sparkles, Zap, Image } from "lucide-react";
 
 interface CustomizationSectionProps {
   purchasedItems: string[];
   activeSkin: string | null;
   activeActions: string[];
   activeThrowAnimation: string | null;
+  activeBackground: string | null;
   onSkinChange: (skinId: string | null) => void;
   onActionToggle: (actionId: string) => void;
   onThrowAnimationChange: (animationId: string | null) => void;
+  onBackgroundChange: (backgroundId: string | null) => void;
   isLoading?: boolean;
 }
 
@@ -21,9 +23,11 @@ export const CustomizationSection = ({
   activeSkin,
   activeActions,
   activeThrowAnimation,
+  activeBackground,
   onSkinChange,
   onActionToggle,
   onThrowAnimationChange,
+  onBackgroundChange,
   isLoading = false,
 }: CustomizationSectionProps) => {
   const ownedSkins = shopItems.filter(
@@ -34,6 +38,9 @@ export const CustomizationSection = ({
   );
   const ownedThrowAnimations = shopItems.filter(
     (item) => item.category === "throw_animation" && purchasedItems.includes(item.id)
+  );
+  const ownedBackgrounds = shopItems.filter(
+    (item) => item.category === "background" && purchasedItems.includes(item.id)
   );
 
   if (isLoading) {
@@ -53,7 +60,7 @@ export const CustomizationSection = ({
     );
   }
 
-  const hasOwnedItems = ownedSkins.length > 0 || ownedActions.length > 0 || ownedThrowAnimations.length > 0;
+  const hasOwnedItems = ownedSkins.length > 0 || ownedActions.length > 0 || ownedThrowAnimations.length > 0 || ownedBackgrounds.length > 0;
 
   if (!hasOwnedItems) {
     return null;
@@ -126,6 +133,39 @@ export const CustomizationSection = ({
                     checked={activeThrowAnimation === animation.id}
                     onCheckedChange={(checked) =>
                       onThrowAnimationChange(checked ? animation.id : null)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Backgrounds Section */}
+        {ownedBackgrounds.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Game Backgrounds
+            </h3>
+            <div className="space-y-3">
+              {ownedBackgrounds.map((bg) => (
+                <div
+                  key={bg.id}
+                  className="flex items-center justify-between"
+                >
+                  <Label
+                    htmlFor={`bg-${bg.id}`}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-lg">{bg.emoji}</span>
+                    <span>{bg.name}</span>
+                  </Label>
+                  <Switch
+                    id={`bg-${bg.id}`}
+                    checked={activeBackground === bg.id}
+                    onCheckedChange={(checked) =>
+                      onBackgroundChange(checked ? bg.id : null)
                     }
                   />
                 </div>

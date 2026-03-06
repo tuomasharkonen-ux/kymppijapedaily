@@ -115,7 +115,7 @@ const Shop = () => {
   
   const { userCredits, isLoading: creditsLoading, refetchBadges } = useBadges(user?.id || null);
   const { isOwned, isLoading: purchasesLoading, purchaseItem, isPurchasing } = useUserPurchases(user?.id || null);
-  const { updateSkin, activateAction, updateThrowAnimation } = useUserSettings(user?.id || null);
+  const { updateSkin, activateAction, updateThrowAnimation, updateBackground } = useUserSettings(user?.id || null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -138,6 +138,8 @@ const Shop = () => {
       await activateAction(item.id);
     } else if (item.category === 'throw_animation') {
       await updateThrowAnimation(item.id);
+    } else if (item.category === 'background') {
+      await updateBackground(item.id);
     }
     
     setPurchaseSuccess({ item, newBalance });
@@ -289,6 +291,29 @@ const Shop = () => {
             </div>
             <div className="space-y-4">
               {shopItems.filter(item => item.category === 'throw_animation').map((item) => (
+                <ShopItemCard 
+                  key={item.id} 
+                  item={item} 
+                  itemState={getItemState(item)}
+                  onSelect={() => setSelectedItem(item)}
+                  purchasesLoading={purchasesLoading}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Game Backgrounds */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <span aria-hidden="true">🖼️</span> Game Backgrounds
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Transform the look of your game board
+              </p>
+            </div>
+            <div className="space-y-4">
+              {shopItems.filter(item => item.category === 'background').map((item) => (
                 <ShopItemCard 
                   key={item.id} 
                   item={item} 

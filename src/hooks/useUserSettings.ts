@@ -5,6 +5,7 @@ export interface UserSettings {
   activeSkin: string | null;
   activeActions: string[];
   activeThrowAnimation: string | null;
+  activeBackground: string | null;
 }
 
 export const useUserSettings = (userId: string | null) => {
@@ -12,12 +13,13 @@ export const useUserSettings = (userId: string | null) => {
     activeSkin: null,
     activeActions: [],
     activeThrowAnimation: null,
+    activeBackground: null,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
     if (!userId) {
-      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null });
+      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null, activeBackground: null });
       setIsLoading(false);
       return;
     }
@@ -25,7 +27,7 @@ export const useUserSettings = (userId: string | null) => {
     try {
       const { data, error } = await supabase
         .from("user_settings")
-        .select("active_skin, active_action, active_throw_animation")
+        .select("active_skin, active_action, active_throw_animation, active_background")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -39,6 +41,7 @@ export const useUserSettings = (userId: string | null) => {
           activeSkin: data.active_skin,
           activeActions: data.active_action || [],
           activeThrowAnimation: data.active_throw_animation,
+          activeBackground: (data as any).active_background ?? null,
         });
       }
     } catch (error) {
@@ -164,6 +167,31 @@ export const useUserSettings = (userId: string | null) => {
     [userId]
   );
 
+  const updateBackground = useCallback(
+    async (backgroundId: string | null) => {
+      if (!userId) return;
+
+      try {
+        const { error } = await supabase
+          .from("user_settings")
+          .upsert(
+            { user_id: userId, active_background: backgroundId } as any,
+            { onConflict: "user_id" }
+          );
+
+        if (error) {
+          console.error("Error updating background:", error);
+          return;
+        }
+
+        setSettings((prev) => ({ ...prev, activeBackground: backgroundId }));
+      } catch (error) {
+        console.error("Error updating background:", error);
+      }
+    },
+    [userId]
+  );
+
   return {
     settings,
     isLoading,
@@ -171,6 +199,7 @@ export const useUserSettings = (userId: string | null) => {
     toggleAction,
     activateAction,
     updateThrowAnimation,
+    updateBackground,
     refetchSettings: fetchSettings,
   };
 };

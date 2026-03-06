@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
-import { type ThrowAnimationStyle } from "@/lib/animations";
+import { type ThrowAnimationStyle, type BackgroundStyle, getBackgroundStyles } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -26,6 +26,7 @@ interface GameBoardProps {
   purchasedItems?: string[];
   activeActions?: string[];
   activeThrowAnimation?: ThrowAnimationStyle;
+  activeBackground?: BackgroundStyle;
   onCopyResult?: () => Promise<void>;
   isStatsLoading?: boolean;
   showCopied?: boolean;
@@ -36,7 +37,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", activeBackground = "default", onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -291,7 +292,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
          )}
        </AnimatePresence>
 
-      <Card className={!hasStarted ? "animate-border-glow" : ""}>
+      <Card className={`${!hasStarted ? "animate-border-glow" : ""} ${getBackgroundStyles(activeBackground)} overflow-hidden`}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? (
             <>

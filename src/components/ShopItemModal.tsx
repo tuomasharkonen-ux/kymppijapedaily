@@ -13,6 +13,7 @@ import type { ShopItem } from "@/lib/shopItems";
 import { DicePreview } from "@/components/DicePreview";
 import { ActionPreview } from "@/components/ActionPreview";
 import { ThrowAnimationPreview } from "@/components/ThrowAnimationPreview";
+import { BackgroundPreview } from "@/components/BackgroundPreview";
 import type { DiceSkin } from "@/components/Dice";
 import type { ThrowAnimationStyle } from "@/lib/animations";
 
@@ -87,6 +88,8 @@ export const ShopItemModal = ({
         return <ActionPreview actionId={item.id as "shake_dice_action" | "blow_dice_action" | "insult_dice_action"} />;
       case "throw_animation":
         return <ThrowAnimationPreview animationId={item.id as ThrowAnimationStyle} />;
+      case "background":
+        return <BackgroundPreview backgroundId={item.id} />;
       default:
         return null;
     }
@@ -100,6 +103,8 @@ export const ShopItemModal = ({
         return "🎬 Special Action";
       case "throw_animation":
         return "⚡ Throw Animation";
+      case "background":
+        return "🖼️ Game Background";
       default:
         return "";
     }

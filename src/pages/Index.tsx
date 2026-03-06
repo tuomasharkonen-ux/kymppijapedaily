@@ -8,7 +8,7 @@ import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { DiceProShopCard } from "@/components/DiceProShopCard";
 import { CustomizationSection } from "@/components/CustomizationSection";
-import { type ThrowAnimationStyle } from "@/lib/animations";
+import { type ThrowAnimationStyle, type BackgroundStyle } from "@/lib/animations";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
@@ -65,6 +65,7 @@ const Index = () => {
     updateSkin,
     toggleAction,
     updateThrowAnimation,
+    updateBackground,
   } = useUserSettings(user?.id || null);
 
   // Profile hook for username
@@ -80,6 +81,7 @@ const Index = () => {
   // Get the active skin as DiceSkin type
   const activeSkin: DiceSkin = (settings.activeSkin as DiceSkin) || "default";
   const activeThrowAnimation: ThrowAnimationStyle = (settings.activeThrowAnimation as ThrowAnimationStyle) || "default";
+  const activeBackground: BackgroundStyle = (settings.activeBackground as BackgroundStyle) || "default";
   const copyResultToClipboard = async () => {
     if (!todayResult) return;
     const today = format(new Date(), "dd.MM.yyyy");
@@ -222,13 +224,15 @@ ${diceEmojis}
                   activeSkin={settings.activeSkin}
                   activeActions={settings.activeActions}
                   activeThrowAnimation={settings.activeThrowAnimation}
+                  activeBackground={settings.activeBackground}
                   onSkinChange={updateSkin}
                   onActionToggle={toggleAction}
                   onThrowAnimationChange={updateThrowAnimation}
+                  onBackgroundChange={updateBackground}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} />
+                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} activeBackground={activeBackground} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
@@ -241,9 +245,11 @@ ${diceEmojis}
                   activeSkin={settings.activeSkin}
                   activeActions={settings.activeActions}
                   activeThrowAnimation={settings.activeThrowAnimation}
+                  activeBackground={settings.activeBackground}
                   onSkinChange={updateSkin}
                   onActionToggle={toggleAction}
                   onThrowAnimationChange={updateThrowAnimation}
+                  onBackgroundChange={updateBackground}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 
