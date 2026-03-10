@@ -162,10 +162,10 @@ ${diceEmojis}
   return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"}`}>
       <div className={`container max-w-lg mx-auto px-4 py-6 md:py-10 ${textClass}`}>
         <header className="text-center mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+          <h1 className={`text-3xl md:text-4xl font-bold mb-1 ${hasPremiumBg ? "text-white" : "text-foreground"}`}>
             <span aria-hidden="true">🎲</span> Kymppijape Daily
           </h1>
-          <p className="text-muted-foreground">
+          <p className={hasPremiumBg ? "text-white/70" : "text-muted-foreground"}>
             {format(new Date(), "EEEE, MMMM d, yyyy")}
           </p>
           {user && <div className="mt-2 flex items-center justify-center gap-2">
