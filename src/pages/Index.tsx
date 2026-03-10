@@ -274,7 +274,7 @@ ${diceEmojis}
         />
 
         {/* Footer with Terms link */}
-        <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+        <footer className={`mt-8 pt-4 border-t text-center text-xs ${hasPremiumBg ? "text-white/70 border-white/20" : "text-muted-foreground"}`}>
           <Link to="/terms" className="hover:underline">Terms and Conditions</Link>
         </footer>
       </div>
