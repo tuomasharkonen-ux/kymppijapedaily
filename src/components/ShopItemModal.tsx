@@ -91,7 +91,20 @@ export const ShopItemModal = ({
       case "throw_animation":
         return <ThrowAnimationPreview animationId={item.id as ThrowAnimationStyle} />;
       case "background":
-        return <BackgroundPreview backgroundId={item.id} />;
+        return (
+          <button
+            onClick={() => setShowBgPreview(true)}
+            className="w-full cursor-pointer group relative"
+            aria-label={`Preview ${item.name} background full screen`}
+          >
+            <BackgroundPreview backgroundId={item.id} />
+            <div className="absolute inset-0 flex items-center justify-center bg-background/0 group-hover:bg-background/30 transition-colors rounded-lg">
+              <span className="text-xs font-medium bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-foreground">
+                Tap to preview full screen
+              </span>
+            </div>
+          </button>
+        );
       default:
         return null;
     }
