@@ -48,7 +48,7 @@ export const ShopItemModal = ({
   onPurchaseSuccess,
 }: ShopItemModalProps) => {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showBgPreview, setShowBgPreview] = useState(false);
+  
 
   if (!item) return null;
 
