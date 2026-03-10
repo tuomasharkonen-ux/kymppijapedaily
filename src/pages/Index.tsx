@@ -8,7 +8,7 @@ import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { DiceProShopCard } from "@/components/DiceProShopCard";
 import { CustomizationSection } from "@/components/CustomizationSection";
-import { type ThrowAnimationStyle, type BackgroundStyle } from "@/lib/animations";
+import { type ThrowAnimationStyle, type BackgroundStyle, getBackgroundStyles } from "@/lib/animations";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
@@ -155,17 +155,21 @@ ${diceEmojis}
         <span className="sr-only">Loading game...</span>
       </div>;
   }
-  return <div className="min-h-screen bg-background">
-      <div className="container max-w-lg mx-auto px-4 py-6 md:py-10">
+  const hasPremiumBg = activeBackground !== "default";
+  const bgClass = getBackgroundStyles(activeBackground);
+  const textClass = hasPremiumBg ? "text-white" : "";
+
+  return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"}`}>
+      <div className={`container max-w-lg mx-auto px-4 py-6 md:py-10 ${textClass}`}>
         <header className="text-center mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+          <h1 className={`text-3xl md:text-4xl font-bold mb-1 ${hasPremiumBg ? "text-white" : "text-foreground"}`}>
             <span aria-hidden="true">🎲</span> Kymppijape Daily
           </h1>
-          <p className="text-muted-foreground">
+          <p className={hasPremiumBg ? "text-white/70" : "text-muted-foreground"}>
             {format(new Date(), "EEEE, MMMM d, yyyy")}
           </p>
           {user && <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <span className={`text-sm ${hasPremiumBg ? "text-white/70" : "text-muted-foreground"}`}>{user.email}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" aria-label="User menu">
@@ -253,7 +257,7 @@ ${diceEmojis}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 
-                <footer className="text-center text-sm text-muted-foreground">
+                <footer className={`text-center text-sm ${hasPremiumBg ? "text-white/70" : "text-muted-foreground"}`}>
                   <p>Lock all 10 dice on the same number to win!</p>
                   <p className="mt-1">New game available every day at midnight.</p>
                 </footer>
@@ -270,7 +274,7 @@ ${diceEmojis}
         />
 
         {/* Footer with Terms link */}
-        <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
+        <footer className={`mt-8 pt-4 border-t text-center text-xs ${hasPremiumBg ? "text-white/70 border-white/20" : "text-muted-foreground"}`}>
           <Link to="/terms" className="hover:underline">Terms and Conditions</Link>
         </footer>
       </div>

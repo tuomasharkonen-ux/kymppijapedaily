@@ -292,7 +292,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
          )}
        </AnimatePresence>
 
-      <Card className={`${!hasStarted ? "animate-border-glow" : ""} ${getBackgroundStyles(activeBackground)} overflow-hidden`}>
+      <Card className={`${!hasStarted ? "animate-border-glow" : ""} overflow-hidden`}>
         <CardContent className="p-4 md:p-6">
           {hasStarted ? (
             <>
