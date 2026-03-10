@@ -14,6 +14,7 @@ import { DicePreview } from "@/components/DicePreview";
 import { ActionPreview } from "@/components/ActionPreview";
 import { ThrowAnimationPreview } from "@/components/ThrowAnimationPreview";
 import { BackgroundPreview } from "@/components/BackgroundPreview";
+import { BackgroundFullPreview } from "@/components/BackgroundFullPreview";
 import type { DiceSkin } from "@/components/Dice";
 import type { ThrowAnimationStyle } from "@/lib/animations";
 
