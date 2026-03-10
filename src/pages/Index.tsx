@@ -257,7 +257,7 @@ ${diceEmojis}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 
-                <footer className="text-center text-sm text-muted-foreground">
+                <footer className={`text-center text-sm ${hasPremiumBg ? "text-white/70" : "text-muted-foreground"}`}>
                   <p>Lock all 10 dice on the same number to win!</p>
                   <p className="mt-1">New game available every day at midnight.</p>
                 </footer>
