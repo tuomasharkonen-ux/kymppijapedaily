@@ -14,6 +14,7 @@ import { DicePreview } from "@/components/DicePreview";
 import { ActionPreview } from "@/components/ActionPreview";
 import { ThrowAnimationPreview } from "@/components/ThrowAnimationPreview";
 import { BackgroundPreview } from "@/components/BackgroundPreview";
+import { BackgroundFullPreview } from "@/components/BackgroundFullPreview";
 import type { DiceSkin } from "@/components/Dice";
 import type { ThrowAnimationStyle } from "@/lib/animations";
 
@@ -47,6 +48,7 @@ export const ShopItemModal = ({
   onPurchaseSuccess,
 }: ShopItemModalProps) => {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showBgPreview, setShowBgPreview] = useState(false);
 
   if (!item) return null;
 
@@ -89,7 +91,20 @@ export const ShopItemModal = ({
       case "throw_animation":
         return <ThrowAnimationPreview animationId={item.id as ThrowAnimationStyle} />;
       case "background":
-        return <BackgroundPreview backgroundId={item.id} />;
+        return (
+          <button
+            onClick={() => setShowBgPreview(true)}
+            className="w-full cursor-pointer group relative"
+            aria-label={`Preview ${item.name} background full screen`}
+          >
+            <BackgroundPreview backgroundId={item.id} />
+            <div className="absolute inset-0 flex items-center justify-center bg-background/0 group-hover:bg-background/30 transition-colors rounded-lg">
+              <span className="text-xs font-medium bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-foreground">
+                Tap to preview full screen
+              </span>
+            </div>
+          </button>
+        );
       default:
         return null;
     }
@@ -111,110 +126,118 @@ export const ShopItemModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
-            {item.name}
-            {isOwned && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground ml-2">
-                Owned
-              </span>
-            )}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Details about {item.name}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* In-game preview */}
-          <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center min-h-[100px]">
-            {renderPreview()}
-          </div>
-          
-          {/* Long description */}
-          <div className="space-y-2">
-            <p className="text-sm text-foreground leading-relaxed">
-              {item.longDescription}
-            </p>
-          </div>
-          
-          {/* Category badge */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
-              {getCategoryLabel()}
-            </span>
-          </div>
-          
-          {/* Price and action */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            {isOwned ? (
-              <>
-                <div className="text-sm text-muted-foreground">
-                  You own this item
-                </div>
-                <Button variant="secondary" disabled>
-                  <Check className="w-4 h-4 mr-1" />
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <span className="text-2xl" aria-hidden="true">{item.emoji}</span>
+              {item.name}
+              {isOwned && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground ml-2">
                   Owned
-                </Button>
-              </>
-            ) : showConfirm ? (
-              <div className="flex flex-col w-full gap-3">
-                <div className="text-sm text-foreground text-center p-3 bg-muted/50 rounded-lg">
-                  <p className="font-medium">Confirm Purchase</p>
-                  <p className="text-muted-foreground mt-1">
-                    Spend <span className="font-bold text-primary">{item.price}</span> credits on {item.name}?
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handleCancel}
-                    disabled={isPurchasing}
-                  >
-                    Cancel
+                </span>
+              )}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Details about {item.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* In-game preview */}
+            <div className="bg-muted/50 rounded-lg p-6 flex items-center justify-center min-h-[100px]">
+              {renderPreview()}
+            </div>
+            
+            {/* Long description */}
+            <div className="space-y-2">
+              <p className="text-sm text-foreground leading-relaxed">
+                {item.longDescription}
+              </p>
+            </div>
+            
+            {/* Category badge */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 rounded-full bg-muted/50 text-muted-foreground">
+                {getCategoryLabel()}
+              </span>
+            </div>
+            
+            {/* Price and action */}
+            <div className="flex items-center justify-between pt-2 border-t">
+              {isOwned ? (
+                <>
+                  <div className="text-sm text-muted-foreground">
+                    You own this item
+                  </div>
+                  <Button variant="secondary" disabled>
+                    <Check className="w-4 h-4 mr-1" />
+                    Owned
                   </Button>
+                </>
+              ) : showConfirm ? (
+                <div className="flex flex-col w-full gap-3">
+                  <div className="text-sm text-foreground text-center p-3 bg-muted/50 rounded-lg">
+                    <p className="font-medium">Confirm Purchase</p>
+                    <p className="text-muted-foreground mt-1">
+                      Spend <span className="font-bold text-primary">{item.price}</span> credits on {item.name}?
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleCancel}
+                      disabled={isPurchasing}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="flex-1"
+                      onClick={handleConfirmPurchase}
+                      disabled={isPurchasing}
+                    >
+                      {isPurchasing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          Buying...
+                        </>
+                      ) : (
+                        <>
+                          <Coins className="w-4 h-4 mr-1" />
+                          Confirm
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="text-lg font-bold text-foreground flex items-center gap-1">
+                    <Coins className="w-5 h-5 text-primary" />
+                    {item.price} credits
+                  </div>
                   <Button
-                    variant="default"
-                    className="flex-1"
-                    onClick={handleConfirmPurchase}
-                    disabled={isPurchasing}
+                    variant={canAfford ? "default" : "secondary"}
+                    disabled={!canAfford}
+                    onClick={handlePurchaseClick}
                   >
-                    {isPurchasing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                        Buying...
-                      </>
-                    ) : (
-                      <>
-                        <Coins className="w-4 h-4 mr-1" />
-                        Confirm
-                      </>
-                    )}
+                    {canAfford ? "Unlock Now" : "Not enough credits"}
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-lg font-bold text-foreground flex items-center gap-1">
-                  <Coins className="w-5 h-5 text-primary" />
-                  {item.price} credits
-                </div>
-                <Button
-                  variant={canAfford ? "default" : "secondary"}
-                  disabled={!canAfford}
-                  onClick={handlePurchaseClick}
-                >
-                  {canAfford ? "Unlock Now" : "Not enough credits"}
-                </Button>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <BackgroundFullPreview
+        backgroundId={item.id}
+        isOpen={showBgPreview}
+        onClose={() => setShowBgPreview(false)}
+      />
+    </>
   );
 };
