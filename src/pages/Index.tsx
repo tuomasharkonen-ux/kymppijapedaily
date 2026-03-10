@@ -169,7 +169,7 @@ ${diceEmojis}
             {format(new Date(), "EEEE, MMMM d, yyyy")}
           </p>
           {user && <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <span className={`text-sm ${hasPremiumBg ? "text-white/70" : "text-muted-foreground"}`}>{user.email}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" aria-label="User menu">
