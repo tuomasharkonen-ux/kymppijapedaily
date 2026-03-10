@@ -8,7 +8,7 @@ import { BadgesSection } from "@/components/BadgesSection";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { DiceProShopCard } from "@/components/DiceProShopCard";
 import { CustomizationSection } from "@/components/CustomizationSection";
-import { type ThrowAnimationStyle, type BackgroundStyle } from "@/lib/animations";
+import { type ThrowAnimationStyle, type BackgroundStyle, getBackgroundStyles } from "@/lib/animations";
 import { useGameRecords } from "@/hooks/useGameRecords";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
