@@ -155,8 +155,12 @@ ${diceEmojis}
         <span className="sr-only">Loading game...</span>
       </div>;
   }
-  return <div className="min-h-screen bg-background">
-      <div className="container max-w-lg mx-auto px-4 py-6 md:py-10">
+  const hasPremiumBg = activeBackground !== "default";
+  const bgClass = getBackgroundStyles(activeBackground);
+  const textClass = hasPremiumBg ? "text-white" : "";
+
+  return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"}`}>
+      <div className={`container max-w-lg mx-auto px-4 py-6 md:py-10 ${textClass}`}>
         <header className="text-center mb-6 md:mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-1">
             <span aria-hidden="true">🎲</span> Kymppijape Daily
