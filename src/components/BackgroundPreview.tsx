@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { TwinkleStars } from "./TwinkleStars";
 
 interface BackgroundPreviewProps {
   backgroundId: string;
