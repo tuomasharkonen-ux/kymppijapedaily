@@ -31,11 +31,7 @@ export const BackgroundPreview = ({ backgroundId }: BackgroundPreviewProps) => {
   if (backgroundId === "starfield_bg") {
     return (
       <div className="relative w-full h-32 rounded-lg overflow-hidden starfield-bg">
-        <div className="twinkle-stars">
-          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
-          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
-          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
-        </div>
+        <TwinkleStars />
         <div className="absolute inset-0 flex items-center justify-center gap-3">
           {[2, 4, 1].map((val) => (
             <div
