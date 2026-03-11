@@ -162,8 +162,9 @@ ${diceEmojis}
   return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"}`}>
       {activeBackground === "starfield_bg" && (
         <div className="twinkle-stars">
-          <span /><span /><span /><span /><span />
-          <span /><span /><span /><span /><span />
+          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
+          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
+          <span /><span /><span /><span /><span /><span /><span /><span /><span /><span />
         </div>
       )}
       <div className={`container max-w-lg mx-auto px-4 py-6 md:py-10 ${textClass}`}>
