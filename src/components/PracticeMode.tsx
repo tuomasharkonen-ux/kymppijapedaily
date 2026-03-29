@@ -403,7 +403,7 @@ kymppijape.com`;
                    : {};
                  return (
                    <motion.div
-                     className="flex justify-between items-center mb-4"
+                     className="relative flex justify-between items-center mb-4"
                      initial={{ opacity: 0 }}
                      animate={{ opacity: 1 }}
                      transition={{ duration: 0.3 }}
@@ -413,8 +413,13 @@ kymppijape.com`;
                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
                      </motion.div>
 
+                     {/* Thermometer: absolutely centred in the card, independent of number widths */}
                      {activeSkin === "sauna_dice" && hasStarted && (
-                       <motion.div animate={saunaHeatLevel >= 3 ? shakeAnim : {}} transition={saunaHeatLevel >= 3 ? shakeTrans : {}}>
+                       <motion.div
+                         className="absolute left-1/2 -translate-x-1/2"
+                         animate={saunaHeatLevel >= 3 ? shakeAnim : {}}
+                         transition={saunaHeatLevel >= 3 ? shakeTrans : {}}
+                       >
                          <SaunaThermometer throwCount={throwCount} heatLevel={saunaHeatLevel} />
                        </motion.div>
                      )}
