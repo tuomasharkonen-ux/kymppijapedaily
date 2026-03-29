@@ -159,7 +159,7 @@ export const Dice = ({
    useEffect(() => {
      if (skin !== 'sauna_dice') return;
      if (isRolling && !wasRolling.current) {
-       const leafEmojis = ['🍃', '🌿', '🍃', '🌿'];
+       const leafEmojis = ['🍃', '🍃', '🍃', '🍃'];
        const newLeaves: Leaf[] = Array.from({ length: 4 }, (_, i) => {
          const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.8;
          const distance = 40 + Math.random() * 35;
