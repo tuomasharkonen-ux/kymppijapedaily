@@ -211,7 +211,7 @@ export const Dice = ({
       >
         {/* Sauna Dice: persistent steam rising effect */}
         {skin === "sauna_dice" && !isLocked && (
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+          <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '200%', top: 'auto' }}>
             <div className="sauna-steam-1" />
             <div className="sauna-steam-2" />
             <div className="sauna-steam-3" />
