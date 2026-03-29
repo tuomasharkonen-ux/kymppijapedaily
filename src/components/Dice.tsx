@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
@@ -102,12 +102,20 @@ const getScrambleIcon = (type: DiceAnimationType) => {
   }
 };
  
-export const Dice = ({ 
-  value, 
-  isLocked, 
-  isRolling, 
-  onClick, 
-  disabled, 
+interface Leaf {
+  id: number;
+  x: number;
+  y: number;
+  rotate: number;
+  emoji: string;
+}
+
+export const Dice = ({
+  value,
+  isLocked,
+  isRolling,
+  onClick,
+  disabled,
   skin = "default",
   isScrambled = false,
   animationType = null,
@@ -116,6 +124,8 @@ export const Dice = ({
    const [displayValue, setDisplayValue] = useState(value);
    const [lastScrambleType, setLastScrambleType] = useState<DiceAnimationType>(null);
    const [currentAnimation, setCurrentAnimation] = useState<'idle' | 'rolling' | 'shake' | 'blow' | 'cower'>('idle');
+   const [leaves, setLeaves] = useState<Leaf[]>([]);
+   const wasRolling = React.useRef(false);
  
    // Track the last action type for showing appropriate placeholder
    useEffect(() => {
@@ -145,6 +155,28 @@ export const Dice = ({
      }
    }, [animationType, isLocked, isRolling]);
  
+   // Burst birch leaves on roll start for sauna dice
+   useEffect(() => {
+     if (skin !== 'sauna_dice') return;
+     if (isRolling && !wasRolling.current) {
+       const leafEmojis = ['🍃', '🍃', '🌿', '🍃', '🌿', '🍃', '🍂', '🍃'];
+       const newLeaves: Leaf[] = Array.from({ length: 8 }, (_, i) => {
+         const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.8;
+         const distance = 40 + Math.random() * 35;
+         return {
+           id: Date.now() + i,
+           x: Math.cos(angle) * distance,
+           y: Math.sin(angle) * distance,
+           rotate: Math.random() * 360,
+           emoji: leafEmojis[i],
+         };
+       });
+       setLeaves(newLeaves);
+       setTimeout(() => setLeaves([]), 700);
+     }
+     wasRolling.current = isRolling;
+   }, [isRolling, skin]);
+
    // Tumble effect while rolling
    useEffect(() => {
      if (isRolling) {
@@ -243,6 +275,23 @@ export const Dice = ({
           <DiceDotsWithSkin value={displayValue} skin={skin} />
         )}
        
+       {/* Sauna Dice: birch leaves burst on roll */}
+       <AnimatePresence>
+         {leaves.map(leaf => (
+           <motion.span
+             key={leaf.id}
+             className="absolute pointer-events-none select-none text-sm"
+             style={{ zIndex: 20, left: '50%', top: '50%' }}
+             initial={{ x: -8, y: -8, opacity: 1, scale: 0.6, rotate: 0 }}
+             animate={{ x: leaf.x, y: leaf.y, opacity: 0, scale: 1.2, rotate: leaf.rotate }}
+             exit={{ opacity: 0 }}
+             transition={{ duration: 0.65, ease: "easeOut" }}
+           >
+             {leaf.emoji}
+           </motion.span>
+         ))}
+       </AnimatePresence>
+
        {/* Lock indicator with animation */}
        <AnimatePresence>
          {isLocked && (
