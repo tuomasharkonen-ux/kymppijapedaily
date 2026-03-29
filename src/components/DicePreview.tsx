@@ -29,6 +29,12 @@ const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; gl
     border: "border-red-600 border-[3px]",
     dot: "bg-blue-600",
   },
+  sauna_dice: {
+    bg: "bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300",
+    border: "border-amber-700 border-[2px]",
+    dot: "bg-amber-900",
+    glow: "shadow-[0_0_12px_rgba(180,120,60,0.4)]",
+  },
 };
 
 const PreviewDie = ({ value, skin }: { value: number; skin: DiceSkin }) => {

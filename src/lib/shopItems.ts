@@ -28,6 +28,15 @@ export const shopItems: ShopItem[] = [
     category: 'skin',
   },
   {
+    id: 'sauna_dice',
+    emoji: '🪵',
+    name: 'Sauna Dice',
+    shortDescription: 'Birchwood dice with steam rising from every roll.',
+    longDescription: 'Straight from the Finnish lakeside sauna, these beautifully crafted birch dice carry the warmth of hot stones and the calm of steam-filled air. Each roll releases a wisp of steam that drifts lazily upward, just like löyly on a perfect Saturday evening. Whether you score a kuusi or an ykkönen, you\'ll feel the serenity of the sauna with every throw. Hyvää saunaa!',
+    price: 500,
+    category: 'skin',
+  },
+  {
     id: 'german_supermarket_dice',
     emoji: '🛒',
     name: 'German Supermarket Dice',

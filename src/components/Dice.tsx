@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
 
-export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice";
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice";
 export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
  
 interface DiceProps {
@@ -42,6 +42,12 @@ interface DiceProps {
      bg: "bg-yellow-400",
      border: "border-red-600 border-[3px]",
      dot: "bg-blue-600",
+   },
+   sauna_dice: {
+     bg: "bg-gradient-to-br from-amber-100 via-amber-200 to-yellow-300",
+     border: "border-amber-700 border-[2px]",
+     dot: "bg-amber-900",
+     glow: "shadow-[0_0_12px_rgba(180,120,60,0.4)]",
    },
  };
  
@@ -203,6 +209,15 @@ export const Dice = ({
        whileHover={!disabled && !isRolling ? hoverScale : undefined}
        whileTap={!disabled && !isRolling ? tapScale : undefined}
       >
+        {/* Sauna Dice: persistent steam rising effect */}
+        {skin === "sauna_dice" && !isLocked && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+            <div className="sauna-steam-1" />
+            <div className="sauna-steam-2" />
+            <div className="sauna-steam-3" />
+          </div>
+        )}
+
         {showScrambled ? (
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
