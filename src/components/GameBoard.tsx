@@ -15,6 +15,49 @@ import { getRandomInsult } from "@/lib/diceInsults";
 import { Smartphone } from "lucide-react";
  import { AnimatedNumber } from "@/components/motion";
  import { staggerContainer, staggerItem, popIn, fadeInUp } from "@/lib/animations";
+import { SaunaThermometer } from "@/components/SaunaThermometer";
+
+// ---------------------------------------------------------------------------
+// Sauna heat helpers
+// ---------------------------------------------------------------------------
+
+/** Ambient steam wisps that fill the game container at heat level 1+ */
+const SaunaSteamOverlay = ({ level }: { level: number }) => {
+  if (level === 0) return null;
+  const positions =
+    level >= 3 ? [2, 10, 19, 29, 39, 50, 61, 71, 81, 90, 97]
+    : level >= 2 ? [4, 14, 25, 37, 50, 62, 73, 84, 94]
+    : [8, 30, 55, 80];
+
+  const steamColor =
+    level >= 3
+      ? 'linear-gradient(to top, rgba(255,200,200,0), rgba(255,180,180,0.18), rgba(255,200,200,0))'
+      : 'linear-gradient(to top, rgba(255,255,255,0), rgba(255,255,255,0.14), rgba(255,255,255,0))';
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 3, overflow: 'hidden', borderRadius: 'inherit' }}>
+      {positions.map((left, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: `${left}%`,
+            width: level >= 3 ? '22%' : level >= 2 ? '24%' : '20%',
+            height: level >= 3 ? '70%' : '55%',
+            borderRadius: '50% 50% 0 0 / 60% 60% 0 0',
+            background: steamColor,
+            filter: `blur(${level >= 3 ? 16 : 14}px)`,
+            animation: `sauna-steam-rise ${2.0 + (i % 3) * 0.45}s ease-out infinite`,
+            animationDelay: `${(i * 0.32) % 2.2}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 
 interface GameBoardProps {
   onGameComplete: (throws: number, winningNumber: number, initialDice: number[], usedAction: boolean) => void;
@@ -54,6 +97,15 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   const [justCompletedGame, setJustCompletedGame] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [usedActionDuringGame, setUsedActionDuringGame] = useState(false);
+
+  // Sauna heat level: 0=normal, 1=warm (10-14), 2=hot (15-19), 3=MAXIMUM LÖYLY (20+)
+  const saunaHeatLevel = useMemo(() => {
+    if (activeSkin !== "sauna_dice" || !hasStarted) return 0;
+    if (throwCount >= 20) return 3;
+    if (throwCount >= 15) return 2;
+    if (throwCount >= 10) return 1;
+    return 0;
+  }, [activeSkin, throwCount, hasStarted]);
 
   // Action states
   const [isScrambled, setIsScrambled] = useState(false);
@@ -292,27 +344,57 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
          )}
        </AnimatePresence>
 
-      <Card className={`${!hasStarted ? "animate-border-glow" : ""} overflow-hidden`}>
-        <CardContent className="p-4 md:p-6">
+      <Card
+        className={`${!hasStarted ? "animate-border-glow" : ""} overflow-hidden ${activeSkin === "sauna_dice" ? "sauna-wood-bg" : ""}`}
+        style={saunaHeatLevel >= 3 ? { boxShadow: "0 0 0 1px hsl(22 40% 30%), 0 0 30px 4px rgba(239,68,68,0.35), 0 0 60px 8px rgba(239,68,68,0.15)" } : undefined}
+      >
+        <CardContent className="p-4 md:p-6 relative">
+          {/* Sauna ambient steam overlay */}
+          <SaunaSteamOverlay level={saunaHeatLevel} />
+
           {hasStarted ? (
             <>
-               <motion.div 
-                 className="flex justify-between items-center mb-4"
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 transition={{ duration: 0.3 }}
-               >
-                 <div className="flex flex-col items-center">
-                     <AnimatedNumber value={throwCount} className="font-display font-bold text-foreground text-4xl md:text-5xl" />
-                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
-                 </div>
-                 <div className="flex flex-col items-center">
-                     <span className="font-display font-bold text-foreground text-4xl md:text-5xl">
-                     <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
-                   </span>
-                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
-                 </div>
-               </motion.div>
+               {(() => {
+                 const numColor =
+                   saunaHeatLevel >= 3 ? "text-red-400"
+                   : saunaHeatLevel === 2 ? "text-red-300"
+                   : saunaHeatLevel === 1 ? "text-yellow-300"
+                   : "text-foreground";
+                 const shakeIntensity = saunaHeatLevel >= 3 ? 2.5 : 1.5;
+                 const shakeDuration  = saunaHeatLevel >= 3 ? 0.25 : 0.32;
+                 const shakeAnim = saunaHeatLevel >= 2
+                   ? { x: [0, -shakeIntensity, shakeIntensity, -shakeIntensity * 0.7, shakeIntensity * 0.7, 0] }
+                   : {};
+                 const shakeTrans = saunaHeatLevel >= 2
+                   ? { duration: shakeDuration, repeat: Infinity, ease: "easeInOut" as const }
+                   : {};
+                 return (
+                   <motion.div
+                     className="flex justify-between items-center mb-4"
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     transition={{ duration: 0.3 }}
+                   >
+                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                       <AnimatedNumber value={throwCount} className={`font-display font-bold ${numColor} text-4xl md:text-5xl`} />
+                       <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
+                     </motion.div>
+
+                     {activeSkin === "sauna_dice" && hasStarted && (
+                       <motion.div animate={saunaHeatLevel >= 3 ? shakeAnim : {}} transition={saunaHeatLevel >= 3 ? shakeTrans : {}}>
+                         <SaunaThermometer throwCount={throwCount} heatLevel={saunaHeatLevel} />
+                       </motion.div>
+                     )}
+
+                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                       <span className={`font-display font-bold ${numColor} text-4xl md:text-5xl`}>
+                         <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
+                       </span>
+                       <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
+                     </motion.div>
+                   </motion.div>
+                 );
+               })()}
 
               {showShakePermissionPrompt && (
                 <Alert className="mb-4">
@@ -345,6 +427,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                        isScrambled={isScrambled}
                        animationType={currentAction}
                        throwAnimation={activeThrowAnimation}
+                       heatLevel={saunaHeatLevel}
                      />
                    </motion.div>
                  ))}

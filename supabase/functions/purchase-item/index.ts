@@ -11,7 +11,7 @@ const corsHeaders = {
 const SHOP_ITEMS: Record<string, { price: number; name: string }> = {
   golden_dice: { price: 200, name: "Golden Dice" },
   diamond_dice: { price: 500, name: "Diamond Dice" },
-  sauna_dice: { price: 500, name: "Sauna Dice" },
+  sauna_dice: { price: 600, name: "Sauna Dice" },
   german_supermarket_dice: { price: 100, name: "German Supermarket Dice" },
   shake_dice_action: { price: 300, name: "Shake Dice Action" },
   blow_dice_action: { price: 300, name: "Blow Dice Action" },

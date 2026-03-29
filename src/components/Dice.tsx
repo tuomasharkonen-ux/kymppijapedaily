@@ -17,6 +17,7 @@ interface DiceProps {
   isScrambled?: boolean;
   animationType?: DiceAnimationType;
   throwAnimation?: ThrowAnimationStyle;
+  heatLevel?: number;
 }
  
  // Skin-specific styles
@@ -119,12 +120,14 @@ export const Dice = ({
   skin = "default",
   isScrambled = false,
   animationType = null,
-  throwAnimation = "default"
+  throwAnimation = "default",
+  heatLevel = 0,
 }: DiceProps) => {
    const [displayValue, setDisplayValue] = useState(value);
    const [lastScrambleType, setLastScrambleType] = useState<DiceAnimationType>(null);
    const [currentAnimation, setCurrentAnimation] = useState<'idle' | 'rolling' | 'shake' | 'blow' | 'cower'>('idle');
    const [leaves, setLeaves] = useState<Leaf[]>([]);
+   const [isLoylying, setIsLoylying] = useState(false);
    const wasRolling = React.useRef(false);
  
    // Track the last action type for showing appropriate placeholder
@@ -155,24 +158,28 @@ export const Dice = ({
      }
    }, [animationType, isLocked, isRolling]);
  
-   // Burst birch leaves on roll start for sauna dice
+   // Burst water droplets upward on roll start for sauna dice (simulating löyly)
    useEffect(() => {
      if (skin !== 'sauna_dice') return;
      if (isRolling && !wasRolling.current) {
-       const leafEmojis = ['🍃', '🍃', '🍃', '🍃'];
+       setIsLoylying(true);
        const newLeaves: Leaf[] = Array.from({ length: 4 }, (_, i) => {
-         const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.8;
-         const distance = 40 + Math.random() * 35;
+         // Arc mostly upward, spread ~120 degrees
+         const angle = -Math.PI / 2 + (Math.random() - 0.5) * (Math.PI * 1.2);
+         const distance = 35 + Math.random() * 30;
          return {
            id: Date.now() + i,
            x: Math.cos(angle) * distance,
            y: Math.sin(angle) * distance,
            rotate: Math.random() * 360,
-           emoji: leafEmojis[i],
+           emoji: '💧',
          };
        });
        setLeaves(newLeaves);
        setTimeout(() => setLeaves([]), 700);
+     }
+     if (!isRolling && wasRolling.current) {
+       setTimeout(() => setIsLoylying(false), 1500);
      }
      wasRolling.current = isRolling;
    }, [isRolling, skin]);
@@ -221,6 +228,41 @@ export const Dice = ({
   const iconColor = skinStyles[skin].dot;
 
   return (
+    <div className="relative w-12 h-12 md:w-16 md:h-16">
+      {/* Sauna Dice: birch leaves burst on roll */}
+      <AnimatePresence>
+        {leaves.map(leaf => (
+          <motion.span
+            key={leaf.id}
+            className="absolute pointer-events-none select-none text-sm"
+            style={{ zIndex: 20, left: '50%', top: '50%' }}
+            initial={{ x: -8, y: -8, opacity: 1, scale: 0.8, rotate: 0 }}
+            animate={{ x: leaf.x, y: leaf.y, opacity: 0, scale: 1.2, rotate: leaf.rotate }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.65, ease: "easeOut" }}
+          >
+            {leaf.emoji}
+          </motion.span>
+        ))}
+      </AnimatePresence>
+
+      {/* Sauna Dice: steam sits outside the button so it doesn't roll with it */}
+      {skin === "sauna_dice" && !isLocked && (
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '200%', top: 'auto', zIndex: 10 }}>
+          <div className="sauna-steam-1" />
+          <div className="sauna-steam-2" />
+          <div className="sauna-steam-3" />
+          {/* Extra löyly steam burst during roll, or always when heat level ≥ 1 */}
+          {(isLoylying || heatLevel >= 1) && (
+            <>
+              <div className="sauna-steam-4" />
+              <div className="sauna-steam-5" />
+              <div className="sauna-steam-6" />
+            </>
+          )}
+        </div>
+      )}
+
     <motion.button
        onClick={onClick}
        disabled={disabled || isRolling}
@@ -230,8 +272,8 @@ export const Dice = ({
          "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md",
          styles.bg,
          "border-2",
-         isLocked 
-           ? "border-primary ring-2 ring-primary/50" 
+         isLocked
+           ? "border-primary ring-2 ring-primary/50"
            : styles.border + " hover:border-primary/50",
          styles.glow,
          disabled && "opacity-50 cursor-not-allowed",
@@ -241,15 +283,6 @@ export const Dice = ({
        whileHover={!disabled && !isRolling ? hoverScale : undefined}
        whileTap={!disabled && !isRolling ? tapScale : undefined}
       >
-        {/* Sauna Dice: persistent steam rising effect */}
-        {skin === "sauna_dice" && !isLocked && (
-          <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '200%', top: 'auto' }}>
-            <div className="sauna-steam-1" />
-            <div className="sauna-steam-2" />
-            <div className="sauna-steam-3" />
-          </div>
-        )}
-
         {showScrambled ? (
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
@@ -275,23 +308,6 @@ export const Dice = ({
           <DiceDotsWithSkin value={displayValue} skin={skin} />
         )}
        
-       {/* Sauna Dice: birch leaves burst on roll */}
-       <AnimatePresence>
-         {leaves.map(leaf => (
-           <motion.span
-             key={leaf.id}
-             className="absolute pointer-events-none select-none text-sm"
-             style={{ zIndex: 20, left: '50%', top: '50%' }}
-             initial={{ x: -8, y: -8, opacity: 1, scale: 0.8, rotate: 0 }}
-             animate={{ x: leaf.x, y: leaf.y, opacity: 0.15, scale: 1.2, rotate: leaf.rotate }}
-             exit={{ opacity: 0 }}
-             transition={{ duration: 0.65, ease: "easeOut" }}
-           >
-             {leaf.emoji}
-           </motion.span>
-         ))}
-       </AnimatePresence>
-
        {/* Lock indicator with animation */}
        <AnimatePresence>
          {isLocked && (
@@ -307,5 +323,6 @@ export const Dice = ({
          )}
        </AnimatePresence>
      </motion.button>
+    </div>
    );
  };

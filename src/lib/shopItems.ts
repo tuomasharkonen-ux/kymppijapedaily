@@ -31,9 +31,9 @@ export const shopItems: ShopItem[] = [
     id: 'sauna_dice',
     emoji: '🪵',
     name: 'Sauna Dice',
-    shortDescription: 'Birchwood dice with steam rising from every roll.',
-    longDescription: 'Straight from the Finnish lakeside sauna, these beautifully crafted birch dice carry the warmth of hot stones and the calm of steam-filled air. Each roll releases a wisp of steam that drifts lazily upward, just like löyly on a perfect Saturday evening. Whether you score a kuusi or an ykkönen, you\'ll feel the serenity of the sauna with every throw. Hyvää saunaa!',
-    price: 500,
+    shortDescription: 'The sauna heats up with every throw — reach MAX LÖYLY!',
+    longDescription: 'Straight from a Finnish lakeside sauna, these birchwood dice transform your whole game board into a sauna. A traditional dial thermometer tracks the heat — keep rolling and watch the steam thicken, the numbers change colour, and the room shake as the löyly builds. Each roll sends water droplets bursting upward like a ladle hitting hot stones. Can you reach MAXIMUM LÖYLY? Hyvää saunaa! 🧖',
+    price: 600,
     category: 'skin',
   },
   {
