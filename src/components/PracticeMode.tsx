@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
 import { ActionButtons } from "./ActionButtons";
@@ -15,6 +15,8 @@ import { Smartphone, Share2 } from "lucide-react";
  import { AnimatedNumber } from "@/components/motion";
  import { staggerContainer, staggerItem, popIn } from "@/lib/animations";
 import { format } from "date-fns";
+import { SaunaThermometer } from "@/components/SaunaThermometer";
+import { SaunaSteamOverlay } from "@/components/SaunaSteamOverlay";
 
 interface DiceState {
   value: number;
@@ -85,6 +87,15 @@ export const PracticeMode = ({
   const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
   const [currentInsult, setCurrentInsult] = useState<string | null>(null);
   const [showCopied, setShowCopied] = useState(false);
+
+  // Sauna heat level: 0=normal, 1=warm (10-14), 2=hot (15-19), 3=MAX LÖYLY (20+)
+  const saunaHeatLevel = useMemo(() => {
+    if (activeSkin !== "sauna_dice" || !hasStarted) return 0;
+    if (throwCount >= 20) return 3;
+    if (throwCount >= 15) return 2;
+    if (throwCount >= 10) return 1;
+    return 0;
+  }, [activeSkin, throwCount, hasStarted]);
 
   // Check for stored result on mount (non-logged in users only)
   useEffect(() => {
@@ -368,26 +379,55 @@ kymppijape.com`;
         <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Find out many rolls you need to get Kymppijape today! It's obviously pure skill, no luck involved.
       </p>
 
-      <Card className={!hasStarted ? "animate-border-glow" : ""}>
-        <CardContent className="p-4 md:p-6">
+      <Card
+        className={`${!hasStarted ? "animate-border-glow" : ""} overflow-hidden ${activeSkin === "sauna_dice" ? "sauna-wood-bg" : ""}`}
+        style={saunaHeatLevel >= 3 ? { boxShadow: "0 0 0 1px hsl(22 40% 30%), 0 0 30px 4px rgba(239,68,68,0.35), 0 0 60px 8px rgba(239,68,68,0.15)" } : undefined}
+      >
+        <CardContent className="p-4 md:p-6 relative">
+          <SaunaSteamOverlay level={saunaHeatLevel} />
+
           {hasStarted ? <>
-               <motion.div 
-                 className="flex justify-between items-center mb-4"
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 transition={{ duration: 0.3 }}
-               >
-                 <div className="flex flex-col items-center">
-                   <AnimatedNumber value={throwCount} className="font-bold text-foreground text-3xl md:text-4xl" />
-                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
-                 </div>
-                 <div className="flex flex-col items-center">
-                   <span className="font-bold text-foreground text-3xl md:text-4xl">
-                     <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
-                   </span>
-                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
-                 </div>
-               </motion.div>
+               {(() => {
+                 const numColor =
+                   saunaHeatLevel >= 3 ? "text-red-400"
+                   : saunaHeatLevel === 2 ? "text-red-300"
+                   : saunaHeatLevel === 1 ? "text-yellow-300"
+                   : "text-foreground";
+                 const shakeIntensity = saunaHeatLevel >= 3 ? 2.5 : 1.5;
+                 const shakeDuration  = saunaHeatLevel >= 3 ? 0.25 : 0.32;
+                 const shakeAnim = saunaHeatLevel >= 2
+                   ? { x: [0, -shakeIntensity, shakeIntensity, -shakeIntensity * 0.7, shakeIntensity * 0.7, 0] }
+                   : {};
+                 const shakeTrans = saunaHeatLevel >= 2
+                   ? { duration: shakeDuration, repeat: Infinity, ease: "easeInOut" as const }
+                   : {};
+                 return (
+                   <motion.div
+                     className="flex justify-between items-center mb-4"
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     transition={{ duration: 0.3 }}
+                   >
+                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                       <AnimatedNumber value={throwCount} className={`font-bold ${numColor} text-3xl md:text-4xl`} />
+                       <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
+                     </motion.div>
+
+                     {activeSkin === "sauna_dice" && hasStarted && (
+                       <motion.div animate={saunaHeatLevel >= 3 ? shakeAnim : {}} transition={saunaHeatLevel >= 3 ? shakeTrans : {}}>
+                         <SaunaThermometer throwCount={throwCount} heatLevel={saunaHeatLevel} />
+                       </motion.div>
+                     )}
+
+                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                       <span className={`font-bold ${numColor} text-3xl md:text-4xl`}>
+                         <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
+                       </span>
+                       <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
+                     </motion.div>
+                   </motion.div>
+                 );
+               })()}
 
               {showShakePermissionPrompt && (
                 <Alert className="mb-4">
@@ -419,6 +459,7 @@ kymppijape.com`;
                        skin={activeSkin}
                        isScrambled={isScrambled && !d.isLocked}
                        animationType={!d.isLocked ? currentAction : null}
+                       heatLevel={saunaHeatLevel}
                      />
                    </motion.div>
                  ))}
