@@ -347,13 +347,14 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
                      {/* Thermometer: absolutely centred in the card, independent of number widths */}
                      {activeSkin === "sauna_dice" && hasStarted && (
-                       <motion.div
-                         className="absolute left-1/2 -translate-x-1/2"
-                         animate={saunaHeatLevel >= 3 ? shakeAnim : {}}
-                         transition={saunaHeatLevel >= 3 ? shakeTrans : {}}
-                       >
-                         <SaunaThermometer throwCount={throwCount} heatLevel={saunaHeatLevel} />
-                       </motion.div>
+                       <div className="absolute left-1/2 -translate-x-1/2">
+                         <motion.div
+                           animate={saunaHeatLevel >= 3 ? shakeAnim : {}}
+                           transition={saunaHeatLevel >= 3 ? shakeTrans : {}}
+                         >
+                           <SaunaThermometer throwCount={throwCount} heatLevel={saunaHeatLevel} />
+                         </motion.div>
+                       </div>
                      )}
 
                      <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
