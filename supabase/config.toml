@@ -1,0 +1,10 @@
+project_id = "sbnojaeuhjufjbljokgl"
+
+[functions.check-achievements]
+verify_jwt = false
+
+[functions.save-game-result]
+verify_jwt = false
+
+[functions.purchase-item]
+verify_jwt = false

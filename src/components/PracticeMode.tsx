@@ -1,0 +1,470 @@
+import { useState, useCallback, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
+import { ActionButtons } from "./ActionButtons";
+import { InsultDisplay } from "./InsultDisplay";
+import { FeaturesCarousel } from "./FeaturesCarousel";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AuthForm } from "./AuthForm";
+import { useShakeDetection } from "@/hooks/useShakeDetection";
+import { getRandomInsult } from "@/lib/diceInsults";
+import { toast } from "sonner";
+import { Smartphone, Share2 } from "lucide-react";
+ import { AnimatedNumber } from "@/components/motion";
+ import { staggerContainer, staggerItem, popIn } from "@/lib/animations";
+import { format } from "date-fns";
+
+interface DiceState {
+  value: number;
+  isLocked: boolean;
+}
+
+const getEmptyDice = (): DiceState[] => {
+  return Array(10).fill(null).map(() => ({
+    value: 0,
+    isLocked: false
+  }));
+};
+
+interface PracticeModeProps {
+  isLoggedIn?: boolean;
+  activeSkin?: DiceSkin;
+  purchasedItems?: string[];
+  activeActions?: string[];
+}
+
+const PRACTICE_RESULT_KEY = "kymppijape_practice_result";
+
+interface StoredPracticeResult {
+  throwCount: number;
+  winningNumber: number;
+  date: string;
+}
+
+const getStoredResult = (): StoredPracticeResult | null => {
+  try {
+    const stored = localStorage.getItem(PRACTICE_RESULT_KEY);
+    if (!stored) return null;
+    const result: StoredPracticeResult = JSON.parse(stored);
+    const today = format(new Date(), "yyyy-MM-dd");
+    if (result.date === today) {
+      return result;
+    }
+    // Clear old result
+    localStorage.removeItem(PRACTICE_RESULT_KEY);
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const storeResult = (throwCount: number, winningNumber: number) => {
+  const result: StoredPracticeResult = {
+    throwCount,
+    winningNumber,
+    date: format(new Date(), "yyyy-MM-dd"),
+  };
+  localStorage.setItem(PRACTICE_RESULT_KEY, JSON.stringify(result));
+};
+
+export const PracticeMode = ({
+  isLoggedIn = false,
+  activeSkin = "default",
+  purchasedItems = [],
+  activeActions = []
+}: PracticeModeProps) => {
+  const [dice, setDice] = useState<DiceState[]>(getEmptyDice());
+  const [throwCount, setThrowCount] = useState(0);
+  const [isRolling, setIsRolling] = useState(false);
+  const [gameComplete, setGameComplete] = useState(false);
+  const [winningNumber, setWinningNumber] = useState<number | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isScrambled, setIsScrambled] = useState(false);
+  const [currentAction, setCurrentAction] = useState<DiceAnimationType>(null);
+  const [currentInsult, setCurrentInsult] = useState<string | null>(null);
+  const [showCopied, setShowCopied] = useState(false);
+
+  // Check for stored result on mount (non-logged in users only)
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const storedResult = getStoredResult();
+      if (storedResult) {
+        setThrowCount(storedResult.throwCount);
+        setWinningNumber(storedResult.winningNumber);
+        setGameComplete(true);
+        setHasStarted(true);
+      }
+    }
+  }, [isLoggedIn]);
+
+  const checkWin = (currentDice: DiceState[]) => {
+    const allLocked = currentDice.every(d => d.isLocked);
+    if (allLocked) {
+      const firstValue = currentDice[0].value;
+      const allSame = currentDice.every(d => d.value === firstValue);
+      if (allSame) {
+        return firstValue;
+      }
+    }
+    return null;
+  };
+  const triggerConfetti = async () => {
+    const confettiModule = await import("canvas-confetti");
+    const confetti = confettiModule.default;
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min;
+    };
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({
+        particleCount,
+        startVelocity: 30,
+        spread: 360,
+        origin: {
+          x: randomInRange(0.1, 0.9),
+          y: Math.random() - 0.2
+        },
+        colors: ["#00a86b", "#50c878", "#228b22", "#32cd32", "#7fff00"]
+      });
+    }, 250);
+  };
+  const rollDice = () => {
+    setIsRolling(true);
+    setIsScrambled(false);
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+    setTimeout(() => {
+      setDice(prev => prev.map(d => d.isLocked ? d : {
+        ...d,
+        value: Math.floor(Math.random() * 6) + 1
+      }));
+      setIsRolling(false);
+      setThrowCount(c => c + 1);
+    }, 600);
+  };
+
+  const triggerAction = useCallback((actionType: DiceAnimationType) => {
+    if (isRolling || gameComplete) return;
+    
+    // If dice aren't started yet, show them first
+    if (!hasStarted) {
+      setHasStarted(true);
+    }
+    
+    // Set scrambled state immediately (icons appear with animation)
+    setIsScrambled(true);
+    setCurrentAction(actionType);
+    
+    // For insult action, pick a random insult
+    if (actionType === 'insult') {
+      setCurrentInsult(getRandomInsult());
+    }
+    
+    // After animation completes, clear the action but keep scrambled
+    setTimeout(() => {
+      setCurrentAction(null);
+    }, 800);
+  }, [isRolling, gameComplete, hasStarted]);
+
+  // Clear insult when it completes
+  const handleInsultComplete = useCallback(() => {
+    setCurrentInsult(null);
+  }, []);
+
+  // Check if shake action is available (owned and active)
+  const isShakeActionActive = purchasedItems.includes('shake_dice_action') && 
+    activeActions.includes('shake_dice_action');
+
+  // Handle phone shake detection
+  const handlePhoneShake = useCallback(() => {
+    if (isShakeActionActive && !isRolling && !gameComplete && currentAction === null) {
+      triggerAction('shake');
+    }
+  }, [isShakeActionActive, isRolling, gameComplete, currentAction, triggerAction]);
+
+  // Use shake detection hook
+  const { permissionStatus, requestPermission, isSupported } = useShakeDetection({
+    onShake: handlePhoneShake,
+    enabled: isShakeActionActive && !isRolling && !gameComplete && currentAction === null,
+    threshold: 15,
+    timeout: 1000,
+  });
+
+  // Handle permission request button click
+  const handleEnableShake = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast.success("Shake detection enabled! 📱 Shake your phone to trigger the dice.");
+    } else {
+      toast.error("Motion permission denied. Check your browser settings to enable.");
+    }
+  };
+
+  // Show permission prompt if shake is active but permission not granted
+  const showShakePermissionPrompt = isShakeActionActive && 
+    isSupported && 
+    permissionStatus !== 'granted' && 
+    permissionStatus !== 'not-supported';
+  const toggleLock = (index: number) => {
+    if (isRolling || gameComplete || isScrambled) return;
+    setDice(prev => {
+      const newDice = [...prev];
+      newDice[index] = {
+        ...newDice[index],
+        isLocked: !newDice[index].isLocked
+      };
+      const winner = checkWin(newDice);
+      if (winner !== null) {
+        setWinningNumber(winner);
+        setGameComplete(true);
+        // Store result for non-logged in users
+        if (!isLoggedIn) {
+          storeResult(throwCount + 1, winner); // +1 because throw count hasn't updated yet in this render
+        }
+        triggerConfetti();
+      }
+      return newDice;
+    });
+  };
+  const resetGame = () => {
+    setDice(getEmptyDice());
+    setThrowCount(0);
+    setGameComplete(false);
+    setWinningNumber(null);
+    setHasStarted(false);
+    setIsScrambled(false);
+    setCurrentAction(null);
+  };
+
+  const getPercentile = (throws: number): number => {
+    if (throws <= 6) return 1;
+    if (throws <= 8) return 5;
+    if (throws <= 10) return 15;
+    if (throws <= 12) return 30;
+    if (throws <= 14) return 50;
+    if (throws <= 16) return 65;
+    if (throws <= 18) return 75;
+    if (throws <= 22) return 85;
+    if (throws <= 28) return 95;
+    return 99;
+  };
+
+  const copyResultToClipboard = async () => {
+    const today = format(new Date(), "dd.MM.yyyy");
+    const diceEmojis = "🎲".repeat(throwCount);
+    
+    const shareText = `Kymppijape Daily ${today}
+Throws: ${throwCount}
+${diceEmojis}
+
+kymppijape.com`;
+    
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const getPercentileText = (throws: number): { text: string; highlight: boolean } => {
+    const percentile = getPercentile(throws);
+    if (percentile === 1) return { text: "Incredible! Top 1% result! 🏆", highlight: true };
+    if (percentile === 5) return { text: "Amazing! Top 5% result! ⭐", highlight: true };
+    return { text: `Top ${percentile}% result`, highlight: false };
+  };
+
+  if (gameComplete && winningNumber) {
+    const percentileInfo = getPercentileText(throwCount);
+     return <div className="space-y-6">
+         <motion.div 
+           className="text-center"
+           variants={popIn}
+           initial="initial"
+           animate="animate"
+         >
+           <motion.h2 
+             className="text-4xl md:text-5xl font-bold text-primary mb-2"
+             initial={{ scale: 0.5, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.1 }}
+           >
+             Kymppijape! <span aria-hidden="true">🎉</span>
+           </motion.h2>
+           <motion.div 
+             className="py-4"
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.3 }}
+           >
+             <p className="text-lg text-muted-foreground mb-2">
+               All 10 dice showing {winningNumber} in {throwCount} throws!
+             </p>
+             <p className={`text-sm ${percentileInfo.highlight ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+               {percentileInfo.text}
+             </p>
+           </motion.div>
+           <motion.p 
+             className="text-sm text-muted-foreground mb-4"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             transition={{ delay: 0.4 }}
+           >
+             {isLoggedIn ? "(Practice mode - result not saved)" : "Come back tomorrow for another try!"}
+           </motion.p>
+           <motion.div
+             className="flex flex-col gap-3"
+             initial={{ opacity: 0, scale: 0.9 }}
+             animate={{ opacity: 1, scale: 1 }}
+             transition={{ delay: 0.5 }}
+           >
+             {!isLoggedIn && (
+               <Button 
+                 onClick={copyResultToClipboard} 
+                 size="lg" 
+                 variant={showCopied ? "secondary" : "default"}
+                 className="w-full"
+               >
+                 {showCopied ? "✓ Copied to clipboard!" : <><Share2 className="h-4 w-4 mr-2" /> Share Result</>}
+               </Button>
+             )}
+             {isLoggedIn && (
+               <Button onClick={resetGame} variant="outline" size="lg" aria-label="Play again">
+                 <span aria-hidden="true">🎲</span> Play Again
+               </Button>
+             )}
+           </motion.div>
+         </motion.div>
+
+        {!isLoggedIn && <Card>
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-lg">Want to track your progress?</CardTitle>
+              <CardDescription>Sign up to save your scores and compete daily!</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FeaturesCarousel />
+              <AuthForm onSuccess={() => {}} defaultToSignUp />
+            </CardContent>
+          </Card>}
+      </div>;
+  }
+  return <div className="space-y-6">
+      {/* Live region for screen reader announcements */}
+      <div aria-live="polite" className="sr-only">
+        {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
+      </div>
+      
+      <p className="text-sm text-muted-foreground text-center">
+        <strong>What is Kymppijape?:</strong> Lock all 10 dice on the same number to win! Click a die to lock/unlock it, then roll again. Find out many rolls you need to get Kymppijape today! It's obviously pure skill, no luck involved.
+      </p>
+
+      <Card className={!hasStarted ? "animate-border-glow" : ""}>
+        <CardContent className="p-4 md:p-6">
+          {hasStarted ? <>
+               <motion.div 
+                 className="flex justify-between items-center mb-4"
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ duration: 0.3 }}
+               >
+                 <div className="flex flex-col items-center">
+                   <AnimatedNumber value={throwCount} className="font-bold text-foreground text-3xl md:text-4xl" />
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
+                 </div>
+                 <div className="flex flex-col items-center">
+                   <span className="font-bold text-foreground text-3xl md:text-4xl">
+                     <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
+                   </span>
+                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Locked</span>
+                 </div>
+               </motion.div>
+
+              {showShakePermissionPrompt && (
+                <Alert className="mb-4">
+                  <Smartphone className="h-4 w-4" />
+                  <AlertDescription className="flex items-center justify-between gap-2">
+                    <span className="text-sm">Enable shake detection to shake dice by shaking your phone!</span>
+                    <Button size="sm" variant="secondary" onClick={handleEnableShake}>
+                      Enable
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+               <motion.div 
+                 className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6"
+                 variants={staggerContainer}
+                 initial="initial"
+                 animate="animate"
+               >
+                <InsultDisplay insult={currentInsult} onComplete={handleInsultComplete} />
+                 {dice.map((d, i) => (
+                   <motion.div key={i} variants={staggerItem}>
+                     <Dice
+                       value={d.value}
+                       isLocked={d.isLocked}
+                       isRolling={isRolling && !d.isLocked}
+                       onClick={() => toggleLock(i)}
+                       disabled={gameComplete}
+                       skin={activeSkin}
+                       isScrambled={isScrambled && !d.isLocked}
+                       animationType={!d.isLocked ? currentAction : null}
+                     />
+                   </motion.div>
+                 ))}
+               </motion.div>
+
+              <p className="text-center text-sm text-muted-foreground mb-4">Click dice to lock them, then roll again</p>
+
+              <Button onClick={rollDice} disabled={isRolling || gameComplete || dice.every(d => d.isLocked)} className="w-full" size="lg" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+                {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
+              </Button>
+
+              {isLoggedIn && (
+                <ActionButtons
+                  purchasedItems={purchasedItems}
+                  activeActions={activeActions}
+                  onActionClick={triggerAction}
+                  disabled={isRolling || gameComplete}
+                />
+              )}
+            </> : <div className="py-8">
+              <p className="text-muted-foreground mb-6 text-center">Ready to test your dice rolling skills?</p>
+              <Button onClick={rollDice} disabled={isRolling || currentAction !== null} size="lg" className="w-full" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+                {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
+              </Button>
+              {isLoggedIn && (
+                <ActionButtons
+                  purchasedItems={purchasedItems}
+                  activeActions={activeActions}
+                  onActionClick={triggerAction}
+                  disabled={isRolling}
+                  isAnimating={currentAction !== null}
+                />
+              )}
+            </div>}
+        </CardContent>
+      </Card>
+
+      {!isLoggedIn && <Card>
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-lg">Save your progress</CardTitle>
+            <CardDescription>Sign up or sign in to unlock all features!</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FeaturesCarousel />
+            <AuthForm onSuccess={() => {}} defaultToSignUp />
+          </CardContent>
+        </Card>}
+    </div>;
+};
