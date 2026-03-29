@@ -159,8 +159,8 @@ export const Dice = ({
    useEffect(() => {
      if (skin !== 'sauna_dice') return;
      if (isRolling && !wasRolling.current) {
-       const leafEmojis = ['🍃', '🍃', '🌿', '🍃', '🌿', '🍃', '🍂', '🍃'];
-       const newLeaves: Leaf[] = Array.from({ length: 8 }, (_, i) => {
+       const leafEmojis = ['🍃', '🌿', '🍂', '🍃'];
+       const newLeaves: Leaf[] = Array.from({ length: 4 }, (_, i) => {
          const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.8;
          const distance = 40 + Math.random() * 35;
          return {
@@ -282,8 +282,8 @@ export const Dice = ({
              key={leaf.id}
              className="absolute pointer-events-none select-none text-sm"
              style={{ zIndex: 20, left: '50%', top: '50%' }}
-             initial={{ x: -8, y: -8, opacity: 1, scale: 0.6, rotate: 0 }}
-             animate={{ x: leaf.x, y: leaf.y, opacity: 0, scale: 1.2, rotate: leaf.rotate }}
+             initial={{ x: -8, y: -8, opacity: 1, scale: 0.8, rotate: 0 }}
+             animate={{ x: leaf.x, y: leaf.y, opacity: 0.15, scale: 1.2, rotate: leaf.rotate }}
              exit={{ opacity: 0 }}
              transition={{ duration: 0.65, ease: "easeOut" }}
            >
