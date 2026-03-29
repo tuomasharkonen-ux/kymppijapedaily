@@ -16,6 +16,7 @@ import { useUserPurchases } from "@/hooks/useUserPurchases";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useProfile } from "@/hooks/useProfile";
 import { UsernamePromptModal } from "@/components/UsernamePromptModal";
+import { SaunaDicePromoModal, getSaunaDicePromoShouldShow, markSaunaDicePromoShown } from "@/components/SaunaDicePromoModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -78,6 +79,15 @@ const Index = () => {
 
   // Show username prompt for logged-in users without a profile
   const showUsernamePrompt = !!user && !profileLoading && !profile;
+
+  // Sauna Dice promo — shown once to logged-in users on/after 2026-03-30
+  const [showSaunaPromo, setShowSaunaPromo] = useState(false);
+  useEffect(() => {
+    if (user && getSaunaDicePromoShouldShow()) {
+      setShowSaunaPromo(true);
+      markSaunaDicePromoShown();
+    }
+  }, [user]);
 
   // Get the active skin as DiceSkin type
   const activeSkin: DiceSkin = (settings.activeSkin as DiceSkin) || "default";
@@ -268,6 +278,9 @@ ${diceEmojis}
 
         {/* Badge unlock modal */}
         <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />
+
+        {/* Sauna Dice promotional popup */}
+        <SaunaDicePromoModal open={showSaunaPromo} onClose={() => setShowSaunaPromo(false)} />
 
         {/* Username prompt for new users */}
         <UsernamePromptModal
