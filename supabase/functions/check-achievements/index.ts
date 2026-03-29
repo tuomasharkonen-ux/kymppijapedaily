@@ -299,7 +299,8 @@ Deno.serve(async (req) => {
     }
 
     const purchasedItems = userPurchases || [];
-    const skinCount = purchasedItems.filter(p => p.item_id.startsWith('skin_')).length;
+    const SKIN_ITEM_IDS = ['golden_dice', 'diamond_dice', 'german_supermarket_dice'];
+    const skinCount = purchasedItems.filter(p => SKIN_ITEM_IDS.includes(p.item_id)).length;
 
     // Count share badges to track share count
     const shareBadgeCount = existingUserBadges?.filter(ub => ub.badge_id === 'special_share').length || 0;
