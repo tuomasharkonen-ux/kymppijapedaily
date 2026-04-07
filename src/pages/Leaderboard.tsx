@@ -5,7 +5,7 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 const Leaderboard = () => {
