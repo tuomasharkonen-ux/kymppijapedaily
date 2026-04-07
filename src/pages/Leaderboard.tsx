@@ -8,15 +8,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+type SortOption = "best" | "average" | "games" | "streak";
+
+const sortLabels: Record<SortOption, string> = {
+  best: "Best Result",
+  average: "Average",
+  games: "Games Played",
+  streak: "Current Streak",
+};
+
 const Leaderboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [sortBy, setSortBy] = useState<"best" | "average">("best");
+  const [sortBy, setSortBy] = useState<SortOption>("best");
   const {
-    leaderboard,
+    leaderboard: rawLeaderboard,
     isLoading,
     error
-  } = useLeaderboard(sortBy);
+  } = useLeaderboard("best");
+
+  const leaderboard = [...rawLeaderboard].sort((a, b) => {
+    switch (sortBy) {
+      case "best": return a.best_throws - b.best_throws;
+      case "average": return a.avg_throws - b.avg_throws;
+      case "games": return b.games_played - a.games_played;
+      case "streak": return b.current_streak - a.current_streak;
+      default: return 0;
+    }
+  }).map((entry, i) => ({ ...entry, rank: i + 1 }));
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
