@@ -8,6 +8,7 @@ interface LeaderboardEntry {
   best_throws: number;
   avg_throws: number;
   games_played: number;
+  current_streak: number;
 }
 
 export const useLeaderboard = (sortBy: "best" | "average") => {

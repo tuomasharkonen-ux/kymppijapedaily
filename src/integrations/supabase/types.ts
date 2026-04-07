@@ -237,6 +237,7 @@ export type Database = {
         Returns: {
           avg_throws: number
           best_throws: number
+          current_streak: number
           games_played: number
           rank: number
           user_id: string

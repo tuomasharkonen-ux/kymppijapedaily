@@ -84,6 +84,7 @@ const Leaderboard = () => {
                         <TableHead className="text-right">Best</TableHead>
                         <TableHead className="text-right">Avg</TableHead>
                         <TableHead className="text-right">Games</TableHead>
+                        <TableHead className="text-right">🔥 Streak</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -98,6 +99,9 @@ const Leaderboard = () => {
                           <TableCell className="text-right">{entry.best_throws}</TableCell>
                           <TableCell className="text-right">{entry.avg_throws}</TableCell>
                           <TableCell className="text-right">{entry.games_played}</TableCell>
+                          <TableCell className="text-right">
+                            {entry.current_streak > 0 ? `${entry.current_streak} 🔥` : "-"}
+                          </TableCell>
                         </TableRow>)}
                     </TableBody>
                   </Table>
