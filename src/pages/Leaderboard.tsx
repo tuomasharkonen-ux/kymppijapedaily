@@ -5,18 +5,37 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+type SortOption = "best" | "average" | "games" | "streak";
+
+const sortLabels: Record<SortOption, string> = {
+  best: "Best Result",
+  average: "Average",
+  games: "Games Played",
+  streak: "Current Streak",
+};
+
 const Leaderboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [sortBy, setSortBy] = useState<"best" | "average">("best");
+  const [sortBy, setSortBy] = useState<SortOption>("best");
   const {
-    leaderboard,
+    leaderboard: rawLeaderboard,
     isLoading,
     error
-  } = useLeaderboard(sortBy);
+  } = useLeaderboard("best");
+
+  const leaderboard = [...rawLeaderboard].sort((a, b) => {
+    switch (sortBy) {
+      case "best": return a.best_throws - b.best_throws;
+      case "average": return a.avg_throws - b.avg_throws;
+      case "games": return b.games_played - a.games_played;
+      case "streak": return b.current_streak - a.current_streak;
+      default: return 0;
+    }
+  }).map((entry, i) => ({ ...entry, rank: i + 1 }));
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
@@ -55,14 +74,18 @@ const Leaderboard = () => {
         <main>
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex-col sm:items-center sm:justify-between gap-4 flex sm:flex-col">
+              <div className="flex items-center justify-between gap-4">
                 <CardTitle>Top Players</CardTitle>
-                <Tabs value={sortBy} onValueChange={value => setSortBy(value as "best" | "average")}>
-                  <TabsList>
-                    <TabsTrigger value="best">Best Result</TabsTrigger>
-                    <TabsTrigger value="average">Average</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(sortLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent>
