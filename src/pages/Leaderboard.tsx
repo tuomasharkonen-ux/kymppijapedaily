@@ -74,14 +74,18 @@ const Leaderboard = () => {
         <main>
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex-col sm:items-center sm:justify-between gap-4 flex sm:flex-col">
+              <div className="flex items-center justify-between gap-4">
                 <CardTitle>Top Players</CardTitle>
-                <Tabs value={sortBy} onValueChange={value => setSortBy(value as "best" | "average")}>
-                  <TabsList>
-                    <TabsTrigger value="best">Best Result</TabsTrigger>
-                    <TabsTrigger value="average">Average</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(sortLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent>
