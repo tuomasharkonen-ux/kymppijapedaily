@@ -39,6 +39,7 @@ interface GameBoardProps {
   onCopyResult?: () => Promise<void>;
   isStatsLoading?: boolean;
   showCopied?: boolean;
+  onVictoryAnimationEnd?: () => void;
 }
 
 interface DiceState {
@@ -46,7 +47,7 @@ interface DiceState {
   isLocked: boolean;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", activeBackground = "default", onCopyResult, isStatsLoading, showCopied }: GameBoardProps) => {
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", activeBackground = "default", onCopyResult, isStatsLoading, showCopied, onVictoryAnimationEnd }: GameBoardProps) => {
   // Generate deterministic initial dice based on userId and today's date
   const initialDiceValues = useMemo(() => {
     const today = format(new Date(), "yyyy-MM-dd");
@@ -263,7 +264,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
       {helldiversVictoryFace !== null && (
         <HelldiversVictory
           winningNumber={helldiversVictoryFace}
-          onComplete={() => setHelldiversVictoryFace(null)}
+          onComplete={() => { setHelldiversVictoryFace(null); onVictoryAnimationEnd?.(); }}
         />
       )}
       {/* Live region for screen reader announcements */}

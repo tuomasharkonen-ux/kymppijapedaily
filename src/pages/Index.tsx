@@ -32,6 +32,7 @@ const Index = () => {
   const [showCopied, setShowCopied] = useState(false);
   const [showPracticeMode, setShowPracticeMode] = useState(false);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
+  const [isVictoryAnimating, setIsVictoryAnimating] = useState(false);
   const {
     todayResult,
     personalBest,
@@ -150,10 +151,13 @@ ${diceEmojis}
   }, []);
   const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
     setJustCompletedGame(true);
-    
+    if (settings?.active_skin === "helldivers_dice") {
+      setIsVictoryAnimating(true);
+    }
+
     // Save game first (required before badge check can verify)
     await saveGameResult(throws, winningNumber);
-    
+
     // Check badges immediately after save - don't wait for fetchRecords
     checkAndAwardBadges(usedAction);
   };
@@ -248,7 +252,7 @@ ${diceEmojis}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} activeBackground={activeBackground} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} />
+                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} activeBackground={activeBackground} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} onVictoryAnimationEnd={() => setIsVictoryAnimating(false)} />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
@@ -277,7 +281,7 @@ ${diceEmojis}
           </div>}
 
         {/* Badge unlock modal */}
-        <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />
+        {!isVictoryAnimating && <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />}
 
         {/* Sauna Dice promotional popup */}
         <SaunaDicePromoModal open={showSaunaPromo} onClose={() => setShowSaunaPromo(false)} />

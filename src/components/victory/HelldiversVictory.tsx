@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import bastionSvg from "@/assets/helldivers/bastion.svg";
 import autocannonSvg from "@/assets/helldivers/autocannon.svg";
-import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
+import hellbombPng from "@/assets/helldivers/hellbomb.png";
 import eagle500Svg from "@/assets/helldivers/eagle500.svg";
 
 interface Props {
@@ -55,13 +55,27 @@ const NapalmVictory = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 // 2. BASTION TANK ---------------------------------------------------------
+// Blue barrel tip in 126×126 SVG viewBox: ~(114, 76). At 220×220 + bottom:10%:
+//   left = calc(20vw + 199px), bottom = calc(10% + 87px)
+const BASTION_BARREL_LEFT = "calc(20vw + 199px)";
+const BASTION_BARREL_BOTTOM = "calc(10% + 87px)";
+
 const BastionVictory = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const t = setTimeout(onComplete, 3200);
+    const t = setTimeout(onComplete, 4500);
     return () => clearTimeout(t);
   }, [onComplete]);
 
-  const shells = [0, 0.4, 0.8, 1.2, 1.6];
+  // 3 heavy shots, 0.8 s apart; tank drives in by ~0.6 s
+  const shots = [0.7, 1.5, 2.3];
+  // Total anim = 4 s; recoil times as fractions
+  const recoilTimes = [
+    0, 0.175, 0.188, 0.225,
+       0.375, 0.388, 0.425,
+       0.575, 0.588, 0.625,
+    0.9, 1.0,
+  ];
+  const recoilX = [0, 0, -22, 4, 0, -22, 4, 0, -22, 4, 0, 0];
 
   return (
     <Layer>
@@ -70,41 +84,68 @@ const BastionVictory = ({ onComplete }: { onComplete: () => void }) => {
         style={{ bottom: "10%", left: 0 }}
         initial={{ x: "-30vw" }}
         animate={{ x: ["-30vw", "20vw", "20vw", "120vw"] }}
-        transition={{ duration: 3, times: [0, 0.2, 0.75, 1], ease: "easeInOut" }}
+        transition={{ duration: 4, times: [0, 0.15, 0.80, 1], ease: "easeInOut" }}
       >
         <motion.img
           src={bastionSvg}
           alt=""
           style={{ width: 220, height: 220, filter: "drop-shadow(0 8px 20px rgba(0,0,0,0.6))" }}
-          animate={{ y: [0, -2, 0, -3, 0] }}
-          transition={{ duration: 0.3, repeat: Infinity }}
+          animate={{ y: [0, -2, 0, -3, 0], x: recoilX }}
+          transition={{
+            y: { duration: 0.3, repeat: Infinity },
+            x: { duration: 4, times: recoilTimes, ease: "easeOut" },
+          }}
         />
       </motion.div>
-      {shells.map((delay, i) => (
+
+      {/* Muzzle flash */}
+      {shots.map((delay, i) => (
         <motion.div
-          key={i}
+          key={`mf-${i}`}
           className="absolute rounded-full"
           style={{
-            bottom: "30%",
-            left: "20vw",
-            width: 40,
-            height: 18,
-            background: "radial-gradient(ellipse, #fff7c0, #ff9800 60%, #6b1a00)",
-            boxShadow: "0 0 30px 8px rgba(255,150,0,0.9)",
+            left: BASTION_BARREL_LEFT,
+            bottom: BASTION_BARREL_BOTTOM,
+            width: 50, height: 50,
+            marginLeft: -25, marginBottom: -25,
+            background: "radial-gradient(circle, #fff 0%, #ffe066 40%, transparent 70%)",
+            boxShadow: "0 0 30px 15px rgba(255,220,0,0.9)",
           }}
-          initial={{ x: 0, opacity: 0, scale: 0.4 }}
-          animate={{ x: ["0vw", "70vw"], opacity: [0, 1, 1, 0], scale: [0.4, 1.2, 1, 0.6] }}
-          transition={{ duration: 0.6, delay: 0.5 + delay, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 1, 0], scale: [0, 1.8, 0.5] }}
+          transition={{ duration: 0.2, delay }}
         />
       ))}
-      {shells.map((delay, i) => (
+
+      {/* Tank rounds */}
+      {shots.map((delay, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          style={{
+            left: BASTION_BARREL_LEFT,
+            bottom: BASTION_BARREL_BOTTOM,
+            marginBottom: -7,
+            width: 80, height: 14,
+            borderRadius: "2px 40% 40% 2px",
+            background: "linear-gradient(to right, #5a2d00, #c06000, #ffcc44, #fffbe0)",
+            boxShadow: "0 0 50px 14px rgba(255,160,0,0.85), 0 0 100px 25px rgba(255,80,0,0.4)",
+          }}
+          initial={{ x: 0, opacity: 0, scaleX: 0.2 }}
+          animate={{ x: ["0px", "calc(70vw - 200px)"], opacity: [0, 1, 1, 0], scaleX: [0.2, 1.3, 1.1, 0.8] }}
+          transition={{ duration: 1.3, delay, ease: "easeOut" }}
+        />
+      ))}
+
+      {/* Impact explosions */}
+      {shots.map((delay, i) => (
         <motion.div
           key={`f-${i}`}
           className="absolute"
-          style={{ bottom: "30%", right: "10vw", fontSize: 90 }}
+          style={{ bottom: "calc(10% + 100px)", right: "10vw", fontSize: 120 }}
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: [0, 1, 0], scale: [0, 2, 2.5] }}
-          transition={{ duration: 0.5, delay: 1.05 + delay }}
+          animate={{ opacity: [0, 1, 0], scale: [0, 2.8, 3.5] }}
+          transition={{ duration: 0.7, delay: delay + 1.2 }}
         >
           💥
         </motion.div>
@@ -114,23 +155,30 @@ const BastionVictory = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 // 3. AUTOCANNON SENTRY ----------------------------------------------------
+// Barrel tip in the 126×126 SVG viewBox is at approximately (115, 25.5).
+// Rendered at 200×200 and centered at left:50%, the tip lands at:
+//   left = calc(50% - 100px + 182px) = calc(50% + 82px)
+//   top  = calc(10% + 40px)
+const BARREL_LEFT = "calc(50% + 82px)";
+const BARREL_TOP = "calc(50% - 60px)";
+
 const AutocannonVictory = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const t = setTimeout(onComplete, 3000);
+    const t = setTimeout(onComplete, 4500);
     return () => clearTimeout(t);
   }, [onComplete]);
 
-  const tracers = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    delay: 1.0 + i * 0.12,
-    dir: i % 2 === 0 ? 1 : -1,
-  }));
+  const tracers = [
+    { id: 0, delay: 1.0 },
+    { id: 1, delay: 2.0 },
+    { id: 2, delay: 3.0 },
+  ];
 
   return (
     <Layer>
       <motion.div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ top: "10%" }}
+        className="absolute"
+        style={{ left: "50%", top: "50%", marginLeft: -100, marginTop: -100 }}
         initial={{ y: "-100vh" }}
         animate={{ y: [-window.innerHeight, 0, 0] }}
         transition={{ duration: 0.9, ease: "easeOut" }}
@@ -139,8 +187,15 @@ const AutocannonVictory = ({ onComplete }: { onComplete: () => void }) => {
           src={autocannonSvg}
           alt=""
           style={{ width: 200, height: 200, filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.6))" }}
-          animate={{ rotate: [0, -3, 3, -2, 2, 0] }}
-          transition={{ duration: 0.3, repeat: Infinity, delay: 0.9 }}
+          animate={{
+            x:      [0,  0, -28,  4, 0,   0, -28,  4, 0,   0, -28,  4, 0,  0],
+            rotate: [0,  0, -12,  2, 0,   0, -12,  2, 0,   0, -12,  2, 0,  0],
+          }}
+          transition={{
+            duration: 4.5,
+            times:   [0, 0.222, 0.233, 0.278, 0.44, 0.444, 0.456, 0.500, 0.66, 0.667, 0.678, 0.722, 0.98, 1.0],
+            ease: "easeOut",
+          }}
         />
       </motion.div>
       {tracers.map((t) => (
@@ -148,15 +203,16 @@ const AutocannonVictory = ({ onComplete }: { onComplete: () => void }) => {
           key={t.id}
           className="absolute rounded-full"
           style={{
-            top: "22%",
-            left: "50%",
+            top: BARREL_TOP,
+            left: BARREL_LEFT,
             width: 50,
             height: 14,
             background: "linear-gradient(to right, transparent, #ffe066, #ff5722)",
             boxShadow: "0 0 20px 6px rgba(255,180,0,0.8)",
+            translateY: "-50%",
           }}
           initial={{ x: 0, opacity: 0 }}
-          animate={{ x: t.dir * window.innerWidth * 0.7, opacity: [0, 1, 1, 0] }}
+          animate={{ x: window.innerWidth * 0.7, opacity: [0, 1, 1, 0] }}
           transition={{ duration: 0.5, delay: t.delay, ease: "easeOut" }}
         />
       ))}
@@ -164,10 +220,10 @@ const AutocannonVictory = ({ onComplete }: { onComplete: () => void }) => {
         <motion.div
           key={`m-${t.id}`}
           className="absolute"
-          style={{ top: "20%", left: "50%", fontSize: 60, transform: "translateX(-50%)" }}
+          style={{ top: BARREL_TOP, left: BARREL_LEFT, fontSize: 90, translate: "-50% -50%" }}
           initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: [0, 1, 0], scale: [0, 1.6, 0.8] }}
-          transition={{ duration: 0.25, delay: t.delay }}
+          animate={{ opacity: [0, 1, 0], scale: [0, 2.2, 1.2] }}
+          transition={{ duration: 0.4, delay: t.delay }}
         >
           💥
         </motion.div>
@@ -179,7 +235,7 @@ const AutocannonVictory = ({ onComplete }: { onComplete: () => void }) => {
 // 4. HELLBOMB -------------------------------------------------------------
 const HellbombVictory = ({ onComplete }: { onComplete: () => void }) => {
   useEffect(() => {
-    const t = setTimeout(onComplete, 3200);
+    const t = setTimeout(onComplete, 5000);
     return () => clearTimeout(t);
   }, [onComplete]);
 
@@ -187,18 +243,52 @@ const HellbombVictory = ({ onComplete }: { onComplete: () => void }) => {
     <Layer>
       {/* Falling bomb */}
       <motion.img
-        src={hellbombSvg}
+        src={hellbombPng}
         alt=""
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ width: 160, height: 160, top: "30%", filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.7))" }}
+        className="absolute"
+        style={{ width: 200, height: 200, left: "50%", marginLeft: -100, top: "30%", filter: "drop-shadow(0 6px 24px rgba(0,0,0,0.8))" }}
         initial={{ y: -window.innerHeight, opacity: 1 }}
         animate={{
           y: [-window.innerHeight, 0, 0, 0, 0],
           scale: [1, 1, 1.1, 1, 1.15],
           rotate: [0, 0, -2, 2, 0],
+          opacity: [1, 1, 1, 1, 0],
         }}
         transition={{ duration: 1.8, times: [0, 0.4, 0.55, 0.75, 0.9] }}
       />
+      {/* Speech bubble */}
+      <div className="absolute" style={{ left: "50%", top: "calc(30% - 70px)", transform: "translateX(-50%)" }}>
+        <motion.div
+          style={{
+            background: "white",
+            color: "#1a1a1a",
+            fontWeight: 700,
+            fontSize: 15,
+            whiteSpace: "nowrap",
+            padding: "8px 14px",
+            borderRadius: 10,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+            pointerEvents: "none",
+            position: "relative",
+          }}
+          initial={{ opacity: 0, scale: 0.8, y: 10 }}
+          animate={{ opacity: [0, 1, 1, 0], scale: [0.8, 1, 1, 0.9], y: [10, 0, 0, -6] }}
+          transition={{ duration: 1.1, delay: 0.8, times: [0, 0.15, 0.75, 1] }}
+        >
+          ☢️ Hellbomb armed — clear the area!
+          <div style={{
+            position: "absolute",
+            bottom: -10,
+            left: "50%",
+            marginLeft: -10,
+            width: 0,
+            height: 0,
+            borderLeft: "10px solid transparent",
+            borderRight: "10px solid transparent",
+            borderTop: "10px solid white",
+          }} />
+        </motion.div>
+      </div>
       {/* Tick flashes */}
       {[0.7, 1.1, 1.5].map((d, i) => (
         <motion.div
@@ -228,6 +318,45 @@ const HellbombVictory = ({ onComplete }: { onComplete: () => void }) => {
         animate={{ opacity: [0, 1, 1, 0], x: [0, -20, 20, -10, 10, 0] }}
         transition={{ duration: 1, delay: 2.0 }}
       />
+      {/* Mushroom cloud — fireball core */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 200, height: 200,
+          left: "50%", marginLeft: -100,
+          top: "50%", marginTop: -100,
+          background: "radial-gradient(circle, #fff 0%, #ffd54a 25%, #ff6a00 55%, #8b1100 100%)",
+          boxShadow: "0 0 120px 60px rgba(255,140,0,0.85)",
+        }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: [0, 6, 10, 12], opacity: [0, 1, 0.9, 0] }}
+        transition={{ duration: 2.2, delay: 2.0, times: [0, 0.3, 0.7, 1], ease: "easeOut" }}
+      />
+      {/* Mushroom stem */}
+      <motion.div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{
+          bottom: "20%", width: 100, height: 0,
+          background: "linear-gradient(to top, #6b3a1a, #c2693b, #f0a86a)",
+          borderRadius: 20, filter: "blur(3px)",
+        }}
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ height: [0, 280, 280], opacity: [0, 0.9, 0.6] }}
+        transition={{ duration: 2, delay: 2.2 }}
+      />
+      {/* Mushroom cap */}
+      <motion.div
+        className="absolute left-1/2 rounded-full"
+        style={{
+          width: 360, height: 240, marginLeft: -180, top: "25%",
+          background: "radial-gradient(ellipse at center 30%, #fff 0%, #ffb347 30%, #c44a1a 60%, #4a1700 100%)",
+          filter: "blur(2px)",
+          boxShadow: "0 0 80px 30px rgba(180,60,0,0.5)",
+        }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: [0, 1.5, 1.8], opacity: [0, 1, 0.7] }}
+        transition={{ duration: 2.2, delay: 2.3, ease: "easeOut" }}
+      />
     </Layer>
   );
 };
@@ -245,8 +374,8 @@ const Eagle500Victory = ({ onComplete }: { onComplete: () => void }) => {
       <motion.img
         src={eagle500Svg}
         alt=""
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ width: 140, height: 140, top: "45%", filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.7))" }}
+        className="absolute"
+        style={{ width: 140, height: 140, left: "50%", marginLeft: -70, top: "45%", filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.7))" }}
         initial={{ y: -window.innerHeight, opacity: 1, rotate: -10 }}
         animate={{ y: [-window.innerHeight, 0, 0], opacity: [1, 1, 0], rotate: [-10, 5, 0] }}
         transition={{ duration: 1.1, times: [0, 0.9, 1] }}
@@ -260,10 +389,10 @@ const Eagle500Victory = ({ onComplete }: { onComplete: () => void }) => {
           marginLeft: -100,
           marginTop: -100,
           background: "radial-gradient(circle, #fff 0%, #ffd54a 25%, #ff6a00 55%, #8b1100 100%)",
-          boxShadow: "0 0 120px 60px rgba(255,140,0,0.85)",
+          boxShadow: "0 0 80px 40px rgba(255,140,0,0.75)",
         }}
         initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: [0, 6, 10, 12], opacity: [0, 1, 0.9, 0] }}
+        animate={{ scale: [0, 4, 7, 9], opacity: [0, 1, 0.9, 0] }}
         transition={{ duration: 2.2, delay: 1.0, times: [0, 0.3, 0.7, 1], ease: "easeOut" }}
       />
       {/* Mushroom stem */}
@@ -271,30 +400,30 @@ const Eagle500Victory = ({ onComplete }: { onComplete: () => void }) => {
         className="absolute left-1/2 -translate-x-1/2"
         style={{
           bottom: "20%",
-          width: 100,
+          width: 70,
           height: 0,
           background: "linear-gradient(to top, #6b3a1a, #c2693b, #f0a86a)",
           borderRadius: 20,
           filter: "blur(3px)",
         }}
         initial={{ height: 0, opacity: 0 }}
-        animate={{ height: [0, 280, 280], opacity: [0, 0.9, 0.6] }}
+        animate={{ height: [0, 180, 180], opacity: [0, 0.9, 0.6] }}
         transition={{ duration: 2, delay: 1.4 }}
       />
-      {/* Mushroom cap */}
+      {/* Mushroom cap — top = 80% - stemHeight(180) - capHeight(170) = calc(80% - 350px) */}
       <motion.div
         className="absolute left-1/2 rounded-full"
         style={{
-          width: 360,
-          height: 240,
-          marginLeft: -180,
-          top: "25%",
+          width: 260,
+          height: 170,
+          marginLeft: -130,
+          top: "calc(80% - 350px)",
           background: "radial-gradient(ellipse at center 30%, #fff 0%, #ffb347 30%, #c44a1a 60%, #4a1700 100%)",
           filter: "blur(2px)",
-          boxShadow: "0 0 80px 30px rgba(180,60,0,0.5)",
+          boxShadow: "0 0 60px 20px rgba(180,60,0,0.5)",
         }}
         initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: [0, 1.5, 1.8], opacity: [0, 1, 0.7] }}
+        animate={{ scale: [0, 1.0, 1.2], opacity: [0, 1, 0.7] }}
         transition={{ duration: 2.2, delay: 1.6, ease: "easeOut" }}
       />
     </Layer>
