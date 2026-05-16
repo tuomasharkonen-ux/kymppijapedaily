@@ -4,7 +4,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
 
-export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice";
+import napalmSvg from "@/assets/helldivers/napalm.svg";
+import bastionSvg from "@/assets/helldivers/bastion.svg";
+import autocannonSvg from "@/assets/helldivers/autocannon.svg";
+import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
+import eagle500Svg from "@/assets/helldivers/eagle500.svg";
+import laserSvg from "@/assets/helldivers/laser.svg";
+
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice" | "helldivers_dice";
+
+export const helldiversFaceIcons: Record<number, string> = {
+  1: napalmSvg,
+  2: bastionSvg,
+  3: autocannonSvg,
+  4: hellbombSvg,
+  5: eagle500Svg,
+  6: laserSvg,
+};
 export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
  
 interface DiceProps {
@@ -49,6 +65,12 @@ interface DiceProps {
      border: "border-amber-700 border-[2px]",
      dot: "bg-amber-900",
      glow: "shadow-[0_0_12px_rgba(180,120,60,0.4)]",
+   },
+   helldivers_dice: {
+     bg: "bg-black",
+     border: "border-red-700 border-[2px]",
+     dot: "bg-white",
+     glow: "shadow-[0_0_12px_rgba(220,40,40,0.45)]",
    },
  };
  
