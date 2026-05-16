@@ -13,6 +13,7 @@ const SHOP_ITEMS: Record<string, { price: number; name: string }> = {
   diamond_dice: { price: 500, name: "Diamond Dice" },
   sauna_dice: { price: 600, name: "Sauna Dice" },
   german_supermarket_dice: { price: 100, name: "German Supermarket Dice" },
+  helldivers_dice: { price: 800, name: "Helldivers Stratagems" },
   shake_dice_action: { price: 300, name: "Shake Dice Action" },
   blow_dice_action: { price: 300, name: "Blow Dice Action" },
   insult_dice_action: { price: 300, name: "Insult Your Dice" },
