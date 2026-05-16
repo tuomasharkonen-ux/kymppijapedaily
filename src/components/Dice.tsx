@@ -95,6 +95,16 @@ interface DiceProps {
  };
  
  const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: DiceSkin }) => {
+   if (skin === "helldivers_dice" && value > 0) {
+     return (
+       <img
+         src={helldiversFaceIcons[value]}
+         alt=""
+         draggable={false}
+         className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
+       />
+     );
+   }
    const positions = value > 0 ? (dotPositions[value] || []) : [];
    const dotColor = skinStyles[skin].dot;
  

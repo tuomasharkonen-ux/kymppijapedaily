@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { DiceSkin } from "@/components/Dice";
+import { helldiversFaceIcons, type DiceSkin } from "@/components/Dice";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SaunaThermometer } from "@/components/SaunaThermometer";
@@ -37,6 +37,12 @@ const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; gl
     border: "border-amber-700 border-[2px]",
     dot: "bg-amber-900",
     glow: "shadow-[0_0_12px_rgba(180,120,60,0.4)]",
+  },
+  helldivers_dice: {
+    bg: "bg-black",
+    border: "border-red-700 border-[2px]",
+    dot: "bg-white",
+    glow: "shadow-[0_0_12px_rgba(220,40,40,0.45)]",
   },
 };
 
@@ -99,16 +105,25 @@ const PreviewDie = ({ value, skin, isRolling }: { value: number; skin: DiceSkin;
         }
         transition={{ duration: 0.55, ease: "easeInOut" }}
       >
-        {positions.map((pos, index) => (
-          <div
-            key={index}
-            className={cn(
-              "absolute w-2 h-2 rounded-full",
-              styles.dot,
-              positionClasses[pos]
-            )}
+        {skin === "helldivers_dice" ? (
+          <img
+            src={helldiversFaceIcons[value]}
+            alt=""
+            draggable={false}
+            className="absolute inset-0.5 w-[calc(100%-0.25rem)] h-[calc(100%-0.25rem)] object-contain pointer-events-none select-none"
           />
-        ))}
+        ) : (
+          positions.map((pos, index) => (
+            <div
+              key={index}
+              className={cn(
+                "absolute w-2 h-2 rounded-full",
+                styles.dot,
+                positionClasses[pos]
+              )}
+            />
+          ))
+        )}
       </motion.div>
     </div>
   );
