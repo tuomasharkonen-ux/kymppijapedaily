@@ -45,12 +45,11 @@ Deno.serve(async (req) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const userClient = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Verify user via JWT
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    // Verify user via JWT - pass token explicitly for Deno edge function compatibility
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
 
     if (authError || !user) {
       console.log("Failed to verify JWT:", authError?.message);
