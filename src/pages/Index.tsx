@@ -159,7 +159,7 @@ ${diceEmojis}
     await saveGameResult(throws, winningNumber);
 
     // Check badges immediately after save - don't wait for fetchRecords
-    checkAndAwardBadges(usedAction);
+    checkAndAwardBadges(usedAction, activeSkin);
   };
   const handleSignOut = async () => {
     await supabase.auth.signOut();

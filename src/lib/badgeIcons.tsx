@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import {
   Flame,
   Baby,
@@ -47,8 +48,35 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Map badge IDs to appropriate Lucide icons
-export const badgeIconMap: Record<string, LucideIcon> = {
+import napalmSvg from "@/assets/helldivers/napalm.svg";
+import bastionSvg from "@/assets/helldivers/bastion.svg";
+import autocannonSvg from "@/assets/helldivers/autocannon.svg";
+import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
+import eagle500Svg from "@/assets/helldivers/eagle500.svg";
+import laserSvg from "@/assets/helldivers/laser.svg";
+
+// Generic badge icon component type — Lucide icons take a className; our SVG
+// wrappers expose the same minimal surface so badge consumers don't care which
+// they get.
+export type BadgeIcon = ComponentType<{ className?: string }>;
+
+const makeSvgIcon = (src: string, alt: string): BadgeIcon => {
+  const Icon: BadgeIcon = ({ className }) => (
+    <img src={src} alt={alt} aria-hidden="true" className={className} />
+  );
+  Icon.displayName = `SvgBadgeIcon(${alt})`;
+  return Icon;
+};
+
+const NapalmIcon = makeSvgIcon(napalmSvg, "Orbital Napalm Barrage");
+const BastionIcon = makeSvgIcon(bastionSvg, "Bastion MK XVI");
+const AutocannonIcon = makeSvgIcon(autocannonSvg, "Autocannon Sentry");
+const HellbombIcon = makeSvgIcon(hellbombSvg, "Hellbomb");
+const Eagle500Icon = makeSvgIcon(eagle500Svg, "Eagle 500KG Bomb");
+const LaserIcon = makeSvgIcon(laserSvg, "Orbital Laser");
+
+// Map badge IDs to appropriate icons (Lucide or custom SVG components).
+export const badgeIconMap: Record<string, BadgeIcon> = {
   // Daily streak (repeatable)
   daily_streak: Flame,
   
@@ -135,8 +163,17 @@ export const badgeIconMap: Record<string, LucideIcon> = {
   
   // Action badges
   action_hero: Hand,
+
+  // Helldivers stratagem badges
+  helldivers_napalm: NapalmIcon,
+  helldivers_bastion: BastionIcon,
+  helldivers_autocannon: AutocannonIcon,
+  helldivers_hellbomb: HellbombIcon,
+  helldivers_eagle500: Eagle500Icon,
+  helldivers_laser: LaserIcon,
+  helldivers_master: Crown,
 };
 
-export const getBadgeIcon = (badgeId: string): LucideIcon => {
-  return badgeIconMap[badgeId] || Award;
+export const getBadgeIcon = (badgeId: string): BadgeIcon => {
+  return badgeIconMap[badgeId] || (Award as BadgeIcon);
 };

@@ -53,11 +53,17 @@
      emoji: "🛒", 
      triggerTypes: ["first_purchase", "skin_collection"] 
    },
-   { 
-     id: "gameplay", 
-     name: "Gameplay", 
-     emoji: "🎲", 
-     triggerTypes: ["action_win", "locked_numbers", "repeat_win"] 
+   {
+     id: "gameplay",
+     name: "Gameplay",
+     emoji: "🎲",
+     triggerTypes: ["action_win", "locked_numbers", "repeat_win"]
+   },
+   {
+     id: "helldivers",
+     name: "Helldivers",
+     emoji: "🪖",
+     triggerTypes: ["helldivers_stratagem", "helldivers_all_stratagems"],
    },
  ];
  
