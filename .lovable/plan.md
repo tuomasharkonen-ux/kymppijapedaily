@@ -1,227 +1,84 @@
+## Helldivers 2 Stratagem Dice Pack
 
+A new shop skin pack that themes all 6 dice faces with iconic Helldivers 2 stratagem icons on a black die, and triggers a face-specific cinematic victory animation when a player wins their daily Kymppijape with all 10 dice showing that face.
 
-# Plan: Add Framer Motion for Smooth Animations and Micro-Interactions
+### What the user gets
 
-## Overview
+**New shop item: "Helldivers Stratagems" (skin category)**
+- Black dice with the 6 stratagem SVGs replacing the standard pips:
+  - 1 → Orbital Napalm Barrage
+  - 2 → Bastion MK XVI (tank)
+  - 3 → Autocannon Sentry
+  - 4 → Hellbomb
+  - 5 → Eagle 500KG Bomb
+  - 6 → Orbital Laser
+- Sits alongside Golden / Diamond / German Supermarket / Sauna in the skin row, with preview, modal copy, and purchase flow already handled by the existing system.
+- Suggested price: 800 credits (top-tier — it ships with 6 full-screen victory cinematics).
 
-This plan introduces Framer Motion to replace and enhance the current CSS-based animations throughout Kymppijape Daily. Framer Motion provides physics-based animations, gesture support, and layout animations that will make the game feel more polished and responsive.
+**Face-specific victory animations** — replace the standard green confetti when this skin is active and the player completes a Kymppijape. Each is a full-viewport overlay (pointer-events: none) on top of the existing "Kymppijape!" headline:
 
-## Current State Analysis
+1. **Orbital Napalm (1)** — orange/red firestorm: dozens of flame particles erupt from the bottom across the entire screen, lingering smoke + heat-haze tint.
+2. **Bastion Tank (2)** — a tank silhouette rolls in from the left, fires 4–5 large shells across the screen with muzzle flashes + impact bursts, then rolls out.
+3. **Autocannon Sentry (3)** — the sentry icon descends from the top on a parachute trail, plants itself, then fires a rapid burst of large tracer rounds left-right with shell-casing ejection.
+4. **Hellbomb (4)** — the bomb drops in from above, ticks (3 red flashes + beep-style scale pulses), then a massive white flash whites out the entire screen with a shake + chromatic-scramble before fading.
+5. **Eagle 500KG (5)** — a large bomb plummets from the top, impacts dead center after ~1s, and erupts into a layered mushroom cloud (fireball → stem → cap) that fills the screen.
+6. **Orbital Laser (6)** — a thick yellow/white beam descends from above and sweeps in an S-curve across the page, leaving a glowing scorched/burning trail that smoulders for a moment before fading.
 
-The app currently uses:
-- Tailwind CSS keyframe animations defined in `tailwind.config.ts` (dice-roll, dice-shake-intense, dice-blow, dice-cower, pop-in, pulse-glow, etc.)
-- CSS transitions for hover states and basic effects
-- `tailwindcss-animate` plugin for radix-ui component animations
+All cinematics finish in ~2.5–3s so they don't block the existing "Share Result" CTA.
 
-### Current Animation Inventory
-| Component | Current Animation | Improvement Opportunity |
-|-----------|------------------|------------------------|
-| Dice.tsx | CSS keyframes for roll/shake/blow/cower | Spring physics, stagger effects |
-| GameBoard/PracticeMode | CSS animate-border-glow, animate-pop-in | Layout animations, presence |
-| BadgeUnlockModal | CSS pop-in, epic-entrance, legendary-entrance | Orchestrated sequences |
-| InsultDisplay | CSS fade-in with manual translate | AnimatePresence exit animations |
-| ResultsPanel | Static grid | Staggered entrance animations |
-| BadgesSection | Static grid | Grid layout animations |
-| ActionButtons | Basic hover | Tap feedback, spring hover |
-| Stat counters | None | Animated number counting |
+### Technical approach
 
----
+**Assets**
+- Copy the 6 uploaded SVGs to `src/assets/helldivers/` (`napalm.svg`, `bastion.svg`, `autocannon.svg`, `hellbomb.svg`, `eagle500.svg`, `laser.svg`) and import as ES6 modules.
 
-## Implementation Plan
+**Dice rendering** (`src/components/Dice.tsx`)
+- Extend `DiceSkin` type with `"helldivers_dice"`.
+- Add a `helldivers_dice` entry to `skinStyles` (black bg, red-tinted border, subtle red glow).
+- Add a branch in the render path: when `skin === "helldivers_dice"` and `value > 0`, render the corresponding SVG centered/inset instead of `DiceDotsWithSkin`. A small `faceIcons: Record<1-6, string>` map drives this.
+- Same treatment in the previews used by the shop:
+  - `src/components/DicePreview.tsx` (static preview tile)
+  - Anywhere else that switches on `DiceSkin` (verify via grep).
 
-### Phase 1: Setup and Core Components
+**Shop catalog** (`src/lib/shopItems.ts`)
+- Append one new entry:
+  ```ts
+  { id: 'helldivers_dice', emoji: '🪖', name: 'Helldivers Stratagems',
+    shortDescription: 'Black dice with stratagem icons + cinematic victory animations.',
+    longDescription: '...for Super Earth! Six legendary stratagems replace the pips...',
+    price: 800, category: 'skin' }
+  ```
+- No backend migration needed — purchases and `active_skin` already support arbitrary string IDs.
 
-**1.1 Install Framer Motion**
-- Add `framer-motion` package to dependencies
+**Victory cinematics**
+- New component `src/components/victory/HelldiversVictory.tsx`:
+  - Props: `winningNumber: 1..6`, `onComplete: () => void`.
+  - Mounted as a fixed full-screen overlay (`fixed inset-0 z-50 pointer-events-none`).
+  - Switches on `winningNumber` and renders one of 6 sub-components, each built with Framer Motion (existing dependency) — no new packages.
+- Sub-components (one file each under `src/components/victory/`):
+  - `NapalmVictory.tsx` — array of motion divs with flame emoji/SVG, animated `y`/`opacity`/`scale`, staggered.
+  - `BastionVictory.tsx` — tank container animates `x` across viewport; child shells spawn at intervals with motion + impact flash divs.
+  - `AutocannonVictory.tsx` — sentry SVG drops from `y: -200` → settles, then bursts of tracer divs animate horizontally with muzzle flash pulses.
+  - `HellbombVictory.tsx` — bomb drops; 3 timed red flashes; white `bg-white` div fades from `opacity: 0` → `1` → `0` with a `filter: hue-rotate` scramble + screen shake via container `x` keyframes.
+  - `Eagle500Victory.tsx` — bomb falls, on impact a fireball circle scales 0 → 20, stem rectangle grows upward, cap circle expands, with orange-to-grey color transition.
+  - `OrbitalLaserVictory.tsx` — vertical beam div with `transform: translateX` keyframed along an S-curve (5–6 waypoints), trailing scorched path drawn as an SVG `<path>` whose `pathLength` animates 0 → 1, then fades.
+- All cinematics call `onComplete` after their duration so the parent can unmount.
 
-**1.2 Create Animation Utilities**
-- Create `src/lib/animations.ts` with reusable motion variants:
-  - `fadeIn`, `fadeOut` - basic opacity transitions
-  - `popIn` - scale + opacity spring animation
-  - `slideUp`, `slideDown` - vertical slide animations
-  - `staggerContainer` - parent variant for staggered children
-  - `staggerItem` - child variant for staggered animations
+**Wiring victory into `GameBoard.tsx`**
+- Track `victoryFace` state. In the existing win branch (where `triggerConfetti()` is called):
+  - If `activeSkin === "helldivers_dice"`, set `victoryFace = winner` and skip `triggerConfetti()`.
+  - Otherwise keep current confetti behavior — no regression for other skins.
+- Render `{victoryFace && <HelldiversVictory winningNumber={victoryFace} onComplete={() => setVictoryFace(null)} />}` at the top of the returned tree.
 
-**1.3 Create Motion Wrapper Components**
-- Create `src/components/motion/MotionDiv.tsx` - pre-configured motion.div with common patterns
-- Create `src/components/motion/AnimatedNumber.tsx` - smooth number counting animation
+**Scope guards**
+- No DB / edge-function / auth changes.
+- No changes to leaderboard, badges, or game logic.
+- Existing skins, animations, and the Sauna heat system are untouched.
 
----
+### Files touched
 
-### Phase 2: Dice Component Enhancements
-
-**2.1 Refactor Dice.tsx**
-Convert from CSS animations to Framer Motion:
-- **Rolling animation**: Replace `animate-dice-roll` with `motion.button` using `rotate` and `scale` with spring physics
-- **Shake animation**: Use `motion.button` with `x` and `rotate` oscillations via keyframe array
-- **Blow animation**: Animate `x`, `rotate`, `scale` with spring physics
-- **Cower animation**: Animate `scale` with wobble effect
-- **Lock/unlock**: Add spring-based scale pulse when toggling lock state
-- **Hover state**: Replace CSS `hover:scale-105` with `whileHover` for smoother feel
-
-**2.2 Dice Dots Animation**
-- Animate dots appearance when dice value changes using `AnimatePresence` and `motion.div`
-- Stagger dot animations for visual interest
-
-**2.3 Scrambled State Transition**
-- Use `AnimatePresence` for smooth icon swap transitions
-- Add subtle rotation animation to scrambled icons
-
----
-
-### Phase 3: Game Board Improvements
-
-**3.1 GameBoard.tsx and PracticeMode.tsx**
-- **Initial card glow**: Convert `animate-border-glow` to Framer Motion `boxShadow` animation
-- **Stats counters**: Use `AnimatedNumber` component for throw count and locked count
-- **Dice grid**: Add staggered entrance animation when game starts
-- **Win celebration**: Orchestrated animation sequence (dice bounce, then text pop-in)
-- **Button states**: Add `whileTap` scale-down feedback
-
-**3.2 ActionButtons.tsx**
-- Add `whileHover` scale and glow effects
-- Add `whileTap` scale-down for tactile feedback
-- Animate button appearance with stagger when multiple actions available
-
----
-
-### Phase 4: UI Component Polish
-
-**4.1 InsultDisplay.tsx**
-- Wrap in `AnimatePresence` for proper exit animations
-- Replace CSS fade with Framer Motion `opacity` and `y` animation
-- Add subtle `scale` bounce on entrance
-- Animate speech bubble tail separately
-
-**4.2 ResultsPanel.tsx**
-- Add staggered entrance for stat cards
-- Use `AnimatedNumber` for all numeric values
-- Add hover micro-interaction on stat cards
-
-**4.3 BadgesSection.tsx**
-- Staggered entrance for badge grid
-- Add spring hover effect on individual badges
-- Layout animation when badges are added
-
-**4.4 BadgeUnlockModal.tsx**
-- Replace CSS entrance animations with Framer Motion sequences
-- Create orchestrated animation: backdrop fade, modal scale-in, icon bounce, text fade-in
-- Add subtle floating animation for legendary badges
-
----
-
-### Phase 5: Additional Enhancements
-
-**5.1 Page Transitions**
-- Add route transition animations using `AnimatePresence` at router level
-- Fade/slide between pages
-
-**5.2 Loading States**
-- Replace `animate-pulse` with smoother Framer Motion pulse
-- Add skeleton shimmer effects
-
-**5.3 Toast/Notification Animations**
-- Enhance sonner toast entrance/exit if customizable
-
----
-
-## Technical Details
-
-### New File Structure
-```text
-src/
-  lib/
-    animations.ts          # Reusable motion variants
-  components/
-    motion/
-      index.ts             # Barrel export
-      MotionDiv.tsx        # Pre-configured motion wrapper
-      AnimatedNumber.tsx   # Counting number animation
-      StaggerContainer.tsx # Container for staggered children
-```
-
-### Animation Variants Example (`src/lib/animations.ts`)
-```typescript
-export const popIn = {
-  initial: { scale: 0, opacity: 0 },
-  animate: { 
-    scale: 1, 
-    opacity: 1,
-    transition: { type: "spring", stiffness: 500, damping: 30 }
-  },
-  exit: { scale: 0.8, opacity: 0 }
-};
-
-export const staggerContainer = {
-  animate: {
-    transition: { staggerChildren: 0.05 }
-  }
-};
-
-export const staggerItem = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0 }
-};
-```
-
-### Dice Animation Configuration
-```typescript
-// Spring physics for dice animations
-const diceSpring = { type: "spring", stiffness: 300, damping: 20 };
-
-// Shake animation using keyframes
-const shakeAnimation = {
-  x: [-3, 3, -5, 5, -7, 7, -5, 5, -2, 0],
-  rotate: [-2, 2, -3, 3, -4, 4, -3, 2, -1, 0],
-  transition: { duration: 0.8 }
-};
-```
-
-### AnimatedNumber Component
-```typescript
-// Uses useMotionValue and useTransform for smooth counting
-const AnimatedNumber = ({ value, duration = 0.5 }) => {
-  const motionValue = useMotionValue(0);
-  const rounded = useTransform(motionValue, (v) => Math.round(v));
-  
-  useEffect(() => {
-    animate(motionValue, value, { duration });
-  }, [value]);
-  
-  return <motion.span>{rounded}</motion.span>;
-};
-```
-
----
-
-## Migration Strategy
-
-1. **Keep CSS fallbacks**: Maintain existing Tailwind animations initially as fallbacks
-2. **Incremental adoption**: Convert components one by one, testing each
-3. **Remove CSS animations**: Once Framer Motion versions are stable, remove unused CSS keyframes from `tailwind.config.ts`
-
----
-
-## Performance Considerations
-
-- Use `layout` prop sparingly (only where needed for layout shifts)
-- Leverage `willChange` hints for frequently animated elements
-- Use `useReducedMotion` hook to respect user preferences
-- Prefer `transform` and `opacity` animations (GPU-accelerated)
-
----
-
-## Summary
-
-| Area | Key Changes |
-|------|-------------|
-| Package | Add `framer-motion` dependency |
-| Dice animations | Spring physics, stagger effects, gesture feedback |
-| Game board | Animated counters, orchestrated win sequence |
-| Modals | Sequenced entrance animations |
-| Stats/Badges | Staggered grid animations |
-| Buttons | Tap/hover micro-interactions |
-| Numbers | Smooth counting animations |
-
-This implementation will make the game feel significantly more polished and responsive, with physics-based animations that feel natural and satisfying to interact with.
-
+- new: `src/assets/helldivers/{napalm,bastion,autocannon,hellbomb,eagle500,laser}.svg`
+- new: `src/components/victory/HelldiversVictory.tsx` + 6 sub-components
+- edit: `src/components/Dice.tsx` (add skin variant + SVG-face rendering)
+- edit: `src/components/DicePreview.tsx` (mirror in shop preview)
+- edit: `src/lib/shopItems.ts` (add catalog entry)
+- edit: `src/components/GameBoard.tsx` (trigger cinematic instead of confetti for this skin)
