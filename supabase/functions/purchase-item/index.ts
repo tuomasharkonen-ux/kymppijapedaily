@@ -49,19 +49,18 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Verify user via JWT claims
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    // Verify user via JWT
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
 
-    if (claimsError || !claimsData?.claims) {
-      console.log("Failed to verify JWT:", claimsError?.message);
+    if (authError || !user) {
+      console.log("Failed to verify JWT:", authError?.message);
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     console.log("Authenticated user:", userId);
 
     // Parse request body
