@@ -10,6 +10,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Shop from "./pages/Shop";
 import NotFound from "./pages/NotFound";
  import AllBadges from "./pages/AllBadges";
+import AdminTest from "./pages/AdminTest";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/shop" element={<Shop />} />
            <Route path="/badges" element={<AllBadges />} />
+          <Route path="/admin-test" element={<AdminTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
