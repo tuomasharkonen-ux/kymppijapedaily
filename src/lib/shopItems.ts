@@ -46,6 +46,15 @@ export const shopItems: ShopItem[] = [
     category: 'skin',
   },
   {
+    id: 'helldivers_dice',
+    emoji: '🪖',
+    name: 'Helldivers Stratagems',
+    shortDescription: 'Black dice with six stratagem icons + cinematic victory animations!',
+    longDescription: 'FOR SUPER EARTH! Six legendary Helldivers 2 stratagems replace the pips on jet-black dice — Orbital Napalm Barrage, Bastion MK XVI, Autocannon Sentry, Hellbomb, Eagle 500KG Bomb, and Orbital Laser. But that\'s not all, Helldiver: each face triggers its own full-screen cinematic when you Kymppijape on it. Win on Hellbombs and the screen goes white. Win on the 500KG and watch the mushroom cloud bloom. Managed Democracy has never looked this good.',
+    price: 800,
+    category: 'skin',
+  },
+  {
     id: 'shake_dice_action',
     emoji: '🫨',
     name: 'Shake Dice Action',

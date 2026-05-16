@@ -4,7 +4,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
 
-export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice";
+import napalmSvg from "@/assets/helldivers/napalm.svg";
+import bastionSvg from "@/assets/helldivers/bastion.svg";
+import autocannonSvg from "@/assets/helldivers/autocannon.svg";
+import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
+import eagle500Svg from "@/assets/helldivers/eagle500.svg";
+import laserSvg from "@/assets/helldivers/laser.svg";
+
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice" | "helldivers_dice";
+
+export const helldiversFaceIcons: Record<number, string> = {
+  1: napalmSvg,
+  2: bastionSvg,
+  3: autocannonSvg,
+  4: hellbombSvg,
+  5: eagle500Svg,
+  6: laserSvg,
+};
 export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
  
 interface DiceProps {
@@ -50,6 +66,12 @@ interface DiceProps {
      dot: "bg-amber-900",
      glow: "shadow-[0_0_12px_rgba(180,120,60,0.4)]",
    },
+   helldivers_dice: {
+     bg: "bg-black",
+     border: "border-red-700 border-[2px]",
+     dot: "bg-white",
+     glow: "shadow-[0_0_12px_rgba(220,40,40,0.45)]",
+   },
  };
  
  // Dot positions for dice faces
@@ -73,6 +95,16 @@ interface DiceProps {
  };
  
  const DiceDotsWithSkin = ({ value, skin = "default" }: { value: number; skin?: DiceSkin }) => {
+   if (skin === "helldivers_dice" && value > 0) {
+     return (
+       <img
+         src={helldiversFaceIcons[value]}
+         alt=""
+         draggable={false}
+         className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
+       />
+     );
+   }
    const positions = value > 0 ? (dotPositions[value] || []) : [];
    const dotColor = skinStyles[skin].dot;
  

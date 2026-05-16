@@ -17,6 +17,7 @@ import { Smartphone } from "lucide-react";
  import { staggerContainer, staggerItem, popIn, fadeInUp } from "@/lib/animations";
 import { SaunaThermometer } from "@/components/SaunaThermometer";
 import { SaunaSteamOverlay } from "@/components/SaunaSteamOverlay";
+import { HelldiversVictory } from "@/components/victory/HelldiversVictory";
 
 // ---------------------------------------------------------------------------
 // Sauna heat helpers
@@ -62,6 +63,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   const [justCompletedGame, setJustCompletedGame] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [usedActionDuringGame, setUsedActionDuringGame] = useState(false);
+  const [helldiversVictoryFace, setHelldiversVictoryFace] = useState<number | null>(null);
 
   // Sauna heat level: 0=normal, 1=warm (10-14), 2=hot (15-19), 3=MAXIMUM LÖYLY (20+)
   const saunaHeatLevel = useMemo(() => {
@@ -230,7 +232,11 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         setWinningNumber(winner);
         setGameComplete(true);
         setJustCompletedGame(true);
-        triggerConfetti();
+        if (activeSkin === "helldivers_dice") {
+          setHelldiversVictoryFace(winner);
+        } else {
+          triggerConfetti();
+        }
         onGameComplete(throwCount, winner, initialDiceValues, usedActionDuringGame);
       }
       
@@ -254,6 +260,12 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
   return (
     <div className="space-y-6">
+      {helldiversVictoryFace !== null && (
+        <HelldiversVictory
+          winningNumber={helldiversVictoryFace}
+          onComplete={() => setHelldiversVictoryFace(null)}
+        />
+      )}
       {/* Live region for screen reader announcements */}
       <div aria-live="polite" className="sr-only">
         {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
