@@ -260,6 +260,12 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
   return (
     <div className="space-y-6">
+      {helldiversVictoryFace !== null && (
+        <HelldiversVictory
+          winningNumber={helldiversVictoryFace}
+          onComplete={() => setHelldiversVictoryFace(null)}
+        />
+      )}
       {/* Live region for screen reader announcements */}
       <div aria-live="polite" className="sr-only">
         {isRolling ? 'Rolling dice...' : hasStarted ? `Throws: ${throwCount}. Locked: ${dice.filter(d => d.isLocked).length} of 10.` : ''}
