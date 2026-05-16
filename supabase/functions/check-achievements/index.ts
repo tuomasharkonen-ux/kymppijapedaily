@@ -8,6 +8,7 @@ const corsHeaders = {
 interface GameContext {
   featureUsed?: string;
   usedAction?: boolean;
+  activeSkin?: string;
 }
 
 interface Badge {
@@ -473,6 +474,40 @@ Deno.serve(async (req) => {
       // Action Hero: won using shake or blow action
       if (clientContext.usedAction === true) {
         await checkAndAwardBadge('action_hero', true);
+      }
+
+      // === HELLDIVERS STRATAGEM BADGES ===
+      // Only award if client reports helldivers_dice was active AND the user actually owns it.
+      const ownsHelldivers = purchasedItems.some(p => p.item_id === 'helldivers_dice');
+      if (
+        clientContext.activeSkin === 'helldivers_dice' &&
+        ownsHelldivers &&
+        verifiedWinningNumber >= 1 &&
+        verifiedWinningNumber <= 6
+      ) {
+        const stratagemBadgeIds: Record<number, string> = {
+          1: 'helldivers_napalm',
+          2: 'helldivers_bastion',
+          3: 'helldivers_autocannon',
+          4: 'helldivers_hellbomb',
+          5: 'helldivers_eagle500',
+          6: 'helldivers_laser',
+        };
+        const stratagemBadgeId = stratagemBadgeIds[verifiedWinningNumber];
+        await checkAndAwardBadge(stratagemBadgeId, true);
+
+        // Master badge: all 6 stratagem badges collected.
+        const allStratagemIds = Object.values(stratagemBadgeIds);
+        const ownedStratagems = new Set<string>(
+          allStratagemIds.filter(id => existingBadgeIds.has(id))
+        );
+        // Include the one we may have just awarded this run.
+        if (newlyEarnedBadges.some(eb => eb.badge.id === stratagemBadgeId)) {
+          ownedStratagems.add(stratagemBadgeId);
+        }
+        if (allStratagemIds.every(id => ownedStratagems.has(id))) {
+          await checkAndAwardBadge('helldivers_master', true);
+        }
       }
     }
 
