@@ -151,7 +151,7 @@ ${diceEmojis}
   }, []);
   const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
     setJustCompletedGame(true);
-    if (settings?.active_skin === "helldivers_dice") {
+    if (settings?.activeSkin === "helldivers_dice") {
       setIsVictoryAnimating(true);
     }
 

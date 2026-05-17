@@ -115,6 +115,13 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       console.error('Error inserting game record:', insertError.message);
+      // Handle race condition where two concurrent requests both pass the existence check
+      if (insertError.code === '23505' || insertError.message.includes('unique_user_played_date')) {
+        return new Response(
+          JSON.stringify({ success: true, alreadySaved: true }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       return new Response(
         JSON.stringify({ error: 'Failed to save game result' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
