@@ -400,6 +400,10 @@ Deno.serve(async (req) => {
       // Check date_match badges
       const dateMatches: Record<string, string> = {
         '09-09': 'special_date_birthday',
+        '05-27': 'special_date_birthday_kim',
+        '08-18': 'special_date_birthday_jimmy',
+        '11-21': 'special_date_birthday_bobo',
+        '03-11': 'special_date_birthday_matias',
         '01-01': 'special_date_ny',
         '12-25': 'special_date_xmas',
         '02-14': 'special_date_valentine',
