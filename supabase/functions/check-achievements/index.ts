@@ -413,9 +413,27 @@ Deno.serve(async (req) => {
         '06-21': 'special_date_summer',
         '12-21': 'special_date_winter',
       };
-      if (dateMatches[playDateForBadges]) {
-        await checkAndAwardBadge(dateMatches[playDateForBadges], true);
+      const matchedDateBadgeId = dateMatches[playDateForBadges];
+      if (matchedDateBadgeId) {
+        const isBirthday = matchedDateBadgeId.startsWith('special_date_birthday');
+        if (isBirthday) {
+          // Repeatable annually: award if not already earned this calendar year
+          const yearStart = `${now.getFullYear()}-01-01`;
+          const { data: thisYearBadge } = await supabase
+            .from('user_badges')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('badge_id', matchedDateBadgeId)
+            .gte('earned_at', yearStart)
+            .maybeSingle();
+          if (!thisYearBadge) {
+            await checkAndAwardBadge(matchedDateBadgeId, true, true);
+          }
+        } else {
+          await checkAndAwardBadge(matchedDateBadgeId, true);
+        }
       }
+
       
       // Check Friday the 13th
       if (isFriday13(now)) {
