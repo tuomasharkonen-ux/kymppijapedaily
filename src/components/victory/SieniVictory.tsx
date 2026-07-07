@@ -51,12 +51,12 @@ const KantarelliVictory = ({ onComplete }: { onComplete: () => void }) => {
     return () => clearTimeout(t);
   }, [onComplete]);
 
-  const sparkles = Array.from({ length: 40 }, (_, i) => ({
+  const sparkles = Array.from({ length: 60 }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
     delay: Math.random() * 1.5,
     size: 16 + Math.random() * 28,
-    emoji: Math.random() > 0.4 ? "✨" : "🍄",
+    emoji: "✨",
   }));
 
   // A couple of "SUIII" texts flying across the screen (inside joke)
@@ -130,14 +130,14 @@ const SuppilovahveroVictory = ({ onComplete }: { onComplete: () => void }) => {
     return () => clearTimeout(t);
   }, [onComplete]);
 
-  const leaves = Array.from({ length: 30 }, (_, i) => ({
+  const leaves = Array.from({ length: 45 }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
     delay: Math.random() * 2,
     size: 20 + Math.random() * 26,
     drift: (Math.random() - 0.5) * 120,
     rotate: Math.random() * 720 - 360,
-    emoji: ["🍂", "🍁", "🍄"][Math.floor(Math.random() * 3)],
+    emoji: ["🍂", "🍁"][Math.floor(Math.random() * 2)],
   }));
 
   const rain = Array.from({ length: 40 }, (_, i) => ({
