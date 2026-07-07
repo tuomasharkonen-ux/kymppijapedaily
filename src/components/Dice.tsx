@@ -11,7 +11,7 @@ import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
 import eagle500Svg from "@/assets/helldivers/eagle500.svg";
 import laserSvg from "@/assets/helldivers/laser.svg";
 
-export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice" | "helldivers_dice";
+export type DiceSkin = "default" | "golden_dice" | "diamond_dice" | "german_supermarket_dice" | "sauna_dice" | "helldivers_dice" | "sieni_dice";
 
 export const helldiversFaceIcons: Record<number, string> = {
   1: napalmSvg,
@@ -20,6 +20,16 @@ export const helldiversFaceIcons: Record<number, string> = {
   4: hellbombSvg,
   5: eagle500Svg,
   6: laserSvg,
+};
+
+// Finnish mushrooms — served from public/sienikuvat (PNGs, referenced by URL)
+export const sieniFaceIcons: Record<number, string> = {
+  1: "/sienikuvat/kantarelli.png",
+  2: "/sienikuvat/suppilovahvero.png",
+  3: "/sienikuvat/herkkutatti.png",
+  4: "/sienikuvat/korvasieni.png",
+  5: "/sienikuvat/mustatorvisieni.png",
+  6: "/sienikuvat/karpassieni.png",
 };
 export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
  
@@ -72,6 +82,12 @@ interface DiceProps {
      dot: "bg-white",
      glow: "shadow-[0_0_12px_rgba(220,40,40,0.45)]",
    },
+   sieni_dice: {
+     bg: "bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200",
+     border: "border-amber-800 border-[2px]",
+     dot: "bg-amber-900",
+     glow: "shadow-[0_0_12px_rgba(120,72,20,0.35)]",
+   },
  };
  
  // Dot positions for dice faces
@@ -99,6 +115,16 @@ interface DiceProps {
      return (
        <img
          src={helldiversFaceIcons[value]}
+         alt=""
+         draggable={false}
+         className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
+       />
+     );
+   }
+   if (skin === "sieni_dice" && value > 0) {
+     return (
+       <img
+         src={sieniFaceIcons[value]}
          alt=""
          draggable={false}
          className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"

@@ -18,6 +18,10 @@ import { Smartphone } from "lucide-react";
 import { SaunaThermometer } from "@/components/SaunaThermometer";
 import { SaunaSteamOverlay } from "@/components/SaunaSteamOverlay";
 import { HelldiversVictory } from "@/components/victory/HelldiversVictory";
+import { SieniVictory } from "@/components/victory/SieniVictory";
+
+// Skins that replace the default confetti win with a full-screen cinematic
+const CINEMATIC_SKINS: DiceSkin[] = ["helldivers_dice", "sieni_dice"];
 
 // ---------------------------------------------------------------------------
 // Sauna heat helpers
@@ -64,7 +68,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
   const [justCompletedGame, setJustCompletedGame] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [usedActionDuringGame, setUsedActionDuringGame] = useState(false);
-  const [helldiversVictoryFace, setHelldiversVictoryFace] = useState<number | null>(null);
+  const [cinematicVictoryFace, setCinematicVictoryFace] = useState<number | null>(null);
 
   // Sauna heat level: 0=normal, 1=warm (10-14), 2=hot (15-19), 3=MAXIMUM LÖYLY (20+)
   const saunaHeatLevel = useMemo(() => {
@@ -233,8 +237,8 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         setWinningNumber(winner);
         setGameComplete(true);
         setJustCompletedGame(true);
-        if (activeSkin === "helldivers_dice") {
-          setHelldiversVictoryFace(winner);
+        if (CINEMATIC_SKINS.includes(activeSkin)) {
+          setCinematicVictoryFace(winner);
         } else {
           triggerConfetti();
         }
@@ -261,10 +265,16 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
   return (
     <div className="space-y-6">
-      {helldiversVictoryFace !== null && (
+      {cinematicVictoryFace !== null && activeSkin === "helldivers_dice" && (
         <HelldiversVictory
-          winningNumber={helldiversVictoryFace}
-          onComplete={() => { setHelldiversVictoryFace(null); onVictoryAnimationEnd?.(); }}
+          winningNumber={cinematicVictoryFace}
+          onComplete={() => { setCinematicVictoryFace(null); onVictoryAnimationEnd?.(); }}
+        />
+      )}
+      {cinematicVictoryFace !== null && activeSkin === "sieni_dice" && (
+        <SieniVictory
+          winningNumber={cinematicVictoryFace}
+          onComplete={() => { setCinematicVictoryFace(null); onVictoryAnimationEnd?.(); }}
         />
       )}
       {/* Live region for screen reader announcements */}

@@ -55,6 +55,15 @@ export const shopItems: ShopItem[] = [
     category: 'skin',
   },
   {
+    id: 'sieni_dice',
+    emoji: '🍄',
+    name: 'Suomen Sienet',
+    shortDescription: 'Six classic Finnish mushrooms on wooden dice — each Kymppijape triggers its own metsä cinematic!',
+    longDescription: 'Suoraan Suomen syysmetsästä! Six of the nation\'s most beloved (and most feared) mushrooms replace the pips on birchwood dice — Kantarelli, Suppilovahvero, Herkkutatti, Korvasieni, Mustatorvisieni, and the unmistakable Kärpässieni. But sienestys has never been this dramatic: land your Kymppijape and each mushroom blooms into its own full-screen cinematic. Strike gold on the Kantarelli (SUIII!), brave the toxic fumes of the Korvasieni, or trip out entirely on the Kärpässieni. Muista: älä syö tuntemattomia sieniä! 🍄🇫🇮',
+    price: 750,
+    category: 'skin',
+  },
+  {
     id: 'shake_dice_action',
     emoji: '🫨',
     name: 'Shake Dice Action',

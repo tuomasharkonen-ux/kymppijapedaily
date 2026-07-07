@@ -443,6 +443,7 @@ Deno.serve(async (req) => {
       // Check jack_of_all_dice (won with all 6 numbers)
       await checkAndAwardBadge('jack_of_all_dice', hasAllSixNumbers);
 
+
       // === MILESTONE BADGES (total games played) ===
       const gameMilestones = [10, 50, 100, 365, 1000];
       for (const milestone of gameMilestones) {
@@ -529,6 +530,40 @@ Deno.serve(async (req) => {
         }
         if (allStratagemIds.every(id => ownedStratagems.has(id))) {
           await checkAndAwardBadge('helldivers_master', true);
+        }
+      }
+
+      // === MUSHROOM BADGES (Suomen Sienet skin) ===
+      // Only award if client reports sieni_dice was active AND the user owns it.
+      const ownsSieni = purchasedItems.some(p => p.item_id === 'sieni_dice');
+      if (
+        clientContext.activeSkin === 'sieni_dice' &&
+        ownsSieni &&
+        verifiedWinningNumber >= 1 &&
+        verifiedWinningNumber <= 6
+      ) {
+        const mushroomBadgeIds: Record<number, string> = {
+          1: 'sieni_win_kantarelli',
+          2: 'sieni_win_suppilovahvero',
+          3: 'sieni_win_herkkutatti',
+          4: 'sieni_win_korvasieni',
+          5: 'sieni_win_mustatorvisieni',
+          6: 'sieni_win_karpassieni',
+        };
+        const mushroomBadgeId = mushroomBadgeIds[verifiedWinningNumber];
+        await checkAndAwardBadge(mushroomBadgeId, true);
+
+        // Master badge: all 6 mushroom badges collected.
+        const allMushroomIds = Object.values(mushroomBadgeIds);
+        const ownedMushrooms = new Set<string>(
+          allMushroomIds.filter(id => existingBadgeIds.has(id))
+        );
+        // Include the one we may have just awarded this run.
+        if (newlyEarnedBadges.some(eb => eb.badge.id === mushroomBadgeId)) {
+          ownedMushrooms.add(mushroomBadgeId);
+        }
+        if (allMushroomIds.every(id => ownedMushrooms.has(id))) {
+          await checkAndAwardBadge('sieni_master', true);
         }
       }
     }

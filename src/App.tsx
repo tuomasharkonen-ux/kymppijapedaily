@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Terms from "./pages/Terms";
 import BadgePreview from "./pages/BadgePreview";
+import CinematicPreview from "./pages/CinematicPreview";
 import Profile from "./pages/Profile";
 import Leaderboard from "./pages/Leaderboard";
 import Shop from "./pages/Shop";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/badge-preview" element={<BadgePreview />} />
+          <Route path="/cinematic-preview" element={<CinematicPreview />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/shop" element={<Shop />} />

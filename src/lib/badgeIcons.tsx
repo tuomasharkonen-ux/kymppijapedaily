@@ -47,6 +47,35 @@ import {
   Hand,
   type LucideIcon,
 } from "lucide-react";
+import type { ComponentType } from "react";
+import { cn } from "@/lib/utils";
+import { sieniFaceIcons } from "@/components/Dice";
+
+// A badge icon can be a Lucide icon OR an <img> (for the mushroom badges).
+// Both accept className / aria-hidden, so call sites need no changes.
+export type BadgeIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+
+// Mushroom (Suomen Sienet) face badges → their actual mushroom photo
+const sieniBadgeImages: Record<string, string> = {
+  sieni_win_kantarelli: sieniFaceIcons[1],
+  sieni_win_suppilovahvero: sieniFaceIcons[2],
+  sieni_win_herkkutatti: sieniFaceIcons[3],
+  sieni_win_korvasieni: sieniFaceIcons[4],
+  sieni_win_mustatorvisieni: sieniFaceIcons[5],
+  sieni_win_karpassieni: sieniFaceIcons[6],
+};
+
+const makeImageIcon = (src: string): BadgeIcon => {
+  const ImageIcon: BadgeIcon = ({ className, ...rest }) => (
+    <img src={src} alt="" draggable={false} className={cn("object-contain", className)} {...rest} />
+  );
+  return ImageIcon;
+};
+
+// Precompute stable components so they don't remount on every render
+const sieniBadgeIcons: Record<string, BadgeIcon> = Object.fromEntries(
+  Object.entries(sieniBadgeImages).map(([id, src]) => [id, makeImageIcon(src)])
+);
 
 import napalmSvg from "@/assets/helldivers/napalm.svg";
 import bastionSvg from "@/assets/helldivers/bastion.svg";
@@ -54,11 +83,6 @@ import autocannonSvg from "@/assets/helldivers/autocannon.svg";
 import hellbombSvg from "@/assets/helldivers/hellbomb.svg";
 import eagle500Svg from "@/assets/helldivers/eagle500.svg";
 import laserSvg from "@/assets/helldivers/laser.svg";
-
-// Generic badge icon component type — Lucide icons take a className; our SVG
-// wrappers expose the same minimal surface so badge consumers don't care which
-// they get.
-export type BadgeIcon = ComponentType<{ className?: string }>;
 
 const makeSvgIcon = (src: string, alt: string): BadgeIcon => {
   const Icon: BadgeIcon = ({ className }) => (
@@ -135,7 +159,11 @@ export const badgeIconMap: Record<string, BadgeIcon> = {
   
   // Collection badges
   jack_of_all_dice: Dices,
-  
+
+  // Mushroom (Suomen Sienet) master badge — capstone for collecting all six.
+  // The six per-mushroom badges use their actual photos (see sieniBadgeIcons).
+  sieni_master: Trophy,
+
   // Social badges
   share_5: Users,
   share_10: Megaphone,
@@ -175,5 +203,5 @@ export const badgeIconMap: Record<string, BadgeIcon> = {
 };
 
 export const getBadgeIcon = (badgeId: string): BadgeIcon => {
-  return badgeIconMap[badgeId] || (Award as BadgeIcon);
+  return sieniBadgeIcons[badgeId] || badgeIconMap[badgeId] || (Award as BadgeIcon);
 };

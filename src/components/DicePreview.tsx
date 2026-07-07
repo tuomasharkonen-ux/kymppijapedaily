@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { helldiversFaceIcons, type DiceSkin } from "@/components/Dice";
+import { helldiversFaceIcons, sieniFaceIcons, type DiceSkin } from "@/components/Dice";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SaunaThermometer } from "@/components/SaunaThermometer";
@@ -43,6 +43,12 @@ const skinStyles: Record<DiceSkin, { bg: string; border: string; dot: string; gl
     border: "border-red-700 border-[2px]",
     dot: "bg-white",
     glow: "shadow-[0_0_12px_rgba(220,40,40,0.45)]",
+  },
+  sieni_dice: {
+    bg: "bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200",
+    border: "border-amber-800 border-[2px]",
+    dot: "bg-amber-900",
+    glow: "shadow-[0_0_12px_rgba(120,72,20,0.35)]",
   },
 };
 
@@ -108,6 +114,13 @@ const PreviewDie = ({ value, skin, isRolling }: { value: number; skin: DiceSkin;
         {skin === "helldivers_dice" ? (
           <img
             src={helldiversFaceIcons[value]}
+            alt=""
+            draggable={false}
+            className="absolute inset-0.5 w-[calc(100%-0.25rem)] h-[calc(100%-0.25rem)] object-contain pointer-events-none select-none"
+          />
+        ) : skin === "sieni_dice" ? (
+          <img
+            src={sieniFaceIcons[value]}
             alt=""
             draggable={false}
             className="absolute inset-0.5 w-[calc(100%-0.25rem)] h-[calc(100%-0.25rem)] object-contain pointer-events-none select-none"
