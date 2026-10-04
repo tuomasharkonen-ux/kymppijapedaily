@@ -11,8 +11,10 @@ interface AuthFormProps {
   defaultToSignUp?: boolean;
 }
 
+type AuthMode = "login" | "signup" | "forgot";
+
 export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) => {
-  const [isLogin, setIsLogin] = useState(!defaultToSignUp);
+  const [mode, setMode] = useState<AuthMode>(defaultToSignUp ? "signup" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,14 +24,14 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
         toast.success("Welcome back!");
-      } else {
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -45,11 +47,8 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
     }
   };
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      toast.error("Enter your email address first");
-      return;
-    }
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     setLoading(true);
     try {
@@ -58,12 +57,49 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
       });
       if (error) throw error;
       toast.success("Password reset email sent! Check your inbox.");
+      setMode("login");
     } catch (error: any) {
       toast.error(error.message || "Failed to send reset email");
     } finally {
       setLoading(false);
     }
   };
+
+  if (mode === "forgot") {
+    return (
+      <div className="space-y-4">
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <p className="text-sm text-muted-foreground text-center">
+            Enter your email address and we'll send you a link to reset your password.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">Email</Label>
+            <Input
+              id="reset-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Sending..." : "Send reset link"}
+          </Button>
+        </form>
+        <p className="text-center text-sm text-muted-foreground">
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className="text-primary hover:underline font-medium"
+          >
+            Back to log in
+          </button>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -92,19 +128,19 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
           />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Loading..." : isLogin ? "Log in" : "Create account"}
+          {loading ? "Loading..." : mode === "login" ? "Log in" : "Create account"}
         </Button>
-        {isLogin && (
+        {mode === "login" && (
           <button
             type="button"
-            onClick={handleForgotPassword}
+            onClick={() => setMode("forgot")}
             disabled={loading}
             className="w-full text-center text-sm text-muted-foreground hover:text-primary hover:underline"
           >
             Forgot your password?
           </button>
         )}
-        {!isLogin && (
+        {mode === "signup" && (
           <p className="text-xs text-muted-foreground text-center">
             By signing up, you agree to our{" "}
             <Link to="/terms" className="text-primary hover:underline">
@@ -115,12 +151,12 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
         )}
       </form>
       <p className="text-center text-sm text-muted-foreground">
-        {isLogin ? "Don't have an account? " : "Already have an account? "}
+        {mode === "login" ? "Don't have an account? " : "Already have an account? "}
         <button
-          onClick={() => setIsLogin(!isLogin)}
+          onClick={() => setMode(mode === "login" ? "signup" : "login")}
           className="text-primary hover:underline font-medium"
         >
-          {isLogin ? "Create one" : "Log in"}
+          {mode === "login" ? "Create one" : "Log in"}
         </button>
       </p>
     </div>
