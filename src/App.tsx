@@ -7,6 +7,7 @@ import Terms from "./pages/Terms";
 import BadgePreview from "./pages/BadgePreview";
 import CinematicPreview from "./pages/CinematicPreview";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
 import Leaderboard from "./pages/Leaderboard";
 import Shop from "./pages/Shop";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/badge-preview" element={<BadgePreview />} />
           <Route path="/cinematic-preview" element={<CinematicPreview />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/shop" element={<Shop />} />
            <Route path="/badges" element={<AllBadges />} />
