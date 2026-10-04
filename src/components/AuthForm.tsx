@@ -45,6 +45,26 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Enter your email address first");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <form onSubmit={handleSubmit} className="space-y-4">
