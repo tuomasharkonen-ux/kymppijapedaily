@@ -94,6 +94,16 @@ export const AuthForm = ({ onSuccess, defaultToSignUp = false }: AuthFormProps) 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Loading..." : isLogin ? "Log in" : "Create account"}
         </Button>
+        {isLogin && (
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            disabled={loading}
+            className="w-full text-center text-sm text-muted-foreground hover:text-primary hover:underline"
+          >
+            Forgot your password?
+          </button>
+        )}
         {!isLogin && (
           <p className="text-xs text-muted-foreground text-center">
             By signing up, you agree to our{" "}
