@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { GameBoard } from "@/components/GameBoard";
+import { GameBoard, type GameExtras } from "@/components/GameBoard";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { PracticeMode } from "@/components/PracticeMode";
 import { BadgesSection } from "@/components/BadgesSection";
@@ -25,6 +26,17 @@ import { toast } from "sonner";
 import { Menu, LogOut, User } from "lucide-react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { DiceSkin } from "@/components/Dice";
+import { useDailyBoard } from "@/hooks/useDailyBoard";
+import { BETTING_LICENSE_ID, MOKKI_PLOT_ID, type BetSpec, helsinkiDate } from "@/lib/kymppijape";
+import { loadGame, updateSavedGame } from "@/lib/gameState";
+import type { Settlement } from "@/lib/vedot";
+import { BettingSheet } from "@/components/vedot/BettingSheet";
+import { BetTracker } from "@/components/vedot/BetTracker";
+import { PelattuStamp } from "@/components/vedot/PelattuStamp";
+import { SettlementModal } from "@/components/vedot/SettlementModal";
+import { PottiRevealModal } from "@/components/vedot/PottiRevealModal";
+import { DailyStakesCard, VedotTeaser } from "@/components/vedot/DailyStakesCard";
+import { MokkiHero } from "@/components/mokki/MokkiHero";
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -56,7 +68,8 @@ const Index = () => {
     checkAndAwardBadges,
     checkShareFeature,
     pendingBadges,
-    dismissBadge
+    dismissBadge,
+    refetchBadges
   } = useBadges(user?.id || null);
   const {
     purchasedItems,
@@ -77,6 +90,87 @@ const Index = () => {
     isLoading: profileLoading,
     updateUsername,
   } = useProfile(user?.id || null);
+
+  // Vedot, Päivän Potti & Jackpot (unlocked with the Vedonlyöntilupa)
+  const {
+    board,
+    isLoading: boardLoading,
+    isPlacing,
+    placeBets,
+    applySettlement,
+    markRevealSeen,
+  } = useDailyBoard(user?.id || null);
+  const hasLicense = purchasedItems.includes(BETTING_LICENSE_ID);
+  const hasMokki = purchasedItems.includes(MOKKI_PLOT_ID);
+  const [openingRevealed, setOpeningRevealed] = useState(false);
+  const [bettingClosed, setBettingClosed] = useState(false);
+  const [bettingOpen, setBettingOpen] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
+  const [pendingSettlement, setPendingSettlement] = useState<Settlement | null>(null);
+  const [showSettlement, setShowSettlement] = useState(false);
+  const [revealOpen, setRevealOpen] = useState(false);
+  const reveal = board?.reveals[0] ?? null;
+  const hasBetsToday = !!board && (board.myBets.length > 0 || board.pot.joined);
+  const lukitutActive = !!board?.myBets.some((b) => b.lukitut && b.status === "open");
+  // Hold the dice while the board is still loading so bets can't follow a lock
+  const bettingPending = openingRevealed && !bettingClosed && hasLicense && boardLoading;
+  const gameInProgress = !!user && (loadGame(user.id, helsinkiDate())?.throwCount ?? 0) > 0;
+
+  const handleOpeningRevealed = useCallback(() => {
+    if (user && loadGame(user.id, helsinkiDate())?.bettingClosed) {
+      setBettingClosed(true);
+    }
+    setOpeningRevealed(true);
+  }, [user]);
+
+  // Offer bets once the opening is on the table
+  useEffect(() => {
+    if (!openingRevealed || bettingClosed || !hasLicense || !board || board.bettingDisabled || hasBetsToday) return;
+    setBettingOpen(true);
+  }, [openingRevealed, bettingClosed, hasLicense, board, hasBetsToday]);
+
+  const closeBetting = () => {
+    setBettingOpen(false);
+    setBettingClosed(true);
+    if (user) updateSavedGame(user.id, helsinkiDate(), { bettingClosed: true });
+  };
+
+  const handleLockIn = async (bets: BetSpec[], joinPot: boolean) => {
+    const result = await placeBets(bets, joinPot);
+    if (result.ok === false) {
+      toast.error(result.error);
+      return;
+    }
+    closeBetting();
+    setShowStamp(true);
+    refetchBadges();
+  };
+
+  const handleStampDone = useCallback(() => setShowStamp(false), []);
+
+  // Show bet results once any victory cinematic has finished
+  useEffect(() => {
+    if (pendingSettlement && !isVictoryAnimating) {
+      const timer = setTimeout(() => setShowSettlement(true), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingSettlement, isVictoryAnimating]);
+
+  // Yesterday's pot: pops up on its own, or waits in the mökki mailbox
+  useEffect(() => {
+    if (!reveal) return;
+    if (hasMokki) {
+      toast("📬 Eilisen Potti results are in your mailbox");
+    } else {
+      setRevealOpen(true);
+    }
+  }, [reveal?.gameDate, hasMokki]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const closeReveal = () => {
+    setRevealOpen(false);
+    if (reveal) markRevealSeen(reveal.gameDate);
+    refetchBadges();
+  };
 
   // Show username prompt for logged-in users without a profile
   const showUsernamePrompt = !!user && !profileLoading && !profile;
@@ -149,14 +243,19 @@ ${diceEmojis}
     });
     return () => subscription.unsubscribe();
   }, []);
-  const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean) => {
+  const handleGameComplete = async (throws: number, winningNumber: number, _initialDice: number[], usedAction: boolean, extras: GameExtras) => {
     setJustCompletedGame(true);
     if (settings?.activeSkin === "helldivers_dice" || settings?.activeSkin === "sieni_dice") {
       setIsVictoryAnimating(true);
     }
 
-    // Save game first (required before badge check can verify)
-    await saveGameResult(throws, winningNumber);
+    // Save game first (required before badge check can verify); this also settles bets
+    const saved = await saveGameResult(throws, winningNumber, extras);
+    if (saved?.settlement) {
+      applySettlement(saved.settlement);
+      setPendingSettlement(saved.settlement);
+      refetchBadges();
+    }
 
     // Check badges immediately after save - don't wait for fetchRecords
     checkAndAwardBadges(usedAction, activeSkin);
@@ -206,6 +305,26 @@ ${diceEmojis}
             </div>}
         </header>
 
+        {user && hasMokki && !showPracticeMode && (
+          <div className="mb-6">
+            <MokkiHero
+              userId={user.id}
+              hasPlayedToday={hasPlayedToday || justCompletedGame}
+              activeSkin={activeSkin}
+              purchasedItems={purchasedItems}
+              hasMail={!!reveal}
+              onMailboxClick={() => (reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
+              potTotal={hasLicense ? board?.pot.total ?? 0 : null}
+              onKiuluClick={() =>
+                toast(`♨️ Päivän Potti: ${board?.pot.total ?? 0} cr, ${board?.pot.entrants.length ?? 0} in`, {
+                  description: board?.pot.joined ? "You're in! Results after midnight." : "Join after throwing your opening.",
+                })
+              }
+              onNoticeBoardClick={() => navigate("/badges")}
+            />
+          </div>
+        )}
+
         {!user ? <PracticeMode /> : showPracticeMode ? <div className="space-y-6">
             <div className="text-center">
               <Button variant="link" onClick={() => setShowPracticeMode(false)} className="text-muted-foreground">
@@ -235,6 +354,9 @@ ${diceEmojis}
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
+                {hasLicense && board && <DailyStakesCard board={board} />}
+                {!hasLicense && board && gamesPlayed >= 3 && <VedotTeaser board={board} />}
+
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
                 
                 <DiceProShopCard userCredits={userCredits} />
@@ -252,7 +374,31 @@ ${diceEmojis}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                <GameBoard onGameComplete={handleGameComplete} hasPlayedToday={hasPlayedToday} personalBest={personalBest} userId={user.id} onShareClick={checkShareFeature} activeSkin={activeSkin} purchasedItems={purchasedItems} activeActions={settings.activeActions} activeThrowAnimation={activeThrowAnimation} activeBackground={activeBackground} onCopyResult={copyResultToClipboard} isStatsLoading={isLoading} showCopied={showCopied} onVictoryAnimationEnd={() => setIsVictoryAnimating(false)} />
+                {hasLicense && board && !openingRevealed && !gameInProgress && !justCompletedGame && <DailyStakesCard board={board} />}
+                {!hasLicense && board && gamesPlayed >= 3 && !justCompletedGame && <VedotTeaser board={board} />}
+
+                <GameBoard
+                  onGameComplete={handleGameComplete}
+                  hasPlayedToday={hasPlayedToday}
+                  personalBest={personalBest}
+                  userId={user.id}
+                  onShareClick={checkShareFeature}
+                  activeSkin={activeSkin}
+                  purchasedItems={purchasedItems}
+                  activeActions={settings.activeActions}
+                  activeThrowAnimation={activeThrowAnimation}
+                  activeBackground={activeBackground}
+                  onCopyResult={copyResultToClipboard}
+                  isStatsLoading={isLoading}
+                  showCopied={showCopied}
+                  onVictoryAnimationEnd={() => setIsVictoryAnimating(false)}
+                  bettingOpen={bettingOpen || bettingPending}
+                  onOpeningRevealed={handleOpeningRevealed}
+                  lukitut={lukitutActive}
+                  renderAboveDice={(progress) =>
+                    board && hasBetsToday ? <BetTracker bets={board.myBets} inPot={board.pot.joined} progress={progress} /> : null
+                  }
+                />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
@@ -280,8 +426,38 @@ ${diceEmojis}
               </>}
           </div>}
 
-        {/* Badge unlock modal */}
-        {!isVictoryAnimating && <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />}
+        {/* Badge unlock modal (after any bet settlement) */}
+        {!isVictoryAnimating && !showSettlement && !pendingSettlement && <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />}
+
+        {/* Vedot & Päivän Potti */}
+        <AnimatePresence>
+          {bettingOpen && board && (
+            <BettingSheet
+              key="betting-sheet"
+              opening={board.opening}
+              personal={board.personal}
+              balance={userCredits}
+              jackpot={board.jackpot.balance}
+              pot={board.pot}
+              isPlacing={isPlacing}
+              onLockIn={handleLockIn}
+              onSkip={closeBetting}
+            />
+          )}
+          {showStamp && <PelattuStamp key="stamp" onDone={handleStampDone} />}
+          {showSettlement && pendingSettlement && (
+            <SettlementModal
+              key="settlement"
+              settlement={pendingSettlement}
+              inPot={!!board?.pot.joined}
+              onClose={() => {
+                setShowSettlement(false);
+                setPendingSettlement(null);
+              }}
+            />
+          )}
+          {revealOpen && reveal && <PottiRevealModal key={`reveal-${reveal.gameDate}`} reveal={reveal} onClose={closeReveal} />}
+        </AnimatePresence>
 
         {/* Sauna Dice promotional popup */}
         <SaunaDicePromoModal open={showSaunaPromo} onClose={() => setShowSaunaPromo(false)} />

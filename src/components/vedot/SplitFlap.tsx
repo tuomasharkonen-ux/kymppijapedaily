@@ -29,7 +29,7 @@ export const SplitFlap = ({ value, className = "", tileClassName = "" }: SplitFl
           className={`relative inline-block min-w-[0.72em] rounded-[3px] bg-[#14100c] px-[2px] text-center font-mono leading-tight text-[#f7d774] shadow-[inset_0_-1px_0_rgba(255,255,255,0.08),0_1px_2px_rgba(0,0,0,0.6)] [transform-origin:50%_50%] ${tileClassName}`}
         >
           {char}
-          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-black/70" />
+          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-black/30" />
         </motion.span>
       ))}
     </span>

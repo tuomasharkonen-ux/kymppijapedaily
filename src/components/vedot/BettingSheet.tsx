@@ -155,7 +155,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                   }`}
                   aria-pressed={joinPot}
                 >
-                  {joinPot ? "✓ You're in" : `🪙 Hop in for ${pot.buyIn}`}
+                  {joinPot ? "✓ You're in" : `🪙 Join · ${pot.buyIn}`}
                 </motion.button>
               </div>
             </div>

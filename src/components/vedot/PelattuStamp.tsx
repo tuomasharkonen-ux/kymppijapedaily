@@ -30,7 +30,7 @@ export const PelattuStamp = ({ onDone }: { onDone: () => void }) => {
         initial={{ scale: 3.2, rotate: -24, opacity: 0 }}
         animate={{ scale: 1, rotate: -12, opacity: 1 }}
         transition={{ type: "spring", stiffness: 600, damping: 22, delay: 0.05 }}
-        className="rounded-xl border-[6px] border-red-600 px-8 py-3 font-display text-6xl tracking-widest text-red-600 [text-shadow:0_0_1px_#dc2626] mix-blend-multiply"
+        className="rounded-xl border-[6px] border-red-600 px-5 py-2 font-display text-5xl tracking-wider text-red-600 [text-shadow:0_0_1px_#dc2626] mix-blend-multiply"
         style={{
           background: "radial-gradient(circle at 30% 40%, rgba(255,255,255,0.08), transparent 60%)",
           maskImage: "radial-gradient(circle at 50% 50%, black 70%, rgba(0,0,0,0.75) 100%)",

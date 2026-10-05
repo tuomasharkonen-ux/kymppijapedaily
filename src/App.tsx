@@ -18,6 +18,7 @@ import AdminTest from "./pages/AdminTest";
 // Mökki pages pull in three.js, so they are split into their own chunks
 const Mokki = lazy(() => import("./pages/Mokki"));
 const MokkiScenePreview = lazy(() => import("./pages/MokkiScenePreview"));
+const VedotPreview = lazy(() => import("./pages/VedotPreview"));
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,9 @@ const App = () => (
           <Route path="/mokki/:userId" element={<Suspense fallback={null}><Mokki /></Suspense>} />
           {import.meta.env.DEV && (
             <Route path="/mokki-preview" element={<Suspense fallback={null}><MokkiScenePreview /></Suspense>} />
+          )}
+          {import.meta.env.DEV && (
+            <Route path="/vedot-preview" element={<Suspense fallback={null}><VedotPreview /></Suspense>} />
           )}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
