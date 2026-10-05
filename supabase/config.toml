@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.purchase-item]
 verify_jwt = false
+
+[functions.buy-mokki-piece]
+verify_jwt = false

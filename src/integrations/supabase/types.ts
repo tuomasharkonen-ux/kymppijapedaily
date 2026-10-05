@@ -104,6 +104,63 @@ export type Database = {
         }
         Relationships: []
       }
+      mokki_loylyt: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          seen_at: string | null
+          sent_date: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          seen_at?: string | null
+          sent_date: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          seen_at?: string | null
+          sent_date?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_pieces: {
+        Row: {
+          build_days: number
+          id: string
+          piece_id: string
+          played_days_at_purchase: number
+          price_paid: number
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          build_days: number
+          id?: string
+          piece_id: string
+          played_days_at_purchase: number
+          price_paid: number
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          build_days?: number
+          id?: string
+          piece_id?: string
+          played_days_at_purchase?: number
+          price_paid?: number
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -244,6 +301,21 @@ export type Database = {
           username: string
         }[]
       }
+      get_mokki_owner: {
+        Args: { p_user_id: string }
+        Returns: {
+          games_played: number
+          owns_plot: boolean
+          played_today: boolean
+          username: string
+        }[]
+      }
+      get_mokki_owners: {
+        Args: never
+        Returns: {
+          user_id: string
+        }[]
+      }
       get_player_rankings: {
         Args: { p_user_id: string }
         Returns: {
@@ -256,6 +328,8 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      mark_mokki_loylyt_seen: { Args: never; Returns: undefined }
+      send_mokki_loyly: { Args: { p_to_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
