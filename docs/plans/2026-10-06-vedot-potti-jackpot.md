@@ -1,6 +1,22 @@
 # Plan: Vedot, Päivän Potti & Jackpot (+ Mökki concept)
 
-Status: draft v2 for review. Nothing implemented yet.
+Status: implemented on branch `feature/vedot-potti-mokki` (2026-10-06). See `docs/DEPLOY-vedot-mokki.md` for rollout.
+
+## Implementation notes (where the build differs from the plan below)
+- **No `daily_boards` table and no Monte Carlo.** For greedy play the odds have an exact closed form, P(T ≤ n) = (1 − (5/6)^(n−1))^(10−k). The opening is deterministic per day, so client and server compute identical odds from the shared module `supabase/functions/_shared/kymppijape.ts`, and the server prices every bet itself.
+- **Jackpot pays out instantly** to the first ticket holder who wins in ≤ 5 throws, then reseeds at 200. Splitting same-day hits would delay the payout moment to midnight.
+- **Lukitut nopat can be added to any bet**, not just Nopea Jape. It applies to the whole game, and the UI blocks unlocking and locking a different number.
+- **Security fix:** clients can no longer execute `increment_user_credits` / `decrement_user_credits` (they were SECURITY DEFINER with default grants).
+- **Bets settle inside `save-game-result`.** Pots settle lazily on the first `get-daily-board` call after Helsinki midnight.
+- **Mökki catalog (4500 cr total):**
+  - Huussi 150, Lipputanko 200, Marjapensaat 250, Riippumatto 250, Puuvaja 300
+  - Laituri 500 (10 days played)
+  - Soutuvene 450 (needs Laituri)
+  - Rantasauna 700
+  - Grillikota 800 (30 days)
+  - Palju 900 (needs sauna, 30 days)
+  - Pieces build over 1–4 played days.
+- **New badges:** Vedonlyöjä, Lempinumero, Pottimestari, Hullu mikä hullu, Jättipotti.
 
 ## Goals
 - Give veteran players (2000–3000 credit hoards) something to spend on that also gives every daily game stakes.
