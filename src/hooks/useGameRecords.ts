@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format, subDays, parseISO, differenceInDays } from "date-fns";
+import { parseISO, differenceInDays } from "date-fns";
+import { helsinkiDate, shiftDate } from "@/lib/kymppijape";
+import type { Settlement } from "@/lib/vedot";
 
 interface GameRecord {
   throws_count: number;
@@ -11,8 +13,8 @@ interface GameRecord {
 const calculateStreak = (playedDates: string[]): number => {
   if (playedDates.length === 0) return 0;
 
-  const today = format(new Date(), "yyyy-MM-dd");
-  const yesterday = format(subDays(new Date(), 1), "yyyy-MM-dd");
+  const today = helsinkiDate();
+  const yesterday = shiftDate(today, -1);
 
   // Sort dates in descending order (most recent first)
   const sortedDates = [...new Set(playedDates)].sort((a, b) => 
@@ -56,7 +58,7 @@ export const useGameRecords = (userId: string | null) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasPlayedToday, setHasPlayedToday] = useState(false);
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = helsinkiDate();
 
   const fetchRecords = async () => {
     if (!userId) {
@@ -146,14 +148,20 @@ export const useGameRecords = (userId: string | null) => {
     }
   };
 
-  const saveGameResult = async (throws: number, winningNumber: number) => {
+  const saveGameResult = async (
+    throws: number,
+    winningNumber: number,
+    extras?: { throwLog: number[][]; unlockedAny: boolean },
+  ): Promise<{ settlement?: Settlement | null } | undefined> => {
     if (!userId) return;
 
     // Save the game - this is the critical path
     const { data, error } = await supabase.functions.invoke('save-game-result', {
       body: { 
         throws_count: throws, 
-        winning_number: winningNumber 
+        winning_number: winningNumber,
+        throw_log: extras?.throwLog,
+        unlocked_any: extras?.unlockedAny ?? false,
       }
     });
 
