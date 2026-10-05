@@ -233,6 +233,29 @@ const Shop = () => {
 
         {/* Shop items by category */}
         <div className="space-y-8">
+          {/* Features: unlock new ways to play */}
+          <section>
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <span aria-hidden="true">🔓</span> Features
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Unlock whole new ways to play Kymppijape
+              </p>
+            </div>
+            <div className="space-y-4">
+              {shopItems.filter(item => item.category === 'feature').map((item) => (
+                <ShopItemCard 
+                  key={item.id} 
+                  item={item} 
+                  itemState={getItemState(item)}
+                  onSelect={() => setSelectedItem(item)}
+                  purchasesLoading={purchasesLoading}
+                />
+              ))}
+            </div>
+          </section>
+
           {/* Dice Skins */}
           <section>
             <div className="mb-4">
