@@ -113,7 +113,7 @@ const Index = () => {
   const hasBetsToday = !!board && (board.myBets.length > 0 || board.pot.joined);
   const lukitutActive = !!board?.myBets.some((b) => b.lukitut && b.status === "open");
   // Hold the dice while the board is still loading so bets can't follow a lock
-  const bettingPending = openingRevealed && !bettingClosed && hasLicense && boardLoading;
+  const bettingPending = openingRevealed && !bettingClosed && (purchasesLoading || (hasLicense && boardLoading));
   const gameInProgress = !!user && (loadGame(user.id, helsinkiDate())?.throwCount ?? 0) > 0;
 
   const handleOpeningRevealed = useCallback(() => {
@@ -123,11 +123,13 @@ const Index = () => {
     setOpeningRevealed(true);
   }, [user]);
 
-  // Offer bets once the opening is on the table
+  // Offer bets once the opening is on the table, but never after the first lock or re-roll
   useEffect(() => {
-    if (!openingRevealed || bettingClosed || !hasLicense || !board || board.bettingDisabled || hasBetsToday) return;
+    if (!user || !openingRevealed || bettingClosed || !hasLicense || !board || board.bettingDisabled || hasBetsToday) return;
+    const saved = loadGame(user.id, helsinkiDate());
+    if (saved && (saved.throwCount > 1 || saved.dice.some((d) => d.isLocked))) return;
     setBettingOpen(true);
-  }, [openingRevealed, bettingClosed, hasLicense, board, hasBetsToday]);
+  }, [user, openingRevealed, bettingClosed, hasLicense, board, hasBetsToday]);
 
   const closeBetting = () => {
     setBettingOpen(false);
