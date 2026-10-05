@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getOpeningDice, helsinkiDate } from '../_shared/kymppijape.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,30 +31,6 @@ interface GameRecord {
   played_date: string;
   winning_number: number;
   throws_count: number;
-}
-
-// Seeded random number generator using mulberry32 algorithm (must match client)
-function seededRandom(seed: string): () => number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  
-  return function() {
-    let t = hash += 0x6D2B79F5;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-// Generate deterministic dice values for a user on a specific date (must match client)
-function getSeededDice(userId: string, date: string): number[] {
-  const seed = `${userId}_${date}`;
-  const rng = seededRandom(seed);
-  return Array(10).fill(null).map(() => Math.floor(rng() * 6) + 1);
 }
 
 // Calculate streak from played dates
@@ -101,9 +78,10 @@ function calculateStreak(playedDates: string[]): number {
   return streak;
 }
 
-// Check if today is Friday the 13th
-function isFriday13(date: Date): boolean {
-  return date.getDay() === 5 && date.getDate() === 13;
+// Check if a YYYY-MM-DD game day is Friday the 13th
+function isFriday13(gameDate: string): boolean {
+  const date = new Date(`${gameDate}T12:00:00Z`);
+  return date.getUTCDay() === 5 && date.getUTCDate() === 13;
 }
 
 // Check for consecutive days with same winning number
@@ -196,8 +174,9 @@ Deno.serve(async (req) => {
 
     // Get today's date in various formats (server-side, cannot be spoofed)
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const playDateForBadges = now.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' }).replace('/', '-');
+    // Game day is the Finnish calendar date
+    const today = helsinkiDate(now);
+    const playDateForBadges = today.slice(5); // MM-DD
     
     console.log('Server date:', today, 'Badge date:', playDateForBadges);
 
@@ -234,7 +213,8 @@ Deno.serve(async (req) => {
     const verifiedWinningNumber = todayGame?.winning_number ?? 0;
     const verifiedStreak = calculateStreak(typedGames.map(g => g.played_date));
     const isFirstGame = typedGames.length === 1 && todayGame !== null;
-    const verifiedInitialDice = getSeededDice(userId, today);
+    // The opening is shared by all players on the same day
+    const verifiedInitialDice = getOpeningDice(today);
     
     // Calculate performance metrics
     const gamesExcludingToday = typedGames.filter(g => g.played_date !== today);
@@ -418,7 +398,7 @@ Deno.serve(async (req) => {
         const isBirthday = matchedDateBadgeId.startsWith('special_date_birthday');
         if (isBirthday) {
           // Repeatable annually: award if not already earned this calendar year
-          const yearStart = `${now.getFullYear()}-01-01`;
+          const yearStart = `${today.slice(0, 4)}-01-01`;
           const { data: thisYearBadge } = await supabase
             .from('user_badges')
             .select('id')
@@ -436,7 +416,7 @@ Deno.serve(async (req) => {
 
       
       // Check Friday the 13th
-      if (isFriday13(now)) {
+      if (isFriday13(today)) {
         await checkAndAwardBadge('special_date_friday13', true);
       }
 
