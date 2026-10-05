@@ -467,3 +467,14 @@ GRANT EXECUTE ON FUNCTION public.settle_user_bets(UUID, DATE, JSONB) TO service_
 GRANT EXECUTE ON FUNCTION public.claim_jackpot(UUID, DATE, INTEGER) TO service_role;
 GRANT EXECUTE ON FUNCTION public.settle_due_pots() TO service_role;
 GRANT EXECUTE ON FUNCTION public.mark_pot_reveal_seen(DATE) TO authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Badges (awarded by check-achievements)
+-- ---------------------------------------------------------------------------
+INSERT INTO public.badges (id, name, description, trigger_type, trigger_value, prize_credits, rarity) VALUES
+  ('vedot_first_bet',       'Vedonlyöjä',       'Place your first bet or join Päivän Potti',          'vedot', 'first_bet', 25,  'Common'),
+  ('vedot_lempinumero_win', 'Lempinumero',      'Win a bet with a Lempinumero',                        'vedot', 'lempinumero', 50, 'Uncommon'),
+  ('vedot_pot_win',         'Pottimestari',     'Take home the whole kiulu in Päivän Potti',           'vedot', 'pot_win', 50,    'Uncommon'),
+  ('vedot_hullu_win',       'Hullu mikä hullu', 'Win a Hullu bet',                                     'vedot', 'hullu', 100,     'Rare'),
+  ('vedot_jackpot',         'Jättipotti',       'Hit the Jackpot: a Kymppijape in 5 throws or less',   'vedot', 'jackpot', 200,   'Legendary')
+ON CONFLICT (id) DO NOTHING;

@@ -548,6 +548,22 @@ Deno.serve(async (req) => {
       }
     }
 
+    // === VEDOT BADGES (bets are settled by save-game-result before this runs) ===
+    if (todayGame && clientContext.featureUsed !== 'share') {
+      const [allBetsRes, jackpotRes, potWinRes] = await Promise.all([
+        supabase.from('bets').select('tier, lucky_number, status, game_date').eq('user_id', userId),
+        supabase.from('jackpot_wins').select('id').eq('user_id', userId).limit(1),
+        supabase.from('pot_entries').select('payout').eq('user_id', userId).gt('payout', 0).not('throws_count', 'is', null).limit(1),
+      ]);
+      const allBets = allBetsRes.data ?? [];
+      const todaysWins = allBets.filter(b => b.game_date === today && b.status === 'won');
+      await checkAndAwardBadge('vedot_first_bet', allBets.length > 0);
+      await checkAndAwardBadge('vedot_hullu_win', todaysWins.some(b => b.tier === 'hullu'));
+      await checkAndAwardBadge('vedot_lempinumero_win', todaysWins.some(b => b.lucky_number !== null));
+      await checkAndAwardBadge('vedot_jackpot', (jackpotRes.data ?? []).length > 0);
+      await checkAndAwardBadge('vedot_pot_win', (potWinRes.data ?? []).length > 0);
+    }
+
     // Check feature_used (share feature) - this is the only client-trusted value
     if (clientContext.featureUsed === 'share') {
       // Award the share badge (non-repeatable - only once)
