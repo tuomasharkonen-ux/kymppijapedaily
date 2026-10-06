@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { betConditions, betTitle, formatOdds, type DailyBoard } from "@/lib/vedot";
+import { betTitle, formatOdds, type DailyBoard } from "@/lib/vedot";
 import { JackpotMeter } from "./JackpotMeter";
 import { Kiulu } from "./Kiulu";
 
 /** Today's stakes for licence owners: jackpot, pot and (after betting) the bet slip. */
 export const DailyStakesCard = ({ board }: { board: DailyBoard }) => {
   const { pot, jackpot, myBets } = board;
+  // Lukitut is chosen per slip, so normally every bet shares it — show it once
+  const allLocked = myBets.length > 0 && myBets.every((b) => b.lukitut);
 
   return (
     <Card className="overflow-hidden border-[#f7d774]/30 bg-gradient-to-br from-[#3a2414] to-[#1b1009] text-white">
@@ -32,22 +34,38 @@ export const DailyStakesCard = ({ board }: { board: DailyBoard }) => {
           </p>
         )}
         {myBets.length > 0 && (
-          <ul className="space-y-1 border-t border-white/10 pt-2">
-            {myBets.map((bet) => (
-              <li key={bet.id} className="flex items-center justify-between text-sm">
-                <span>
-                  {betTitle(bet)} <span className="text-xs text-white/70">{betConditions(bet)}</span>
-                </span>
-                <span
-                  className={
-                    bet.status === "won" ? "font-semibold text-emerald-300" : bet.status === "lost" ? "text-white/70 line-through" : "text-[#f7d774]"
-                  }
-                >
-                  {bet.status === "won" ? `+${bet.payout}` : bet.status === "void" ? "refunded" : `${bet.stake} @ ×${formatOdds(Number(bet.odds))}`}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="border-t border-white/10 pt-2">
+            <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f7d774]/80">
+              <span>Your bets</span>
+              {allLocked && <span className="normal-case tracking-normal text-white/70">🔒 Lukitut nopat</span>}
+            </div>
+            <ul className="space-y-1">
+              {myBets.map((bet) => (
+                <li key={bet.id} className="flex items-baseline gap-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate">
+                    {betTitle(bet)}
+                    <span className="ml-1.5 text-xs text-white/60">
+                      ≤{bet.max_throws}
+                      {bet.lukitut && !allLocked && " 🔒"}
+                    </span>
+                  </span>
+                  <span
+                    className={`shrink-0 whitespace-nowrap tabular-nums ${
+                      bet.status === "won" ? "font-semibold text-emerald-300" : bet.status === "open" ? "text-[#f7d774]" : "text-white/50"
+                    }`}
+                  >
+                    {bet.status === "won"
+                      ? `+${bet.payout}`
+                      : bet.status === "lost"
+                      ? `−${bet.stake}`
+                      : bet.status === "void"
+                      ? "refunded"
+                      : `${bet.stake} × ${formatOdds(Number(bet.odds))}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </CardContent>
     </Card>
