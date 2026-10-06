@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import {
+  Ticket,
+  Coins,
   Flame,
   Baby,
   Cake,
@@ -199,6 +201,11 @@ export const badgeIconMap: Record<string, BadgeIcon> = {
   helldivers_eagle500: Eagle500Icon,
   helldivers_laser: LaserIcon,
   helldivers_master: Crown,
+  // Bets
+  vedot_first_bet: Ticket,
+  vedot_hullu_win: Flame,
+  vedot_pot_win: Coins,
+  vedot_jackpot: Gem,
 };
 
 export const getBadgeIcon = (badgeId: string): BadgeIcon => {

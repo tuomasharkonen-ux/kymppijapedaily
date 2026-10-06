@@ -5,10 +5,28 @@ export interface ShopItem {
   shortDescription: string;
   longDescription: string;
   price: number;
-  category: 'skin' | 'action' | 'throw_animation' | 'background';
+  category: 'feature' | 'skin' | 'action' | 'throw_animation' | 'background';
 }
 
 export const shopItems: ShopItem[] = [
+  {
+    id: 'betting_license',
+    emoji: '🎟️',
+    name: 'Betting License',
+    shortDescription: 'Unlock Bets, the Pot of the Day and the Jackpot.',
+    longDescription: 'Your official Kymppijape betting license. After throwing the opening, put credits on how fast you\'ll land your Kymppijape: play it Safe, go Bold or go Crazy, bet on beating your own average or record, and add Lukitut nopat if you dare. Join the Pot of the Day for 50 credits — fewest throws takes the whole pot, revealed after midnight. And every bet is a ticket to the Jackpot: win in 5 throws or less and it\'s all yours. (It\'s just credits.)',
+    price: 300,
+    category: 'feature',
+  },
+  {
+    id: 'mokki_plot',
+    emoji: '🏡',
+    name: 'Mökkitontti',
+    shortDescription: 'Your own lakeside mökki in 3D — build it up piece by piece.',
+    longDescription: 'Every Finn deserves a mökki. Buy a little island on a quiet lake and it becomes your home screen: a living 3D diorama with real Finnish seasons, midnight sun and kaamos, and a sauna chimney that smokes on days you\'ve played. Spend credits on a sauna, a laituri, a rowing boat and more — each piece is built over the days you play. Visit your friends\' mökkis too.',
+    price: 1000,
+    category: 'feature',
+  },
   {
     id: 'golden_dice',
     emoji: '✨',
