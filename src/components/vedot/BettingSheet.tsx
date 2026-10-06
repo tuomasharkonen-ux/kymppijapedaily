@@ -18,7 +18,6 @@ import { SplitFlap } from "./SplitFlap";
 import { Kiulu } from "./Kiulu";
 import { JackpotMeter } from "./JackpotMeter";
 import { Chip, StakeChips } from "./StakeChips";
-import { SoundToggle } from "./SoundToggle";
 
 export interface BettingSheetProps {
   opening: number[];
@@ -96,7 +95,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
       role="dialog"
       aria-label="Bets and Pot of the Day"
     >
-      <div className="flex max-h-[74vh] flex-col overflow-hidden rounded-t-3xl border-t-2 border-x border-[#f7d774]/40 bg-gradient-to-b from-[#3a2414] via-[#2a190d] to-[#1b1009] text-white shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
+      <div className="flex h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-t-3xl border-t-2 border-x border-[#f7d774]/40 bg-gradient-to-b from-[#3a2414] via-[#2a190d] to-[#1b1009] text-white shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
         {/* Grab handle + header */}
         <div className="flex items-center gap-3 px-4 pt-2 pb-3 border-b border-white/10 bg-black/15">
           <div className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-white/25" />
@@ -106,7 +105,15 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
             <span className="text-white/70 text-xs">cr</span>
           </div>
           <h2 className="mt-2 flex-1 text-center font-display text-2xl tracking-wide text-[#f7d774]">Bets & Pot</h2>
-          <SoundToggle className="mt-2" />
+          <button
+            type="button"
+            onClick={onSkip}
+            disabled={isPlacing}
+            className="mt-2 rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">

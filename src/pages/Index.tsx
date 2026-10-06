@@ -398,7 +398,7 @@ ${diceEmojis}
                     return (
                       <AnimatePresence>
                         {bettingWindow && board && (
-                          <BettingPromo key="betting-promo" opening={board.opening} jackpot={board.jackpot.balance} onPlaceBets={() => setBettingOpen(true)} />
+                          <BettingPromo key="betting-promo" jackpot={board.jackpot.balance} onPlaceBets={() => setBettingOpen(true)} />
                         )}
                       </AnimatePresence>
                     );

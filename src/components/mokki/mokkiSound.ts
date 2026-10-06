@@ -1,11 +1,10 @@
-// Tiny synthesized sound effects for the mökki. Muted unless the player has
-// turned game sounds on (shared with the betting sounds).
-const SOUND_KEY = "kymppijape_sound_enabled";
+// Tiny synthesized sound effects for the mökki. Muted along with the betting sounds.
+import { isSoundEnabled } from "@/lib/sound";
 
 let ctx: AudioContext | null = null;
 
 function audio(): AudioContext | null {
-  if (typeof window === "undefined" || localStorage.getItem(SOUND_KEY) !== "true") return null;
+  if (typeof window === "undefined" || !isSoundEnabled()) return null;
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
   ctx = ctx ?? new Ctor();

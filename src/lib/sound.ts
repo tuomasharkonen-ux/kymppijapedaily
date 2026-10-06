@@ -1,27 +1,12 @@
-// Tiny synthesized sound effects (WebAudio, no audio files). Muted by default.
-// The same localStorage key is shared with the Mökki.
-
-const SOUND_KEY = "kymppijape_sound_enabled";
+// Tiny synthesized sound effects (WebAudio, no audio files). Currently muted.
 
 export type SoundName = "coin" | "coins" | "stamp" | "hiss" | "splash" | "flip" | "drumroll" | "fanfare" | "tick";
 
 let ctx: AudioContext | null = null;
 
+/** Game sounds are switched off for now; the synth code stays for when they return. */
 export function isSoundEnabled(): boolean {
-  try {
-    return localStorage.getItem(SOUND_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-export function setSoundEnabled(enabled: boolean) {
-  try {
-    localStorage.setItem(SOUND_KEY, enabled ? "true" : "false");
-  } catch {
-    // ignore storage errors (private mode)
-  }
-  if (enabled) getContext();
+  return false;
 }
 
 function getContext(): AudioContext | null {

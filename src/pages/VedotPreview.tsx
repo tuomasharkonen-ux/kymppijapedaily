@@ -88,7 +88,7 @@ const GamePreview = () => {
           ) : (
             <AnimatePresence>
               {progress.throwCount === 1 && progress.lockedCount === 0 && (
-                <BettingPromo key="promo" opening={opening} jackpot={640} onPlaceBets={() => setBettingOpen(true)} />
+                <BettingPromo key="promo" jackpot={640} onPlaceBets={() => setBettingOpen(true)} />
               )}
             </AnimatePresence>
           )
@@ -151,7 +151,7 @@ const VedotPreview = () => {
 
         {view === "game" && <GamePreview />}
         {view === "customize" && <CustomizePreview />}
-        {view === "promo" && <BettingPromo opening={OPENING} jackpot={640} onPlaceBets={noop} />}
+        {view === "promo" && <BettingPromo jackpot={640} onPlaceBets={noop} />}
         {view === "tracker" && <BetTracker bets={BETS} inPot progress={progress} />}
         {view === "stakes" && <DailyStakesCard board={BOARD} />}
         {view === "teaser" && <VedotTeaser board={BOARD} />}
