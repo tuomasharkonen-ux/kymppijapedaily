@@ -70,6 +70,23 @@ export function betConditions(bet: Pick<BetRow, "max_throws" | "lukitut">): stri
   return parts.join(" · ");
 }
 
+/**
+ * One-line betting summary for the share text, e.g. "🎰 2/3 bets won 🔒 · +377 cr ♨️".
+ * Only settled bets count; refunds are skipped and a net loss shows no amount.
+ */
+export function betShareLine(bets: BetRow[], inPot: boolean): string | null {
+  const settled = bets.filter((b) => b.status === "won" || b.status === "lost");
+  if (settled.length === 0) return inPot ? "♨️ In the Pot of the Day" : null;
+
+  const won = settled.filter((b) => b.status === "won");
+  const net = won.reduce((sum, b) => sum + b.payout, 0) - settled.reduce((sum, b) => sum + b.stake, 0);
+  let line = `🎰 ${won.length}/${settled.length} bet${settled.length === 1 ? "" : "s"} won`;
+  if (settled.some((b) => b.lukitut)) line += " 🔒";
+  if (net > 0) line += ` · +${net} cr`;
+  if (inPot) line += " ♨️";
+  return line;
+}
+
 export function formatOdds(odds: number): string {
   return odds >= 10 ? odds.toFixed(0) : odds.toFixed(1);
 }

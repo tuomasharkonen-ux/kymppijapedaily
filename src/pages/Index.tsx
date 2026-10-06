@@ -29,7 +29,7 @@ import type { DiceSkin } from "@/components/Dice";
 import { useDailyBoard } from "@/hooks/useDailyBoard";
 import { BETTING_LICENSE_ID, MOKKI_PLOT_ID, type BetSpec, helsinkiDate } from "@/lib/kymppijape";
 import { loadGame } from "@/lib/gameState";
-import type { Settlement } from "@/lib/vedot";
+import { betShareLine, type Settlement } from "@/lib/vedot";
 import { BettingSheet } from "@/components/vedot/BettingSheet";
 import { BetTracker } from "@/components/vedot/BetTracker";
 import { BettingPromo } from "@/components/vedot/BettingPromo";
@@ -194,10 +194,12 @@ const Index = () => {
       }
     }
     
+    const betLine = showBetting && board ? betShareLine(board.myBets, board.pot.joined) : null;
+
     const shareText = `Kymppijape daily ${today}
 Throws today: ${todayResult.throws_count}
 ${diceEmojis}
- Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}
+ Personal best: ${bestScore}${averageLine ? `\n${averageLine}` : ""}${betLine ? `\n${betLine}` : ""}
  
  kymppijape.com`;
     try {
