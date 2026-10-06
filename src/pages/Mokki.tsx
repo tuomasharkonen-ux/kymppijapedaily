@@ -15,6 +15,7 @@ import { saunaStatus } from "@/components/mokki/saunaStatus";
 import { useLiveEnvironment } from "@/components/mokki/MokkiHero";
 import { useScenePieces } from "@/components/mokki/useScenePieces";
 import { BuildPanel } from "@/components/mokki/BuildPanel";
+import { NeighborsSheet } from "@/components/mokki/NeighborsSheet";
 import { MokkiPreview } from "@/components/mokki/MokkiPreview";
 import { MokkiIllustration } from "@/components/mokki/MokkiIllustration";
 import { hasWebGL } from "@/components/mokki/MokkiHeroView";
@@ -64,6 +65,7 @@ const Mokki = () => {
   const { pieces, onPieceLanded } = useScenePieces(ownerId, data.pieces, data.gamesPlayed, isOwn);
   const [loylyKey, setLoylyKey] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [neighborsOpen, setNeighborsOpen] = useState(false);
   const webgl = useMemo(() => hasWebGL(), []);
 
   // Received löyly: puff on arrival, then mark seen
@@ -149,7 +151,13 @@ const Mokki = () => {
     );
   }
 
-  const title = isOwn ? "Your mökki" : `${data.ownerName ?? "Friend"}'s mökki`;
+  const title = `${data.ownerName ?? (isOwn ? "Your" : "Friend")}'s mökki`;
+
+  const visitNeighbor = (userId: string) => {
+    setNeighborsOpen(false);
+    // Hopping between neighbors replaces the entry so Back still returns home
+    navigate(`/mokki/${userId}`, { replace: !isOwn });
+  };
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
@@ -187,13 +195,33 @@ const Mokki = () => {
           <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
           {isOwn ? "Back to Game" : "Back"}
         </Button>
-        <div className="rounded-2xl bg-black/55 px-3 py-1.5 text-right text-white backdrop-blur">
-          <h1 className="text-base font-bold leading-tight">🏡 {title}</h1>
-          <p className="text-[11px] text-white/90">
+        <Button
+          size="sm"
+          className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+          onClick={() => setNeighborsOpen(true)}
+        >
+          <span aria-hidden="true" className="mr-1">🏘️</span>
+          Visit neighbors
+        </Button>
+      </header>
+
+      {/* Floating title above the island */}
+      <div className="pointer-events-none absolute inset-x-0 top-14 z-10 flex justify-center px-4">
+        <div className="max-w-full rounded-2xl bg-black/45 px-4 py-1.5 text-center text-white backdrop-blur-sm">
+          <h1 className="truncate font-display text-lg font-bold leading-tight drop-shadow">{title}</h1>
+          <p className="text-[11px] text-white/85">
             {isOwn ? saunaStatus(data.playedToday, currentStreak) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
           </p>
         </div>
-      </header>
+      </div>
+
+      <NeighborsSheet
+        open={neighborsOpen}
+        onOpenChange={setNeighborsOpen}
+        viewerId={user.id}
+        currentOwnerId={ownerId}
+        onVisit={visitNeighbor}
+      />
 
       {isOwn ? (
         <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />
