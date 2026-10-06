@@ -10,6 +10,8 @@ import { useMokki } from "@/hooks/useMokki";
 import { useBadges } from "@/hooks/useBadges";
 import { useUserPurchases } from "@/hooks/useUserPurchases";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { useGameRecords } from "@/hooks/useGameRecords";
+import { saunaStatus } from "@/components/mokki/saunaStatus";
 import { useLiveEnvironment } from "@/components/mokki/MokkiHero";
 import { useScenePieces } from "@/components/mokki/useScenePieces";
 import { BuildPanel } from "@/components/mokki/BuildPanel";
@@ -57,6 +59,8 @@ const Mokki = () => {
   const { userCredits, refetchBadges } = useBadges(isOwn ? user?.id ?? null : null);
   const { purchasedItems } = useUserPurchases(isOwn ? user?.id ?? null : null);
   const { settings } = useUserSettings(isOwn ? user?.id ?? null : null);
+  // Streaks are private (own game records only), so friends' islands keep the plain line
+  const { currentStreak } = useGameRecords(isOwn ? user?.id ?? null : null);
   const { pieces, onPieceLanded } = useScenePieces(ownerId, data.pieces, data.gamesPlayed, isOwn);
   const [loylyKey, setLoylyKey] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -186,7 +190,7 @@ const Mokki = () => {
         <div className="rounded-2xl bg-black/55 px-3 py-1.5 text-right text-white backdrop-blur">
           <h1 className="text-base font-bold leading-tight">🏡 {title}</h1>
           <p className="text-[11px] text-white/90">
-            {data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
+            {isOwn ? saunaStatus(data.playedToday, currentStreak) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
           </p>
         </div>
       </header>

@@ -15,7 +15,8 @@ export interface MokkiHeroProps {
   onMailboxClick: () => void;
   potTotal: number | null; // kiulu on the porch fills with coins; null = hide kiulu (no betting licence)
   variant?: "card" | "backdrop";
-  header?: React.ReactNode; // page header drawn on the sky (backdrop variant)
+  header?: React.ReactNode;
+  streak?: number; // daily streak for the sauna line // page header drawn on the sky (backdrop variant)
 }
 
 /** Re-evaluates season/time of day every few minutes so the island follows real Helsinki time. */
@@ -39,6 +40,7 @@ export const MokkiHero = ({
   potTotal,
   variant = "card",
   header,
+  streak = 0,
 }: MokkiHeroProps) => {
   const navigate = useNavigate();
   const env = useLiveEnvironment();
@@ -82,6 +84,7 @@ export const MokkiHero = ({
       notice={notice}
       variant={variant}
       header={header}
+      streak={streak}
     />
   );
 };

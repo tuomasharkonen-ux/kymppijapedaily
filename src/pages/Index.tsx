@@ -304,6 +304,7 @@ ${diceEmojis}
           header={<div className="container max-w-lg mx-auto px-4">{headerEl}</div>}
           userId={user.id}
           hasPlayedToday={hasPlayedToday || justCompletedGame}
+          streak={currentStreak}
           activeSkin={activeSkin}
           purchasedItems={purchasedItems}
           hasMail={showBetting && !!reveal}

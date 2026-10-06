@@ -4,6 +4,7 @@ import type { MokkiEnvironment } from "./environment";
 import type { ScenePiece } from "./scene/MokkiScene";
 import { SkyBackdrop } from "./SkyBackdrop";
 import { MokkiIllustration } from "./MokkiIllustration";
+import { saunaStatus } from "./saunaStatus";
 
 // All three.js code lives behind this lazy import
 const MokkiScene = lazy(() => import("./scene/MokkiScene"));
@@ -30,6 +31,8 @@ export interface MokkiHeroViewProps {
   onMailboxClick: () => void;
   onOpen: () => void;
   onPieceLanded?: (id: MokkiPieceId) => void;
+  /** Current daily streak (shown in the sauna line). */
+  streak?: number;
   /** Toast-style line, e.g. "Matti sent you löyly 💨". */
   notice?: string | null;
   /** "card": boxed hero. "backdrop": full-width sky behind the page header with the island floating below. */
@@ -110,7 +113,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
             </Chip>
           </div>
           <span className="rounded-full bg-black/55 px-2.5 py-0.5 text-[11px] text-white backdrop-blur">
-            {showSmoke ? "♨️ Sauna is warm" : "🪵 Play today to light the stove"}
+            {saunaStatus(showSmoke, props.streak ?? 0)}
             {building > 0 ? ` · 🔨 ${building} under construction` : ""}
           </span>
         </div>
@@ -165,11 +168,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
       {/* Title + status */}
       <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1">
         <span className="rounded-full bg-black/55 px-3 py-1 text-sm font-bold text-white backdrop-blur">🏡 Mökki</span>
-        {showSmoke ? (
-          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">♨️ Sauna is warm</span>
-        ) : (
-          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">🪵 Play today to light the stove</span>
-        )}
+        <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">{saunaStatus(showSmoke, props.streak ?? 0)}</span>
         {building > 0 && (
           <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">🔨 {building} under construction</span>
         )}

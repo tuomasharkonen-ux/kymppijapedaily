@@ -93,6 +93,7 @@ const MokkiScenePreview = () => {
         <MokkiHeroView
           {...common}
           variant="backdrop"
+          streak={Number(params.get("streak") ?? 12)}
           loylyKey={0}
           hasMail={params.get("mail") === "1"}
           potTotal={potTotal}
