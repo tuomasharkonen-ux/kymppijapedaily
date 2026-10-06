@@ -6,16 +6,18 @@ interface SplitFlapProps {
   value: string;
   className?: string;
   tileClassName?: string;
+  /** No flip sound (e.g. in the shop preview). */
+  silent?: boolean;
 }
 
 /** Departure-board style text: each character flips when it changes. */
-export const SplitFlap = ({ value, className = "", tileClassName = "" }: SplitFlapProps) => {
+export const SplitFlap = ({ value, className = "", tileClassName = "", silent = false }: SplitFlapProps) => {
   const previous = useRef(value);
 
   useEffect(() => {
-    if (previous.current !== value) playSound("flip");
+    if (previous.current !== value && !silent) playSound("flip");
     previous.current = value;
-  }, [value]);
+  }, [value, silent]);
 
   return (
     <span className={`inline-flex gap-[2px] [perspective:400px] ${className}`} aria-label={value}>

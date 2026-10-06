@@ -1,7 +1,9 @@
-// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser
+// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser|game|shop(&item=mokki_plot)
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { GameBoard } from "@/components/GameBoard";
+import { ShopItemModal } from "@/components/ShopItemModal";
+import { shopItems } from "@/lib/shopItems";
 import { useSearchParams } from "react-router-dom";
 import { Dice } from "@/components/Dice";
 import { BettingSheet } from "@/components/vedot/BettingSheet";
@@ -125,6 +127,18 @@ const VedotPreview = () => {
         <BettingSheet opening={OPENING} personal={BOARD.personal} balance={2480} jackpot={640} pot={BOARD.pot} isPlacing={false} onLockIn={noop} onSkip={noop} />
       )}
       {view === "stamp" && <PelattuStamp onDone={noop} />}
+      {view === "shop" && (
+        <ShopItemModal
+          item={shopItems.find((i) => i.id === (params.get("item") ?? "betting_license")) ?? null}
+          isOpen
+          onClose={noop}
+          isOwned={false}
+          canAfford
+          onPurchase={async () => ({ success: false })}
+          isPurchasing={false}
+          onPurchaseSuccess={noop}
+        />
+      )}
       {(view === "settlement" || view === "jackpot") && (
         <SettlementModal
           settlement={{

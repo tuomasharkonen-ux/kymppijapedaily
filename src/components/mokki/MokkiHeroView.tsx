@@ -44,7 +44,7 @@ const Chip = ({ onClick, children, highlight, label }: { onClick: () => void; ch
       onClick();
     }}
     aria-label={label}
-    className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold shadow-md backdrop-blur transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+    className={`flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 text-xs font-semibold shadow-md sm:px-3 backdrop-blur transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
       highlight ? "bg-amber-300/95 text-amber-950 animate-pulse" : "bg-black/35 text-white"
     }`}
   >
@@ -121,7 +121,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
       )}
 
       {/* Accessible porch actions (also mirrored as tappable 3D objects) */}
-      <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-2 px-3">
+      <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-1.5 px-2 sm:gap-2 sm:px-3">
         <Chip onClick={props.onMailboxClick} highlight={hasMail} label={hasMail ? "Open mailbox: you have mail" : "Open mailbox"}>
           📬 {hasMail ? "Mail!" : "Mailbox"}
         </Chip>
