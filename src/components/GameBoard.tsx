@@ -189,10 +189,11 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     const isOpeningThrow = throwCount === 0;
     setTimeout(() => {
       const next = dice.map((d, i) => {
-        if (d.isLocked) return d;
+        // Dice locked when the throw is made are locked in (permanent under Lukitut nopat)
+        if (d.isLocked) return { ...d, isCommitted: true };
         // Shared opening for the first throw, truly random after that
         const value = isOpeningThrow ? initialDiceValues[i] : Math.floor(Math.random() * 6) + 1;
-        return { ...d, value };
+        return { ...d, value, isCommitted: false };
       });
       setDice(next);
       setThrowLog(log => [...log, next.map(d => d.value)]);
@@ -274,22 +275,24 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
     const target = dice[index];
     if (lukitut) {
-      if (target.isLocked) {
-        toast("🔒 Lukitut nopat: locked dice stay locked!");
+      // Locks can change freely until the next throw; then they're locked in for good
+      if (target.isLocked && target.isCommitted) {
+        toast("🔒 Lukitut nopat: this die was locked in on your last throw");
         return;
       }
       const lockedValue = dice.find(d => d.isLocked)?.value;
-      if (lockedValue !== undefined && lockedValue !== target.value) {
+      if (!target.isLocked && lockedValue !== undefined && lockedValue !== target.value) {
         toast(`🔒 Lukitut nopat: you're locking ${lockedValue}s`);
         return;
       }
     }
     const isUnlocking = target.isLocked;
-    if (isUnlocking) setUnlockedAny(true);
+    // Only taking back a lock from an earlier throw counts; changing your mind before rolling doesn't
+    if (isUnlocking && target.isCommitted) setUnlockedAny(true);
 
     setDice(prev => {
       const newDice = [...prev];
-      newDice[index] = { ...newDice[index], isLocked: !newDice[index].isLocked };
+      newDice[index] = { ...newDice[index], isLocked: !newDice[index].isLocked, isCommitted: false };
       
       const winner = checkWin(newDice);
       if (winner !== null) {
@@ -303,7 +306,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         }
         onGameComplete(throwCount, winner, initialDiceValues, usedActionDuringGame, {
           throwLog,
-          unlockedAny: unlockedAny || isUnlocking,
+          unlockedAny,
         });
       }
       
@@ -485,6 +488,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                      <Dice
                        value={d.value}
                        isLocked={d.isLocked}
+                       lockPending={lukitut && d.isLocked && !d.isCommitted}
                        isRolling={isRolling && !d.isLocked}
                        onClick={() => toggleLock(i)}
                        disabled={gameComplete}

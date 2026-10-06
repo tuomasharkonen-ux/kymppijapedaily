@@ -140,7 +140,7 @@ export type BetType = "nopea" | "keskiarvo" | "ennatys";
 export interface BetSpec {
   type: BetType;
   tier?: TierId;
-  /** Lukitut nopat: locked dice can never be unlocked. */
+  /** Lukitut nopat (whole slip): dice locked on a throw can never be unlocked. */
   lukitut?: boolean;
   stake: number;
 }
@@ -222,6 +222,10 @@ export function priceSlip(specs: BetSpec[], opening: number[], personal: Persona
     const priced = priceBet(spec, opening, personal);
     if (priced.ok === false) return { ok: false, error: priced.error };
     bets.push(priced.bet);
+  }
+  // Lukitut nopat is a choice for the whole slip, not per bet
+  if (new Set(bets.map((b) => b.lukitut)).size > 1) {
+    return { ok: false, error: "Lukitut nopat applies to the whole slip" };
   }
   const total = bets.reduce((a, b) => a + b.stake, 0);
   if (total > MAX_TOTAL_STAKE) return { ok: false, error: `Total stake is limited to ${MAX_TOTAL_STAKE}` };

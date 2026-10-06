@@ -36,6 +36,8 @@ export type DiceAnimationType = 'shake' | 'blow' | 'insult' | null;
 interface DiceProps {
   value: number;
   isLocked: boolean;
+  /** Selected but not yet locked in: it locks for good on the next throw (Lukitut nopat). */
+  lockPending?: boolean;
   isRolling: boolean;
   onClick: () => void;
   disabled?: boolean;
@@ -172,6 +174,7 @@ interface Leaf {
 export const Dice = ({
   value,
   isLocked,
+  lockPending = false,
   isRolling,
   onClick,
   disabled,
@@ -324,14 +327,16 @@ export const Dice = ({
     <motion.button
        onClick={onClick}
        disabled={disabled || isRolling}
-       aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? 'locked' : 'unlocked'}${isScrambled ? ', scrambled' : ''}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
+       aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? (lockPending ? 'locked, locks in on the next throw' : 'locked') : 'unlocked'}${isScrambled ? ', scrambled' : ''}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
        aria-pressed={isLocked}
        className={cn(
          "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md",
          styles.bg,
          "border-2",
          isLocked
-           ? "border-primary ring-2 ring-primary/50"
+           ? lockPending
+             ? "border-dashed border-primary"
+             : "border-primary ring-2 ring-primary/50"
            : styles.border + " hover:border-primary/50",
          styles.glow,
          disabled && "opacity-50 cursor-not-allowed",
@@ -370,13 +375,16 @@ export const Dice = ({
        <AnimatePresence>
          {isLocked && (
            <motion.div 
-             className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center"
+             className={cn(
+               "absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center",
+               lockPending ? "bg-background border-2 border-dashed border-primary" : "bg-primary"
+             )}
              initial={{ scale: 0 }}
              animate={{ scale: 1 }}
              exit={{ scale: 0 }}
              transition={springs.bouncy}
            >
-             <Lock className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary-foreground" />
+             <Lock className={cn("w-2.5 h-2.5 md:w-3 md:h-3", lockPending ? "text-primary" : "text-primary-foreground")} />
            </motion.div>
          )}
        </AnimatePresence>

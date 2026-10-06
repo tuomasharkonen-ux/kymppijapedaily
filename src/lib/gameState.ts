@@ -4,12 +4,15 @@
 export interface DiceState {
   value: number;
   isLocked: boolean;
+  /** Was locked when the last throw was made (Lukitut nopat makes these permanent). */
+  isCommitted?: boolean;
 }
 
 export interface SavedGame {
   dice: DiceState[];
   throwCount: number;
   throwLog: number[][];
+  /** A die locked on an earlier throw was unlocked (breaks Lukitut nopat). */
   unlockedAny: boolean;
   usedAction: boolean;
   /** Betting sheet has been closed for the day (locked in or skipped). */

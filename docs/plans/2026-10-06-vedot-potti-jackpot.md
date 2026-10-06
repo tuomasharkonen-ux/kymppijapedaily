@@ -18,7 +18,9 @@ Status: implemented on branch `feature/vedot-potti-mokki` (2026-10-06). See `doc
   - Internal ids (`nopea`, `varma`, …) are unchanged.
 - **No `daily_boards` table and no Monte Carlo.** For greedy play the odds have an exact closed form, P(T ≤ n) = (1 − (5/6)^(n−1))^(10−k). The opening is deterministic per day, so client and server compute identical odds from the shared module `supabase/functions/_shared/kymppijape.ts`, and the server prices every bet itself.
 - **Jackpot pays out instantly** to the first ticket holder who wins in ≤ 5 throws, then reseeds at 200. Splitting same-day hits would delay the payout moment to midnight.
-- **Lukitut nopat can be added to any bet**, not just Quick Finish. It applies to the whole game, and the UI blocks unlocking and locking a different number.
+- **Lukitut nopat is one toggle for the whole slip** (×1.1 on every bet; the server rejects mixed slips).
+  - Dice can be locked and unlocked freely until the next throw. Anything locked when the throw is made is locked in for good (dashed outline = pending, solid = locked in).
+  - Only taking back a locked-in die breaks the bet.
 - **Security fix:** clients can no longer execute `increment_user_credits` / `decrement_user_credits` (they were SECURITY DEFINER with default grants).
 - **Bets settle inside `save-game-result`.** Pots settle lazily on the first `get-daily-board` call after Helsinki midnight.
 - **Mökki catalog (4500 cr total):**

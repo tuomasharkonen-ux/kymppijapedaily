@@ -62,7 +62,9 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
     price: priceBet({ type: "nopea", tier: tier.id, lukitut, stake: MIN_STAKE }, opening, personalLines),
   }));
 
-  const pricedSlip = slip.map((spec) => priceBet(spec, opening, personalLines));
+  // Lukitut nopat is chosen for the whole slip
+  const slipWithLukitut = slip.map((spec) => ({ ...spec, lukitut }));
+  const pricedSlip = slipWithLukitut.map((spec) => priceBet(spec, opening, personalLines));
   const maxWin = pricedSlip.reduce((sum, p) => sum + (p.ok ? potentialWin(p.bet.stake, p.bet.odds) : 0), 0);
   const canAdd = slip.length < MAX_BETS_PER_DAY && stake >= MIN_STAKE && stake <= stakeRoom && currentPrice.ok;
   const totalCost = slipStake + buyIn;
@@ -218,15 +220,6 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
             </div>
           </section>
 
-          {/* Lukitut nopat modifier */}
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
-            <span>
-              <span className="text-sm font-semibold">🔒 Lukitut nopat</span>
-              <span className="block text-[11px] text-white/70">Locked dice stay locked for the whole game · ×1.1</span>
-            </span>
-            <input type="checkbox" checked={lukitut} onChange={(e) => setLukitut(e.target.checked)} className="h-5 w-5 accent-[#f7d774]" />
-          </label>
-
           {/* Stake */}
           <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
             <div className="mb-2 flex items-baseline justify-between">
@@ -279,7 +272,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                     >
                       <Chip value={spec.stake} size={26} />
                       <span className="flex-1 truncate">
-                        {title} <span className="text-white/70">≤{p.bet.maxThrows}{spec.lukitut ? " · 🔒" : ""}</span>
+                        {title} <span className="text-white/70">≤{p.bet.maxThrows}</span>
                       </span>
                       <span className="font-mono text-[#f7d774]">×{formatOdds(p.bet.odds)}</span>
                       <button type="button" onClick={() => setSlip((s) => s.filter((_, j) => j !== i))} aria-label="Remove bet" className="text-white/70 hover:text-white">
@@ -291,8 +284,17 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
               </motion.ul>
             )}
           </AnimatePresence>
+          {slip.length > 0 && (
+            <label className="mb-2 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-[#f7d774]/30 bg-white/5 px-3 py-2">
+              <span>
+                <span className="text-sm font-semibold">🔒 Lukitut nopat</span>
+                <span className="block text-[11px] text-white/75">Whole slip ×1.1 · dice locked on a throw stay locked for the rest of the game</span>
+              </span>
+              <input type="checkbox" checked={lukitut} onChange={(e) => setLukitut(e.target.checked)} className="h-5 w-5 shrink-0 accent-[#f7d774]" />
+            </label>
+          )}
           <div className="flex items-center gap-3">
-            <div className="text-xs leading-tight text-white/60">
+            <div className="text-xs leading-tight text-white/75">
               <div>
                 🧾 {slip.length} bet{slip.length === 1 ? "" : "s"}{joinPot ? " + pot" : ""} · <span className="text-white">{totalCost} cr</span>
               </div>
@@ -302,14 +304,14 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
               type="button"
               whileTap={{ scale: 0.95 }}
               disabled={isPlacing || (slip.length === 0 && !joinPot)}
-              onClick={() => onLockIn(slip, joinPot)}
+              onClick={() => onLockIn(slipWithLukitut, joinPot)}
               className="ml-auto flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#ffe28a] to-[#e2b53a] px-5 py-3 font-display text-xl tracking-wider text-black shadow-[0_3px_0_#8a6510] disabled:opacity-40"
             >
               <Lock className="h-4 w-4" aria-hidden="true" />
               {isPlacing ? "…" : "LOCK IN"}
             </motion.button>
           </div>
-          <button type="button" onClick={onSkip} disabled={isPlacing} className="mt-2 w-full text-center text-sm text-white/55 hover:text-white">
+          <button type="button" onClick={onSkip} disabled={isPlacing} className="mt-2 w-full text-center text-sm text-white/75 hover:text-white">
             Not now
           </button>
         </div>

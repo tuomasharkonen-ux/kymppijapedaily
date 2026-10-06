@@ -104,6 +104,8 @@ describe("pricing", () => {
     expect(priceSlip([bet, bet, { ...bet, stake: 101 }], OPENING, NO_PERSONAL).ok).toBe(false);
     expect(priceSlip([{ ...bet, stake: 5 }], OPENING, NO_PERSONAL).ok).toBe(false);
     expect(priceSlip([bet], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], NO_PERSONAL).ok).toBe(false);
+    expect(priceSlip([{ ...bet, lukitut: true }, { ...bet, lukitut: true }], OPENING, NO_PERSONAL).ok).toBe(true);
+    expect(priceSlip([{ ...bet, lukitut: true }, bet], OPENING, NO_PERSONAL).ok).toBe(false);
   });
 });
 

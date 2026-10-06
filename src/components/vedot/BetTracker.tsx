@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { JACKPOT_MAX_THROWS, TIERS } from "@/lib/kymppijape";
-import { BET_TYPE_META, betConditions, betTitle, formatOdds, liveBetStatus, type BetRow, type LiveBetStatus } from "@/lib/vedot";
+import { BET_TYPE_META, betTitle, formatOdds, liveBetStatus, type BetRow, type LiveBetStatus } from "@/lib/vedot";
 import { playSound } from "@/lib/sound";
 import type { GameProgress } from "@/components/GameBoard";
 
@@ -41,7 +41,7 @@ const STATUS_TEXT: Record<LiveBetStatus, string> = {
 
 const shortLabel = (bet: BetRow) => {
   const emoji = bet.bet_type === "nopea" ? TIERS.find((t) => t.id === bet.tier)?.emoji : BET_TYPE_META[bet.bet_type].emoji;
-  return `${emoji} ≤${bet.max_throws}${bet.lukitut ? " 🔒" : ""}`;
+  return `${emoji} ≤${bet.max_throws}`;
 };
 
 const TrackerChip = ({ label, spoken, odds, status }: { label: string; spoken: string; odds?: string; status: LiveBetStatus }) => {
@@ -108,11 +108,18 @@ export const BetTracker = ({ bets, inPot, progress }: BetTrackerProps) => {
         <TrackerChip
           key={bet.id}
           label={shortLabel(bet)}
-          spoken={`${betTitle(bet).replace(/^\S+\s/, "")}, ${betConditions(bet)}`}
+          spoken={`${betTitle(bet).replace(/^\S+\s/, "")}, ${bet.max_throws} throws or fewer`}
           odds={formatOdds(Number(bet.odds))}
           status={liveBetStatus(bet, progress)}
         />
       ))}
+      {bets.some((b) => b.lukitut) && (
+        <TrackerChip
+          label="🔒 Lukitut nopat"
+          spoken="Lukitut nopat, locked dice stay locked"
+          status={progress.unlockedAny ? "busted" : progress.complete ? "won" : "alive"}
+        />
+      )}
       {inPot && (
         <TrackerChip
           label={progress.complete ? "♨️ Pot · reveal after midnight 🌙" : "♨️ Pot"}
