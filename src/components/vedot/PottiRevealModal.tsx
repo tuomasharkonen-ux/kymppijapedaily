@@ -70,7 +70,7 @@ export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => 
         transition={{ type: "spring", stiffness: 240, damping: 22 }}
       >
         <div className="text-center">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-white/50">{dateLabel}</div>
+          <div className="text-[11px] uppercase tracking-[0.25em] text-white/70">{dateLabel}</div>
           <h2 className="font-display text-4xl tracking-wide text-[#f7d774]">Yesterday's Pot</h2>
         </div>
 
@@ -95,7 +95,7 @@ export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => 
                   {/* Face down */}
                   <div className="absolute inset-0 flex items-center justify-between rounded-xl border border-white/10 bg-[repeating-linear-gradient(45deg,#4a2c14_0_8px,#3a2210_8px_16px)] px-3 [backface-visibility:hidden]">
                     <span className="font-semibold">{entry.username}{entry.isMe ? " (you)" : ""}</span>
-                    <span className="font-display text-xl text-white/40">?</span>
+                    <span className="font-display text-xl text-white/70">?</span>
                   </div>
                   {/* Face up */}
                   <div
@@ -109,7 +109,7 @@ export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => 
                     </span>
                     <span className="text-right">
                       <span className="font-display text-xl">{entry.throwsCount ?? "DNF"}</span>
-                      {entry.throwsCount !== null && <span className="ml-1 text-xs text-white/50">throws</span>}
+                      {entry.throwsCount !== null && <span className="ml-1 text-xs text-white/70">throws</span>}
                       {entry.payout > 0 && <span className="ml-2 font-display text-lg text-emerald-300">+{entry.payout}</span>}
                     </span>
                   </div>

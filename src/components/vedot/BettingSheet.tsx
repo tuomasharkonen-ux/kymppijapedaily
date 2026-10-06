@@ -40,7 +40,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
   const [dropKey, setDropKey] = useState(0);
   const [selection, setSelection] = useState<Selection>({ type: "nopea", tier: "rohkea" });
   const [lukitut, setLukitut] = useState(false);
-  const [stake, setStake] = useState(25);
+  const [stake, setStake] = useState(0);
   const [slip, setSlip] = useState<BetSpec[]>([]);
 
   const personalLines: PersonalLines = personal ?? { keskiarvo: null, ennatys: null };
@@ -71,7 +71,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
     if (!canAdd) return;
     playSound("coins");
     setSlip((s) => [...s, currentSpec]);
-    setStake(Math.min(25, Math.max(0, stakeRoom - stake)));
+    setStake(0);
   };
 
   const togglePot = () => {
@@ -101,7 +101,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
           <div className="mt-2 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-sm">
             <Coins className="h-4 w-4 text-[#f7d774]" aria-hidden="true" />
             <span className="font-semibold">{balance - totalCost}</span>
-            <span className="text-white/50 text-xs">cr</span>
+            <span className="text-white/70 text-xs">cr</span>
           </div>
           <h2 className="mt-2 flex-1 text-center font-display text-2xl tracking-wide text-[#f7d774]">Bets & Pot</h2>
           <SoundToggle className="mt-2" />
@@ -119,7 +119,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
               <Kiulu fill={Math.min(1, (pot.total + buyIn) / 400)} dropKey={dropKey} size={72} />
               <div className="min-w-0 flex-1">
                 <div className={sectionTitle}>Pot of the Day</div>
-                <div className="font-display text-2xl leading-none">{pot.total + buyIn} <span className="text-sm text-white/50">cr</span></div>
+                <div className="font-display text-2xl leading-none">{pot.total + buyIn} <span className="text-sm text-white/70">cr</span></div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {pot.entrants.map((e) => (
                     <span key={e.userId} className="rounded-full bg-white/10 px-2 py-0.5 text-[11px]" title={e.username}>
@@ -127,7 +127,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                     </span>
                   ))}
                   {joinPot && <span className="rounded-full bg-[#f7d774] px-2 py-0.5 text-[11px] font-semibold text-black">You</span>}
-                  {pot.entrants.length === 0 && !joinPot && <span className="text-[11px] text-white/50">Be the first in!</span>}
+                  {pot.entrants.length === 0 && !joinPot && <span className="text-[11px] text-white/70">Be the first in!</span>}
                 </div>
                 <motion.button
                   type="button"
@@ -142,14 +142,14 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                 </motion.button>
               </div>
             </div>
-            <p className="mt-1.5 text-[11px] text-white/45">Fewest throws takes the pot. Scores stay secret until the reveal after midnight.</p>
+            <p className="mt-1.5 text-[11px] text-white/70">Fewest throws takes the pot. Scores stay secret until the reveal after midnight.</p>
           </section>
 
           {/* Quick Finish tiers */}
           <section>
             <div className="mb-2 flex items-baseline justify-between">
               <h3 className={sectionTitle}>⚡ Quick Finish</h3>
-              <span className="text-[11px] text-white/45">How lucky do you feel?</span>
+              <span className="text-[11px] text-white/70">How lucky do you feel?</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {tierPrices.map(({ tier, price }) => {
@@ -168,7 +168,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                   >
                     <div className="text-2xl" aria-hidden="true">{tier.emoji}</div>
                     <div className="text-sm font-semibold">{tier.name}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-white/45">{tier.tagline}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-white/70">{tier.tagline}</div>
                     {price.ok && (
                       <>
                         <div className="mt-1 text-xs text-white/80">≤ {price.bet.maxThrows} throws</div>
@@ -210,7 +210,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                         <SplitFlap value={`×${formatOdds(price.bet.odds)}`} className="text-sm font-bold" />
                       </div>
                     ) : (
-                      <div className="mt-1 text-[11px] text-white/50">{personal ? "Unlocks after 5 games" : "Loading…"}</div>
+                      <div className="mt-1 text-[11px] text-white/70">{personal ? "Unlocks after 5 games" : "Loading…"}</div>
                     )}
                   </motion.button>
                 );
@@ -222,7 +222,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
           <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
             <span>
               <span className="text-sm font-semibold">🔒 Lukitut nopat</span>
-              <span className="block text-[11px] text-white/45">Locked dice stay locked for the whole game · ×1.1</span>
+              <span className="block text-[11px] text-white/70">Locked dice stay locked for the whole game · ×1.1</span>
             </span>
             <input type="checkbox" checked={lukitut} onChange={(e) => setLukitut(e.target.checked)} className="h-5 w-5 accent-[#f7d774]" />
           </label>
@@ -231,22 +231,28 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
           <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
             <div className="mb-2 flex items-baseline justify-between">
               <h3 className={sectionTitle}>Stake</h3>
-              <span className="text-[11px] text-white/45">
+              <span className="text-[11px] text-white/70">
                 max {MAX_TOTAL_STAKE} cr per day · {MAX_BETS_PER_DAY} bets
               </span>
             </div>
-            <StakeChips stake={stake} max={stakeRoom} onChange={setStake} />
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              onClick={addToSlip}
-              disabled={!canAdd}
-              className="mt-3 w-full rounded-xl bg-white/10 py-2 text-sm font-semibold hover:bg-white/15 disabled:opacity-40"
-            >
-              {currentPrice.ok
-                ? `+ Add to slip · win ${potentialWin(Math.max(stake, MIN_STAKE), currentPrice.bet.odds)}`
-                : "Pick a bet"}
-            </motion.button>
+            <StakeChips stake={stake} max={stakeRoom} onChange={setStake} hint={stake === 0 && slip.length < MAX_BETS_PER_DAY && stakeRoom >= MIN_STAKE} />
+            {stake === 0 ? (
+              <p className="mt-3 rounded-xl border border-dashed border-[#f7d774]/50 py-2 text-center text-sm text-white/85">
+                👆 Tap the chips to set your stake
+              </p>
+            ) : (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                onClick={addToSlip}
+                disabled={!canAdd}
+                className="mt-3 w-full rounded-xl bg-[#f7d774]/15 py-2 text-sm font-semibold text-[#f7d774] ring-1 ring-[#f7d774]/50 hover:bg-[#f7d774]/25 disabled:opacity-40"
+              >
+                {currentPrice.ok
+                  ? `+ Add to slip · win ${potentialWin(Math.max(stake, MIN_STAKE), currentPrice.bet.odds)}`
+                  : "Pick a bet"}
+              </motion.button>
+            )}
           </section>
         </div>
 
@@ -273,10 +279,10 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                     >
                       <Chip value={spec.stake} size={26} />
                       <span className="flex-1 truncate">
-                        {title} <span className="text-white/50">≤{p.bet.maxThrows}{spec.lukitut ? " · 🔒" : ""}</span>
+                        {title} <span className="text-white/70">≤{p.bet.maxThrows}{spec.lukitut ? " · 🔒" : ""}</span>
                       </span>
                       <span className="font-mono text-[#f7d774]">×{formatOdds(p.bet.odds)}</span>
-                      <button type="button" onClick={() => setSlip((s) => s.filter((_, j) => j !== i))} aria-label="Remove bet" className="text-white/40 hover:text-white">
+                      <button type="button" onClick={() => setSlip((s) => s.filter((_, j) => j !== i))} aria-label="Remove bet" className="text-white/70 hover:text-white">
                         <X className="h-4 w-4" />
                       </button>
                     </motion.li>
@@ -304,7 +310,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
             </motion.button>
           </div>
           <button type="button" onClick={onSkip} disabled={isPlacing} className="mt-2 w-full text-center text-sm text-white/55 hover:text-white">
-            Just play →
+            Not now
           </button>
         </div>
       </div>

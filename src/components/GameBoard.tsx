@@ -31,6 +31,7 @@ const CINEMATIC_SKINS: DiceSkin[] = ["helldivers_dice", "sieni_dice"];
 
 export interface GameProgress {
   throwCount: number;
+  lockedCount: number;
   showing: number[];
   unlockedAny: boolean;
   complete: boolean;
@@ -453,6 +454,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
               {renderAboveDice?.({
                 throwCount,
+                lockedCount: dice.filter(d => d.isLocked).length,
                 showing: dice.map(d => d.value),
                 unlockedAny,
                 complete: gameComplete,

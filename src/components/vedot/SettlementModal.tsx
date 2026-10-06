@@ -97,7 +97,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
           >
             <h2 className="text-center font-display text-3xl tracking-wide text-[#f7d774]">Results</h2>
-            <p className="mb-4 text-center text-xs text-white/50">Settling today's bets</p>
+            <p className="mb-4 text-center text-xs text-white/70">Settling today's bets</p>
 
             <ul className="space-y-2">
               {bets.map((bet, i) => {
@@ -107,7 +107,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
                     <div className="flex items-center gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold">{betTitle(bet)}</div>
-                        <div className="text-[11px] text-white/50">
+                        <div className="text-[11px] text-white/70">
                           {betConditions(bet)} · {bet.stake} cr @ ×{formatOdds(Number(bet.odds))}
                         </div>
                       </div>
@@ -154,12 +154,12 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
               initial={{ opacity: 0 }}
               animate={{ opacity: done ? 1 : 0.3 }}
             >
-              <div className="text-xs text-white/50">
+              <div className="text-xs text-white/70">
                 Staked {totalStaked} · Won <span className="text-emerald-300">{done ? totalPayout : "…"}</span>
               </div>
               {settlement.newBalance !== null && (
                 <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider text-white/40">Balance</div>
+                  <div className="text-[10px] uppercase tracking-wider text-white/70">Balance</div>
                   <div className="font-display text-3xl text-[#f7d774]">
                     <AnimatedNumber value={done ? settlement.newBalance : settlement.newBalance - totalPayout} />
                   </div>

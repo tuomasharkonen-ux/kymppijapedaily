@@ -1,4 +1,4 @@
-// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser|game|shop(&item=mokki_plot)
+// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser|promo|game|shop(&item=mokki_plot)
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { GameBoard } from "@/components/GameBoard";
@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import { Dice } from "@/components/Dice";
 import { BettingSheet } from "@/components/vedot/BettingSheet";
 import { BetTracker } from "@/components/vedot/BetTracker";
+import { BettingPromo } from "@/components/vedot/BettingPromo";
 import { PelattuStamp } from "@/components/vedot/PelattuStamp";
 import { SettlementModal } from "@/components/vedot/SettlementModal";
 import { PottiRevealModal } from "@/components/vedot/PottiRevealModal";
@@ -79,11 +80,18 @@ const GamePreview = () => {
           setResult(JSON.stringify({ throws, winningNumber, logLength: extras.throwLog.length, firstIsOpening: extras.throwLog[0]?.join() === opening.join(), unlockedAny: extras.unlockedAny }))
         }
         bettingOpen={bettingOpen}
-        onOpeningRevealed={() => {
-          if (!JSON.parse(localStorage.getItem(`kymppijape_game_preview-user_${helsinkiDate()}`) ?? "{}").bettingClosed) setBettingOpen(true);
-        }}
         lukitut={bets.some((b) => b.lukitut)}
-        renderAboveDice={(progress) => (bets.length ? <BetTracker bets={bets} inPot={false} progress={progress} /> : null)}
+        renderAboveDice={(progress) =>
+          bets.length ? (
+            <BetTracker bets={bets} inPot={false} progress={progress} />
+          ) : (
+            <AnimatePresence>
+              {progress.throwCount === 1 && progress.lockedCount === 0 && (
+                <BettingPromo key="promo" opening={opening} jackpot={640} onPlaceBets={() => setBettingOpen(true)} />
+              )}
+            </AnimatePresence>
+          )
+        }
       />
       {result && <pre data-testid="result" className="text-xs">{result}</pre>}
       <AnimatePresence>
@@ -99,10 +107,14 @@ const VedotPreview = () => {
   const [params] = useSearchParams();
   const view = params.get("view") ?? "sheet";
   const throws = Number(params.get("throws") ?? 7);
+  const done = params.get("done") === "1";
 
   const progress = useMemo(
-    () => ({ throwCount: throws, showing: [3, 3, 3, 3, 3, 3, 3, 3, 5, 1], unlockedAny: false, complete: false, winningNumber: null }),
-    [throws],
+    () =>
+      done
+        ? { throwCount: throws, lockedCount: 10, showing: Array(10).fill(3), unlockedAny: false, complete: true, winningNumber: 3 }
+        : { throwCount: throws, lockedCount: 8, showing: [3, 3, 3, 3, 3, 3, 3, 3, 5, 1], unlockedAny: false, complete: false, winningNumber: null },
+    [throws, done],
   );
 
   return (
@@ -118,6 +130,7 @@ const VedotPreview = () => {
         )}
 
         {view === "game" && <GamePreview />}
+        {view === "promo" && <BettingPromo opening={OPENING} jackpot={640} onPlaceBets={noop} />}
         {view === "tracker" && <BetTracker bets={BETS} inPot progress={progress} />}
         {view === "stakes" && <DailyStakesCard board={BOARD} />}
         {view === "teaser" && <VedotTeaser board={BOARD} />}

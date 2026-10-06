@@ -28,10 +28,11 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { DiceSkin } from "@/components/Dice";
 import { useDailyBoard } from "@/hooks/useDailyBoard";
 import { BETTING_LICENSE_ID, MOKKI_PLOT_ID, type BetSpec, helsinkiDate } from "@/lib/kymppijape";
-import { loadGame, updateSavedGame } from "@/lib/gameState";
+import { loadGame } from "@/lib/gameState";
 import type { Settlement } from "@/lib/vedot";
 import { BettingSheet } from "@/components/vedot/BettingSheet";
 import { BetTracker } from "@/components/vedot/BetTracker";
+import { BettingPromo } from "@/components/vedot/BettingPromo";
 import { PelattuStamp } from "@/components/vedot/PelattuStamp";
 import { SettlementModal } from "@/components/vedot/SettlementModal";
 import { PottiRevealModal } from "@/components/vedot/PottiRevealModal";
@@ -94,7 +95,6 @@ const Index = () => {
   // Bets, Pot of the Day & Jackpot (unlocked with the Betting License)
   const {
     board,
-    isLoading: boardLoading,
     isPlacing,
     placeBets,
     applySettlement,
@@ -103,7 +103,6 @@ const Index = () => {
   const hasLicense = purchasedItems.includes(BETTING_LICENSE_ID);
   const hasMokki = purchasedItems.includes(MOKKI_PLOT_ID);
   const [openingRevealed, setOpeningRevealed] = useState(false);
-  const [bettingClosed, setBettingClosed] = useState(false);
   const [bettingOpen, setBettingOpen] = useState(false);
   const [showStamp, setShowStamp] = useState(false);
   const [pendingSettlement, setPendingSettlement] = useState<Settlement | null>(null);
@@ -112,30 +111,11 @@ const Index = () => {
   const reveal = board?.reveals[0] ?? null;
   const hasBetsToday = !!board && (board.myBets.length > 0 || board.pot.joined);
   const lukitutActive = !!board?.myBets.some((b) => b.lukitut && b.status === "open");
-  // Hold the dice while the board is still loading so bets can't follow a lock
-  const bettingPending = openingRevealed && !bettingClosed && (purchasesLoading || (hasLicense && boardLoading));
+  const canOfferBets = hasLicense && !!board && !board.bettingDisabled && !hasBetsToday;
   const gameInProgress = !!user && (loadGame(user.id, helsinkiDate())?.throwCount ?? 0) > 0;
 
-  const handleOpeningRevealed = useCallback(() => {
-    if (user && loadGame(user.id, helsinkiDate())?.bettingClosed) {
-      setBettingClosed(true);
-    }
-    setOpeningRevealed(true);
-  }, [user]);
-
-  // Offer bets once the opening is on the table, but never after the first lock or re-roll
-  useEffect(() => {
-    if (!user || !openingRevealed || bettingClosed || !hasLicense || !board || board.bettingDisabled || hasBetsToday) return;
-    const saved = loadGame(user.id, helsinkiDate());
-    if (saved && (saved.throwCount > 1 || saved.dice.some((d) => d.isLocked))) return;
-    setBettingOpen(true);
-  }, [user, openingRevealed, bettingClosed, hasLicense, board, hasBetsToday]);
-
-  const closeBetting = () => {
-    setBettingOpen(false);
-    setBettingClosed(true);
-    if (user) updateSavedGame(user.id, helsinkiDate(), { bettingClosed: true });
-  };
+  const handleOpeningRevealed = useCallback(() => setOpeningRevealed(true), []);
+  const closeBetting = () => setBettingOpen(false);
 
   const handleLockIn = async (bets: BetSpec[], joinPot: boolean) => {
     const result = await placeBets(bets, joinPot);
@@ -394,12 +374,23 @@ ${diceEmojis}
                   isStatsLoading={isLoading}
                   showCopied={showCopied}
                   onVictoryAnimationEnd={() => setIsVictoryAnimating(false)}
-                  bettingOpen={bettingOpen || bettingPending}
+                  bettingOpen={bettingOpen}
                   onOpeningRevealed={handleOpeningRevealed}
                   lukitut={lukitutActive}
-                  renderAboveDice={(progress) =>
-                    board && hasBetsToday ? <BetTracker bets={board.myBets} inPot={board.pot.joined} progress={progress} /> : null
-                  }
+                  renderAboveDice={(progress) => {
+                    if (board && hasBetsToday) {
+                      return <BetTracker bets={board.myBets} inPot={board.pot.joined} progress={progress} />;
+                    }
+                    // Betting is open from the opening throw until the first die is locked
+                    const bettingWindow = canOfferBets && progress.throwCount === 1 && progress.lockedCount === 0 && !progress.complete;
+                    return (
+                      <AnimatePresence>
+                        {bettingWindow && board && (
+                          <BettingPromo key="betting-promo" opening={board.opening} jackpot={board.jackpot.balance} onPlaceBets={() => setBettingOpen(true)} />
+                        )}
+                      </AnimatePresence>
+                    );
+                  }}
                 />
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />

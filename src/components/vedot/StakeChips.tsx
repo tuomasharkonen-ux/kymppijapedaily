@@ -12,6 +12,8 @@ interface StakeChipsProps {
   stake: number;
   max: number;
   onChange: (stake: number) => void;
+  /** Gently bounce the chips to show they're tappable. */
+  hint?: boolean;
 }
 
 export const Chip = ({ value, size = 44 }: { value: number; size?: number }) => {
@@ -37,15 +39,17 @@ export const Chip = ({ value, size = 44 }: { value: number; size?: number }) => 
 };
 
 /** Casino chips: tap to add to the stake. */
-export const StakeChips = ({ stake, max, onChange }: StakeChipsProps) => (
+export const StakeChips = ({ stake, max, onChange, hint = false }: StakeChipsProps) => (
   <div className="flex items-center gap-2">
-    {CHIPS.map((chip) => {
+    {CHIPS.map((chip, i) => {
       const disabled = stake + chip.value > max;
       return (
         <motion.button
           key={chip.value}
           type="button"
           whileTap={{ scale: 0.85, y: -6 }}
+          animate={hint && !disabled ? { y: [0, -6, 0] } : { y: 0 }}
+          transition={hint ? { duration: 0.5, delay: i * 0.12, repeat: Infinity, repeatDelay: 1.6 } : undefined}
           disabled={disabled}
           onClick={() => {
             playSound("tick");
@@ -77,7 +81,7 @@ export const StakeChips = ({ stake, max, onChange }: StakeChipsProps) => (
       <div className="text-right">
         <div className="font-display text-2xl leading-none text-[#f7d774]">{stake}</div>
         {stake > 0 && (
-          <button type="button" onClick={() => onChange(0)} className="text-[11px] text-white/50 underline">
+          <button type="button" onClick={() => onChange(0)} className="text-[11px] text-white/70 underline">
             clear
           </button>
         )}

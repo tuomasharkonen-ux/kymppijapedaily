@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { JACKPOT_MAX_THROWS, TIERS } from "@/lib/kymppijape";
-import { BET_TYPE_META, formatOdds, liveBetStatus, type BetRow, type LiveBetStatus } from "@/lib/vedot";
+import { BET_TYPE_META, betConditions, betTitle, formatOdds, liveBetStatus, type BetRow, type LiveBetStatus } from "@/lib/vedot";
 import { playSound } from "@/lib/sound";
 import type { GameProgress } from "@/components/GameBoard";
 
@@ -11,13 +11,32 @@ interface BetTrackerProps {
   progress: GameProgress;
 }
 
+// Solid colours with WCAG AA contrast on both the light and the dark game card
 const STATUS_STYLES: Record<LiveBetStatus, string> = {
-  alive: "border-[#f7d774]/50 bg-[#2a190d] text-[#f7d774]",
-  last_chance: "border-amber-400 bg-amber-500/20 text-amber-200",
-  busted: "border-white/10 bg-black/30 text-white/35 line-through",
-  won: "border-emerald-400 bg-emerald-500/20 text-emerald-200",
-  lost: "border-white/10 bg-black/30 text-white/35 line-through",
-  void: "border-white/10 bg-black/30 text-white/50",
+  alive: "border-[#f7d774]/70 bg-[#2a190d] text-[#f7d774]",
+  last_chance: "border-amber-600 bg-amber-300 text-amber-950",
+  busted: "border-stone-700 bg-stone-600 text-white",
+  won: "border-emerald-800 bg-emerald-700 text-white",
+  lost: "border-stone-700 bg-stone-600 text-white",
+  void: "border-stone-400 bg-stone-200 text-stone-800",
+};
+
+const STATUS_ICON: Record<LiveBetStatus, string> = {
+  alive: "",
+  last_chance: "⏳",
+  busted: "✗",
+  won: "✓",
+  lost: "✗",
+  void: "↺",
+};
+
+const STATUS_TEXT: Record<LiveBetStatus, string> = {
+  alive: "in play",
+  last_chance: "last chance on this throw",
+  busted: "lost",
+  won: "won",
+  lost: "lost",
+  void: "refunded",
 };
 
 const shortLabel = (bet: BetRow) => {
@@ -25,7 +44,7 @@ const shortLabel = (bet: BetRow) => {
   return `${emoji} ≤${bet.max_throws}${bet.lukitut ? " 🔒" : ""}`;
 };
 
-const TrackerChip = ({ label, odds, status }: { label: string; odds?: string; status: LiveBetStatus }) => {
+const TrackerChip = ({ label, spoken, odds, status }: { label: string; spoken: string; odds?: string; status: LiveBetStatus }) => {
   const previous = useRef(status);
 
   useEffect(() => {
@@ -40,6 +59,8 @@ const TrackerChip = ({ label, odds, status }: { label: string; odds?: string; st
   return (
     <motion.div
       layout
+      role="listitem"
+      aria-label={`${spoken}${odds ? `, odds ${odds}` : ""}: ${STATUS_TEXT[status]}`}
       className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[status]}`}
       animate={
         status === "last_chance"
@@ -52,8 +73,9 @@ const TrackerChip = ({ label, odds, status }: { label: string; odds?: string; st
       }
       transition={status === "last_chance" ? { duration: 0.8, repeat: Infinity } : { duration: 0.4 }}
     >
-      <span>{label}</span>
-      {odds && <span className="font-mono opacity-80">×{odds}</span>}
+      {STATUS_ICON[status] && <span aria-hidden="true">{STATUS_ICON[status]}</span>}
+      <span aria-hidden="true">{label}</span>
+      {odds && <span aria-hidden="true" className="font-mono">×{odds}</span>}
       {/* Steam puff when a bet dies on the sauna stones */}
       <AnimatePresence>
         {dead &&
@@ -81,12 +103,24 @@ export const BetTracker = ({ bets, inPot, progress }: BetTrackerProps) => {
     : progress.throwCount > JACKPOT_MAX_THROWS ? "busted" : progress.throwCount === JACKPOT_MAX_THROWS ? "last_chance" : "alive";
 
   return (
-    <div className="mb-4 flex flex-wrap justify-center gap-1.5" aria-label="Your bets">
+    <div className="mb-4 flex flex-wrap justify-center gap-1.5" role="list" aria-label="Your bets">
       {bets.map((bet) => (
-        <TrackerChip key={bet.id} label={shortLabel(bet)} odds={formatOdds(Number(bet.odds))} status={liveBetStatus(bet, progress)} />
+        <TrackerChip
+          key={bet.id}
+          label={shortLabel(bet)}
+          spoken={`${betTitle(bet).replace(/^\S+\s/, "")}, ${betConditions(bet)}`}
+          odds={formatOdds(Number(bet.odds))}
+          status={liveBetStatus(bet, progress)}
+        />
       ))}
-      {inPot && <TrackerChip label={progress.complete ? "♨️ Pot · reveal after midnight 🌙" : "♨️ Pot"} status="alive" />}
-      <TrackerChip label={`🏆 ≤${JACKPOT_MAX_THROWS}`} status={jackpotStatus} />
+      {inPot && (
+        <TrackerChip
+          label={progress.complete ? "♨️ Pot · reveal after midnight 🌙" : "♨️ Pot"}
+          spoken={progress.complete ? "Pot of the Day, revealed after midnight" : "Pot of the Day"}
+          status="alive"
+        />
+      )}
+      <TrackerChip label={`🏆 ≤${JACKPOT_MAX_THROWS}`} spoken={`Jackpot, ${JACKPOT_MAX_THROWS} throws or fewer`} status={jackpotStatus} />
     </div>
   );
 };
