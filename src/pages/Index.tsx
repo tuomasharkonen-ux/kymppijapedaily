@@ -37,7 +37,7 @@ import { PelattuStamp } from "@/components/vedot/PelattuStamp";
 import { SettlementModal } from "@/components/vedot/SettlementModal";
 import { PottiRevealModal } from "@/components/vedot/PottiRevealModal";
 import { DailyStakesCard, VedotTeaser } from "@/components/vedot/DailyStakesCard";
-import { MokkiHero } from "@/components/mokki/MokkiHero";
+import { MokkiHero, useLiveEnvironment } from "@/components/mokki/MokkiHero";
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -249,6 +249,10 @@ ${diceEmojis}
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
+  // Mökki owners get the island as a full-width sky behind the header
+  const mokkiEnv = useLiveEnvironment();
+  const mokkiBackdrop = !!user && showMokki && !showPracticeMode;
+
   if (authLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center" role="status" aria-label="Loading game">
         <div className="animate-pulse text-4xl" aria-hidden="true">🎲</div>
@@ -258,19 +262,19 @@ ${diceEmojis}
   const hasPremiumBg = activeBackground !== "default";
   const bgClass = getBackgroundStyles(activeBackground);
   const textClass = hasPremiumBg ? "text-white" : "";
-
-  return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"}`}>
-      {activeBackground === "starfield_bg" && <TwinkleStars />}
-      <div className={`container max-w-lg mx-auto px-4 py-6 md:py-10 ${textClass}`}>
-        <header className="text-center mb-6 md:mb-8">
-          <h1 className={`text-3xl md:text-4xl font-bold mb-1 ${hasPremiumBg ? "text-white" : "text-foreground"}`}>
+  // On the mökki sky the header follows the sky (white text at dusk and night), otherwise the page background
+  const darkSky = mokkiEnv.timeOfDay === "night" || mokkiEnv.timeOfDay === "twilight";
+  const lightHeader = mokkiBackdrop ? darkSky : hasPremiumBg;
+  const headerEl = (
+        <header className={`text-center ${mokkiBackdrop ? `pt-6 md:pt-10 ${lightHeader ? "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]" : ""}` : "mb-6 md:mb-8"}`}>
+          <h1 className={`text-3xl md:text-4xl font-bold mb-1 ${lightHeader ? "text-white" : "text-foreground"}`}>
             <span aria-hidden="true">🎲</span> Kymppijape Daily
           </h1>
-          <p className={hasPremiumBg ? "text-white/70" : "text-muted-foreground"}>
+          <p className={lightHeader ? "text-white/85" : mokkiBackdrop ? "text-foreground/75" : "text-muted-foreground"}>
             {format(new Date(), "EEEE, MMMM d, yyyy")}
           </p>
           {user && <div className="mt-2 flex items-center justify-center gap-2">
-              <span className={`text-sm ${hasPremiumBg ? "text-white/70" : "text-muted-foreground"}`}>{user.email}</span>
+              <span className={`text-sm ${lightHeader ? "text-white/85" : mokkiBackdrop ? "text-foreground/75" : "text-muted-foreground"}`}>{user.email}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" aria-label="User menu">
@@ -290,20 +294,25 @@ ${diceEmojis}
               </DropdownMenu>
             </div>}
         </header>
+  );
 
-        {user && showMokki && !showPracticeMode && (
-          <div className="mb-6">
-            <MokkiHero
-              userId={user.id}
-              hasPlayedToday={hasPlayedToday || justCompletedGame}
-              activeSkin={activeSkin}
-              purchasedItems={purchasedItems}
-              hasMail={showBetting && !!reveal}
-              onMailboxClick={() => (showBetting && reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
-              potTotal={showBetting ? board?.pot.total ?? 0 : null}
-            />
-          </div>
-        )}
+  return <div className={`min-h-screen ${hasPremiumBg ? bgClass : "bg-background"} ${mokkiBackdrop ? "overflow-x-hidden" : ""}`}>
+      {activeBackground === "starfield_bg" && <TwinkleStars />}
+      {mokkiBackdrop && user && (
+        <MokkiHero
+          variant="backdrop"
+          header={<div className="container max-w-lg mx-auto px-4">{headerEl}</div>}
+          userId={user.id}
+          hasPlayedToday={hasPlayedToday || justCompletedGame}
+          activeSkin={activeSkin}
+          purchasedItems={purchasedItems}
+          hasMail={showBetting && !!reveal}
+          onMailboxClick={() => (showBetting && reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
+          potTotal={showBetting ? board?.pot.total ?? 0 : null}
+        />
+      )}
+      <div className={`container max-w-lg mx-auto px-4 ${mokkiBackdrop ? "relative -mt-24 pb-6 md:pb-10" : "py-6 md:py-10"} ${textClass}`}>
+{!mokkiBackdrop && headerEl}
 
         {!user ? <PracticeMode /> : showPracticeMode ? <div className="space-y-6">
             <div className="text-center">

@@ -32,7 +32,14 @@ export interface MokkiHeroViewProps {
   onPieceLanded?: (id: MokkiPieceId) => void;
   /** Toast-style line, e.g. "Matti sent you löyly 💨". */
   notice?: string | null;
+  /** "card": boxed hero. "backdrop": full-width sky behind the page header with the island floating below. */
+  variant?: "card" | "backdrop";
+  /** Page header rendered on the sky (backdrop variant). */
+  header?: React.ReactNode;
 }
+
+// The backdrop fades into whatever page background is active (plain or premium)
+const BACKDROP_FADE = "linear-gradient(to bottom, black calc(100% - 10rem), transparent)";
 
 const Chip = ({ onClick, children, highlight, label }: { onClick: () => void; children: React.ReactNode; highlight?: boolean; label: string }) => (
   <button
@@ -54,6 +61,64 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
   const { env, pieces, showSmoke, hasMail, potTotal, onOpen, notice } = props;
   const webgl = useMemo(() => hasWebGL(), []);
   const building = pieces.filter((p) => p.status === "building").length;
+
+  if (props.variant === "backdrop") {
+    return (
+      <div
+        className="relative w-full select-none"
+        style={{ maskImage: BACKDROP_FADE, WebkitMaskImage: BACKDROP_FADE }}
+      >
+        <SkyBackdrop env={env} />
+        <div className="relative">{props.header}</div>
+
+        {/* The floating island, always centred above the game */}
+        <div className="relative h-[clamp(230px,60vw,380px)] w-full" role="region" aria-label="Your mökki">
+          {webgl ? (
+            <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-4xl animate-pulse" aria-hidden="true">🏡</div>}>
+              <MokkiScene
+                env={env}
+                pieces={pieces}
+                showSmoke={showSmoke}
+                loylyKey={props.loylyKey}
+                mushrooms={props.mushrooms}
+                skin={props.skin}
+                mode="hero"
+                framing="island"
+                sky={false}
+                islandOnly
+                porch={{ hasMail, potTotal, onMailboxClick: props.onMailboxClick }}
+                onBackgroundClick={onOpen}
+                onPieceLanded={props.onPieceLanded}
+                className="cursor-pointer"
+              />
+            </Suspense>
+          ) : (
+            <button type="button" onClick={onOpen} className="absolute inset-0" aria-label="Open your mökki">
+              <MokkiIllustration className="mx-auto h-full" />
+            </button>
+          )}
+        </div>
+
+        <div className="relative flex flex-col items-center gap-2 px-4">
+          {notice && <div className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-md">{notice}</div>}
+          <div className="flex items-center justify-center gap-2">
+            <Chip onClick={props.onMailboxClick} highlight={hasMail} label={hasMail ? "Open mailbox: you have mail" : "Open mailbox"}>
+              📬 {hasMail ? "Mail!" : "Mailbox"}
+            </Chip>
+            <Chip onClick={onOpen} label="Open your mökki">
+              🔨 Build
+            </Chip>
+          </div>
+          <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-[11px] text-white backdrop-blur">
+            {showSmoke ? "♨️ Sauna is warm" : "🪵 Play today to light the stove"}
+            {building > 0 ? ` · 🔨 ${building} under construction` : ""}
+          </span>
+        </div>
+        {/* Fade-out zone into the page background */}
+        <div className="h-36" aria-hidden="true" />
+      </div>
+    );
+  }
 
   return (
     <div

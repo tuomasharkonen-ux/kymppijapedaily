@@ -86,6 +86,39 @@ const MokkiScenePreview = () => {
     );
   }
 
+  if (view === "home") {
+    const dark = env.timeOfDay === "night" || env.timeOfDay === "twilight";
+    return (
+      <div className="min-h-screen overflow-x-hidden bg-background">
+        <MokkiHeroView
+          {...common}
+          variant="backdrop"
+          loylyKey={0}
+          hasMail={params.get("mail") === "1"}
+          potTotal={potTotal}
+          onMailboxClick={() => note("mailbox")}
+          onOpen={() => note("open /mokki")}
+          header={
+            <div className="container mx-auto max-w-lg px-4">
+              <header className={`pt-6 text-center ${dark ? "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]" : ""}`}>
+                <h1 className={`mb-1 text-3xl font-bold ${dark ? "text-white" : "text-foreground"}`}>🎲 Kymppijape Daily</h1>
+                <p className={dark ? "text-white/85" : "text-foreground/75"}>Tuesday, October 6, 2026</p>
+                <p className={`mt-2 text-sm ${dark ? "text-white/85" : "text-foreground/75"}`}>player@example.com ☰</p>
+              </header>
+            </div>
+          }
+        />
+        <div className="container relative mx-auto -mt-24 max-w-lg px-4 pb-6">
+          <div className="rounded-xl border bg-card p-6 text-center shadow-sm">
+            <p className="mb-6 text-muted-foreground">Ready for today's challenge?</p>
+            <div className="rounded-md bg-primary py-3 font-semibold text-primary-foreground">🎲 Roll Dice</div>
+          </div>
+          {log.length > 0 && <p className="mt-2 text-xs text-muted-foreground">Clicked: {log.join(", ")}</p>}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="mx-auto max-w-lg space-y-4">

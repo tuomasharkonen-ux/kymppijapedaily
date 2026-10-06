@@ -54,8 +54,14 @@ export interface MokkiSceneProps {
   mushrooms: boolean;
   skin: string;
   mode: "hero" | "full";
+  /** "crop" zooms into the island (card hero); "island" frames the whole floating island (home backdrop). */
+  framing?: "crop" | "island";
+  /** Draw the sky behind the canvas (off when a parent paints a full-width sky). */
+  sky?: boolean;
   porch?: PorchHandlers;
+  /** Called when the island is tapped (and, unless islandOnly, when empty space is tapped). */
   onBackgroundClick?: () => void;
+  islandOnly?: boolean;
   onPieceLanded?: (id: MokkiPieceId) => void;
   className?: string;
 }
@@ -76,20 +82,23 @@ function cameraPosition(azimuth: number, polar: number, target: THREE.Vector3 = 
 }
 
 /** Fits the orthographic zoom to the canvas; in hero mode also gently sways the camera. */
-const CameraRig = ({ mode, onFit }: { mode: "hero" | "full"; onFit: (zoom: number) => void }) => {
+const CameraRig = ({ mode, framing, onFit }: { mode: "hero" | "full"; framing: "crop" | "island"; onFit: (zoom: number) => void }) => {
   const { camera, size } = useThree();
   useEffect(() => {
-    // Hero crops into the island; full view shows the whole lake (portrait screens crop the lake sides)
+    // Hero crops into the island; the backdrop shows the whole floating island; full view shows
+    // the whole lake (portrait screens crop the lake sides)
     const portrait = size.height > size.width;
     const fit =
       mode === "hero"
-        ? Math.min(size.width / 15.5, size.height / 10.5)
+        ? framing === "island"
+          ? Math.min(size.width / 23, size.height / 13.5)
+          : Math.min(size.width / 15.5, size.height / 10.5)
         : Math.min(size.width / (portrait ? 13.5 : 19.5), size.height / (portrait ? 13 : 15));
     camera.zoom = fit;
     camera.updateProjectionMatrix();
     onFit(fit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size.width, size.height, mode, camera]);
+  }, [size.width, size.height, mode, framing, camera]);
 
   useFrame(({ clock }) => {
     if (mode !== "hero") return;
@@ -257,7 +266,7 @@ function useVisible(ref: React.RefObject<HTMLElement>) {
 }
 
 const MokkiScene = (props: MokkiSceneProps) => {
-  const { env, mode, onBackgroundClick, className } = props;
+  const { env, mode, onBackgroundClick, className, framing = "crop", sky = true, islandOnly = false } = props;
   const container = useRef<HTMLDivElement>(null);
   const visible = useVisible(container);
   const [fitZoom, setFitZoom] = useState(30);
@@ -266,7 +275,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
 
   return (
     <div ref={container} className={`relative h-full w-full overflow-hidden ${className ?? ""}`}>
-      <SkyBackdrop env={env} />
+      {sky && <SkyBackdrop env={env} />}
       <Canvas
         orthographic
         shadows
@@ -275,11 +284,17 @@ const MokkiScene = (props: MokkiSceneProps) => {
         gl={{ antialias: true, alpha: true }}
         camera={{ position: initialPosition, zoom: 30, near: 1, far: 200 }}
         onCreated={({ camera }) => camera.lookAt(target)}
-        onPointerMissed={() => onBackgroundClick?.()}
+        onPointerMissed={() => !islandOnly && onBackgroundClick?.()}
         style={{ position: "absolute", inset: 0, touchAction: mode === "full" ? "none" : "pan-y" }}
       >
-        <CameraRig mode={mode} onFit={setFitZoom} />
-        <group onClick={() => onBackgroundClick?.()}>
+        <CameraRig mode={mode} framing={framing} onFit={setFitZoom} />
+        <group
+          onClick={(e) => {
+            // One tap hits several meshes; open the mökki once
+            e.stopPropagation();
+            onBackgroundClick?.();
+          }}
+        >
           <Diorama {...props} />
         </group>
         {mode === "full" && (
