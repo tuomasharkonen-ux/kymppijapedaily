@@ -9,8 +9,8 @@ import { ActionButtons, ActionType } from "./ActionButtons";
 import { InsultDisplay } from "./InsultDisplay";
 import { useShakeDetection, MotionPermissionStatus } from "@/hooks/useShakeDetection";
 import { toast } from "sonner";
-import { getOpeningDice, helsinkiDate } from "@/lib/kymppijape";
-import { loadGame, saveGame, type DiceState } from "@/lib/gameState";
+import { format } from "date-fns";
+import { getSeededDice } from "@/lib/utils";
 import { getRandomInsult } from "@/lib/diceInsults";
 import { Smartphone } from "lucide-react";
  import { AnimatedNumber } from "@/components/motion";
@@ -29,21 +29,8 @@ const CINEMATIC_SKINS: DiceSkin[] = ["helldivers_dice", "sieni_dice"];
 
 // ---------------------------------------------------------------------------
 
-export interface GameProgress {
-  throwCount: number;
-  showing: number[];
-  unlockedAny: boolean;
-  complete: boolean;
-  winningNumber: number | null;
-}
-
-export interface GameExtras {
-  throwLog: number[][];
-  unlockedAny: boolean;
-}
-
 interface GameBoardProps {
-  onGameComplete: (throws: number, winningNumber: number, initialDice: number[], usedAction: boolean, extras: GameExtras) => void;
+  onGameComplete: (throws: number, winningNumber: number, initialDice: number[], usedAction: boolean) => void;
   hasPlayedToday: boolean;
   personalBest: number | null;
   userId: string;
@@ -57,36 +44,30 @@ interface GameBoardProps {
   isStatsLoading?: boolean;
   showCopied?: boolean;
   onVictoryAnimationEnd?: () => void;
-  /** Betting sheet is open: dice can't be locked or re-rolled. */
-  bettingOpen?: boolean;
-  /** Called once the opening throw is on the table (also after a refresh restores it). */
-  onOpeningRevealed?: () => void;
-  /** Lukitut nopat: locked dice stay locked and must all show the same number. */
-  lukitut?: boolean;
-  /** Rendered between the counters and the dice (bet tracker). */
-  renderAboveDice?: (progress: GameProgress) => React.ReactNode;
 }
 
-export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", activeBackground = "default", onCopyResult, isStatsLoading, showCopied, onVictoryAnimationEnd, bettingOpen = false, onOpeningRevealed, lukitut = false, renderAboveDice }: GameBoardProps) => {
-  // The opening throw is the same for every player on the same (Finnish) day
-  const gameDate = useMemo(() => helsinkiDate(), []);
-  const initialDiceValues = useMemo(() => getOpeningDice(gameDate), [gameDate]);
+interface DiceState {
+  value: number;
+  isLocked: boolean;
+}
 
-  // Continue a game in progress after a refresh
-  const [savedGame] = useState(() => loadGame(userId, gameDate));
+export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId, onShareClick, activeSkin = "default", purchasedItems = [], activeActions = [], activeThrowAnimation = "default", activeBackground = "default", onCopyResult, isStatsLoading, showCopied, onVictoryAnimationEnd }: GameBoardProps) => {
+  // Generate deterministic initial dice based on userId and today's date
+  const initialDiceValues = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    return getSeededDice(userId, today);
+  }, [userId]);
 
-  const [dice, setDice] = useState<DiceState[]>(() =>
-    savedGame?.dice ?? Array(10).fill(null).map(() => ({ value: 0, isLocked: false }))
+  const [dice, setDice] = useState<DiceState[]>(() => 
+    Array(10).fill(null).map(() => ({ value: 0, isLocked: false }))
   );
-  const [throwCount, setThrowCount] = useState(savedGame?.throwCount ?? 0);
-  const [throwLog, setThrowLog] = useState<number[][]>(savedGame?.throwLog ?? []);
-  const [unlockedAny, setUnlockedAny] = useState(savedGame?.unlockedAny ?? false);
+  const [throwCount, setThrowCount] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
   const [justCompletedGame, setJustCompletedGame] = useState(false);
-  const [hasStarted, setHasStarted] = useState((savedGame?.throwCount ?? 0) > 0);
-  const [usedActionDuringGame, setUsedActionDuringGame] = useState(savedGame?.usedAction ?? false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [usedActionDuringGame, setUsedActionDuringGame] = useState(false);
   const [cinematicVictoryFace, setCinematicVictoryFace] = useState<number | null>(null);
 
   // Sauna heat level: 0=normal, 1=warm (10-14), 2=hot (15-19), 3=MAXIMUM LÖYLY (20+)
@@ -108,28 +89,6 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
       setGameComplete(true);
     }
   }, [hasPlayedToday]);
-
-  // Save progress after every throw and lock
-  useEffect(() => {
-    if (throwCount === 0) return;
-    const previous = loadGame(userId, gameDate);
-    saveGame(userId, gameDate, {
-      dice,
-      throwCount,
-      throwLog,
-      unlockedAny,
-      usedAction: usedActionDuringGame,
-      bettingClosed: previous?.bettingClosed ?? false,
-    });
-  }, [userId, gameDate, dice, throwCount, throwLog, unlockedAny, usedActionDuringGame]);
-
-  // A restored game that is still on the opening throw re-opens betting
-  useEffect(() => {
-    if (savedGame && savedGame.throwCount === 1 && !savedGame.dice.some(d => d.isLocked) && !hasPlayedToday) {
-      onOpeningRevealed?.();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const checkWin = (currentDice: DiceState[]) => {
     const allLocked = currentDice.every(d => d.isLocked);
@@ -181,29 +140,27 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     setIsScrambled(false); // Clear scrambled state when rolling
     setCurrentAction(null);
     setCurrentInsult(null); // Clear any insult when rolling
+    const isFirstRoll = !hasStarted;
+    
     if (!hasStarted) {
       setHasStarted(true);
     }
     
-    const isOpeningThrow = throwCount === 0;
     setTimeout(() => {
-      const next = dice.map((d, i) => {
+      setDice(prev => prev.map((d, i) => {
         if (d.isLocked) return d;
-        // Shared opening for the first throw, truly random after that
-        const value = isOpeningThrow ? initialDiceValues[i] : Math.floor(Math.random() * 6) + 1;
+        // Use seeded values for first roll, random for subsequent rolls
+        const value = isFirstRoll ? initialDiceValues[i] : Math.floor(Math.random() * 6) + 1;
         return { ...d, value };
-      });
-      setDice(next);
-      setThrowLog(log => [...log, next.map(d => d.value)]);
+      }));
       setIsRolling(false);
       setThrowCount(c => c + 1);
-      if (isOpeningThrow) onOpeningRevealed?.();
     }, 600);
   };
 
   // Handle action button clicks (Shake/Blow/Insult)
   const triggerAction = useCallback((actionType: ActionType) => {
-    if (isRolling || gameComplete || bettingOpen) return;
+    if (isRolling || gameComplete) return;
     
     // If dice aren't started yet, show them first
     if (!hasStarted) {
@@ -226,7 +183,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     setTimeout(() => {
       setCurrentAction(null);
     }, 800);
-  }, [isRolling, gameComplete, hasStarted, bettingOpen]);
+  }, [isRolling, gameComplete, hasStarted]);
 
   // Clear insult when it completes
   const handleInsultComplete = useCallback(() => {
@@ -269,23 +226,8 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
     permissionStatus !== 'not-supported';
 
   const toggleLock = (index: number) => {
-    if (isRolling || gameComplete || isScrambled || bettingOpen || throwCount === 0) return;
-
-    const target = dice[index];
-    if (lukitut) {
-      if (target.isLocked) {
-        toast("🔒 Lukitut nopat: locked dice stay locked!");
-        return;
-      }
-      const lockedValue = dice.find(d => d.isLocked)?.value;
-      if (lockedValue !== undefined && lockedValue !== target.value) {
-        toast(`🔒 Lukitut nopat: you're locking ${lockedValue}s`);
-        return;
-      }
-    }
-    const isUnlocking = target.isLocked;
-    if (isUnlocking) setUnlockedAny(true);
-
+    if (isRolling || gameComplete || isScrambled) return;
+    
     setDice(prev => {
       const newDice = [...prev];
       newDice[index] = { ...newDice[index], isLocked: !newDice[index].isLocked };
@@ -300,10 +242,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
         } else {
           triggerConfetti();
         }
-        onGameComplete(throwCount, winner, initialDiceValues, usedActionDuringGame, {
-          throwLog,
-          unlockedAny: unlockedAny || isUnlocking,
-        });
+        onGameComplete(throwCount, winner, initialDiceValues, usedActionDuringGame);
       }
       
       return newDice;
@@ -451,14 +390,6 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                  );
                })()}
 
-              {renderAboveDice?.({
-                throwCount,
-                showing: dice.map(d => d.value),
-                unlockedAny,
-                complete: gameComplete,
-                winningNumber,
-              })}
-
               {showShakePermissionPrompt && (
                 <Alert className="mb-4">
                   <Smartphone className="h-4 w-4" />
@@ -504,7 +435,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
 
               <Button
                 onClick={rollDice}
-                disabled={isRolling || gameComplete || bettingOpen || dice.every(d => d.isLocked) || currentAction !== null}
+                disabled={isRolling || gameComplete || dice.every(d => d.isLocked) || currentAction !== null}
                 className="w-full"
                 size="lg"
                 aria-label={isRolling ? "Rolling dice" : "Roll dice"}
@@ -520,7 +451,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                 purchasedItems={purchasedItems}
                 activeActions={activeActions}
                 onActionClick={triggerAction}
-                disabled={isRolling || gameComplete || bettingOpen || dice.every(d => d.isLocked)}
+                disabled={isRolling || gameComplete || dice.every(d => d.isLocked)}
                 isAnimating={currentAction !== null}
               />
             </>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { Button } from "@/components/ui/button";
@@ -36,14 +36,6 @@ const Leaderboard = () => {
       default: return 0;
     }
   }).map((entry, i) => ({ ...entry, rank: i + 1 }));
-  // Players with a mökki get a "visit" link
-  const [mokkiOwners, setMokkiOwners] = useState<Set<string>>(new Set());
-  useEffect(() => {
-    if (!user) return;
-    supabase.rpc("get_mokki_owners").then(({ data, error }) => {
-      if (!error && data) setMokkiOwners(new Set(data.map((r) => r.user_id)));
-    });
-  }, [user]);
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
@@ -126,16 +118,6 @@ const Leaderboard = () => {
                           <TableCell>
                             {entry.username}
                             {user?.id === entry.user_id && <span className="ml-2 text-xs text-muted-foreground">(you)</span>}
-                            {mokkiOwners.has(entry.user_id) && (
-                              <Link
-                                to={user?.id === entry.user_id ? "/mokki" : `/mokki/${entry.user_id}`}
-                                className="ml-2 text-sm hover:opacity-70"
-                                aria-label={`Visit ${entry.username}'s mökki`}
-                                title="Visit mökki"
-                              >
-                                🏡
-                              </Link>
-                            )}
                           </TableCell>
                           <TableCell className="text-right">{entry.best_throws}</TableCell>
                           <TableCell className="text-right">{entry.avg_throws}</TableCell>

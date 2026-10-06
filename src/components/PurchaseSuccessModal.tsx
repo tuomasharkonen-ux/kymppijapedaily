@@ -12,7 +12,6 @@ import { Coins } from "lucide-react";
 import confetti from "canvas-confetti";
 import type { ShopItem } from "@/lib/shopItems";
 import { DicePreview } from "@/components/DicePreview";
-import { FeaturePreview } from "@/components/FeaturePreview";
 import { ActionPreview } from "@/components/ActionPreview";
 import type { DiceSkin } from "@/components/Dice";
 
@@ -90,8 +89,6 @@ export const PurchaseSuccessModal = ({
             <div className="p-4 rounded-xl bg-primary/10 animate-scale-in">
               {item.category === "skin" ? (
                 <DicePreview skin={item.id as DiceSkin} />
-              ) : item.category === "feature" ? (
-                <FeaturePreview featureId={item.id} />
               ) : (
                 <ActionPreview
                   actionId={item.id as "shake_dice_action" | "blow_dice_action"}
@@ -115,7 +112,7 @@ export const PurchaseSuccessModal = ({
             variant="outline"
             className="border-primary/50 text-primary"
           >
-            {item.category === "skin" ? "🎨 Dice Skin" : item.category === "feature" ? "🔓 New Feature" : "🎬 Action"}
+            {item.category === "skin" ? "🎨 Dice Skin" : "🎬 Action"}
           </Badge>
         </div>
 

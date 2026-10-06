@@ -1,11 +1,4 @@
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import {
-  betWins,
-  getOpeningDice,
-  helsinkiDate,
-  isJackpotThrowCount,
-  isThrowLogConsistent,
-} from "../_shared/kymppijape.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,78 +8,6 @@ const corsHeaders = {
 interface GameResultRequest {
   throws_count: number;
   winning_number: number;
-  throw_log?: number[][];
-  unlocked_any?: boolean;
-}
-
-interface BetRow {
-  id: string;
-  bet_type: string;
-  tier: string | null;
-  lukitut: boolean;
-  max_throws: number;
-  stake: number;
-  odds: number;
-}
-
-// Settle the player's open bets and check the jackpot. Returns a summary for the
-// client's settlement animation, or null when the player had nothing riding.
-async function settleDay(
-  service: SupabaseClient,
-  userId: string,
-  gameDate: string,
-  outcome: { throws: number; winningNumber: number; unlockedAny: boolean; logConsistent: boolean },
-) {
-  const { data: openBets, error } = await service
-    .from("bets")
-    .select("id, bet_type, tier, lukitut, max_throws, stake, odds")
-    .eq("user_id", userId)
-    .eq("game_date", gameDate)
-    .eq("status", "open");
-  if (error) throw error;
-
-  const bets = (openBets ?? []) as BetRow[];
-  const results = bets.map((b) => ({
-    id: b.id,
-    // An inconsistent throw log voids (refunds) the bets instead of paying out
-    outcome: !outcome.logConsistent
-      ? "void"
-      : betWins({ maxThrows: b.max_throws, lukitut: b.lukitut }, outcome)
-      ? "won"
-      : "lost",
-  }));
-
-  if (results.length > 0) {
-    const { error: settleError } = await service.rpc("settle_user_bets", {
-      p_user_id: userId,
-      p_game_date: gameDate,
-      p_results: results,
-    });
-    if (settleError) throw settleError;
-  }
-
-  let jackpot = 0;
-  if (outcome.logConsistent && isJackpotThrowCount(outcome.throws)) {
-    const { data, error: jackpotError } = await service.rpc("claim_jackpot", {
-      p_user_id: userId,
-      p_game_date: gameDate,
-      p_throws: outcome.throws,
-    });
-    if (jackpotError) console.error("claim_jackpot failed:", jackpotError.message);
-    jackpot = data ?? 0;
-  }
-
-  if (results.length === 0 && jackpot === 0) return null;
-
-  const { data: settled } = await service
-    .from("bets")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("game_date", gameDate)
-    .order("created_at");
-  const { data: credits } = await service.from("user_credits").select("balance").eq("user_id", userId).maybeSingle();
-
-  return { bets: settled ?? [], jackpot, newBalance: credits?.balance ?? null };
 }
 
 Deno.serve(async (req) => {
@@ -130,8 +51,7 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body: GameResultRequest = await req.json();
-    const { throws_count, winning_number, throw_log } = body;
-    const unlocked_any = body.unlocked_any === true;
+    const { throws_count, winning_number } = body;
 
     // Validate throws_count (must be between 1 and 10000 - matching DB constraint)
     if (typeof throws_count !== 'number' || throws_count < 1 || throws_count > 10000 || !Number.isInteger(throws_count)) {
@@ -154,12 +74,8 @@ Deno.serve(async (req) => {
     // Use service role client for database operations
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get today's game day (SERVER-SIDE, Finnish calendar date)
-    const today = helsinkiDate();
-    const logConsistent = isThrowLogConsistent(throw_log, getOpeningDice(today), throws_count, winning_number);
-    if (!logConsistent) {
-      console.warn(`Throw log inconsistent for user ${user.id}`);
-    }
+    // Get today's date (SERVER-SIDE - cannot be manipulated by client)
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
     // Check if user already played today
     const { data: existingRecord, error: checkError } = await serviceClient
@@ -193,8 +109,6 @@ Deno.serve(async (req) => {
         throws_count: throws_count,
         winning_number: winning_number,
         played_date: today, // Server-controlled date
-        throw_log: logConsistent ? throw_log : null,
-        unlocked_any,
       })
       .select()
       .single();
@@ -216,25 +130,10 @@ Deno.serve(async (req) => {
 
     console.log(`Game record saved successfully for user ${user.id}: ${throws_count} throws, winning number ${winning_number}`);
 
-    // Vedot + jackpot. The game record is already saved, so a settlement failure
-    // must not fail the request; open bets can be retried by support.
-    let settlement = null;
-    try {
-      settlement = await settleDay(serviceClient, user.id, today, {
-        throws: throws_count,
-        winningNumber: winning_number,
-        unlockedAny: unlocked_any,
-        logConsistent,
-      });
-    } catch (settleError) {
-      console.error('Settlement failed:', settleError);
-    }
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        record: insertedRecord,
-        settlement,
+        record: insertedRecord 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

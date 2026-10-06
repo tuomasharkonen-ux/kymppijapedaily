@@ -312,7 +312,15 @@ export type Database = {
           throws_count?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pot_entries_game_date_fkey"
+            columns: ["game_date"]
+            isOneToOne: false
+            referencedRelation: "pots"
+            referencedColumns: ["game_date"]
+          },
+        ]
       }
       pots: {
         Row: {
@@ -547,7 +555,12 @@ export type Database = {
         Returns: number
       }
       vedot_apply_credit: {
-        Args: { p_delta: number; p_reason: string; p_ref: string; p_user_id: string }
+        Args: {
+          p_delta: number
+          p_reason: string
+          p_ref: string
+          p_user_id: string
+        }
         Returns: number
       }
     }
