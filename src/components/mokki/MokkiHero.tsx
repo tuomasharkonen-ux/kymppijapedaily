@@ -14,8 +14,6 @@ export interface MokkiHeroProps {
   hasMail: boolean; // mailbox flag raised (unrevealed Pot of the Day result)
   onMailboxClick: () => void;
   potTotal: number | null; // kiulu on the porch fills with coins; null = hide kiulu (no betting licence)
-  onKiuluClick: () => void;
-  onNoticeBoardClick: () => void; // badges
 }
 
 /** Re-evaluates season/time of day every few minutes so the island follows real Helsinki time. */
@@ -37,8 +35,6 @@ export const MokkiHero = ({
   hasMail,
   onMailboxClick,
   potTotal,
-  onKiuluClick,
-  onNoticeBoardClick,
 }: MokkiHeroProps) => {
   const navigate = useNavigate();
   const env = useLiveEnvironment();
@@ -77,8 +73,6 @@ export const MokkiHero = ({
       hasMail={hasMail}
       potTotal={potTotal}
       onMailboxClick={onMailboxClick}
-      onKiuluClick={onKiuluClick}
-      onNoticeBoardClick={onNoticeBoardClick}
       onOpen={() => navigate("/mokki")}
       onPieceLanded={onPieceLanded}
       notice={notice}

@@ -28,8 +28,6 @@ export interface MokkiHeroViewProps {
   hasMail: boolean;
   potTotal: number | null;
   onMailboxClick: () => void;
-  onKiuluClick: () => void;
-  onNoticeBoardClick: () => void;
   onOpen: () => void;
   onPieceLanded?: (id: MokkiPieceId) => void;
   /** Toast-style line, e.g. "Matti sent you löyly 💨". */
@@ -87,8 +85,6 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
               hasMail,
               potTotal,
               onMailboxClick: props.onMailboxClick,
-              onKiuluClick: props.onKiuluClick,
-              onNoticeBoardClick: props.onNoticeBoardClick,
             }}
             onBackgroundClick={onOpen}
             onPieceLanded={props.onPieceLanded}
@@ -124,14 +120,6 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
       <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-1.5 px-2 sm:gap-2 sm:px-3">
         <Chip onClick={props.onMailboxClick} highlight={hasMail} label={hasMail ? "Open mailbox: you have mail" : "Open mailbox"}>
           📬 {hasMail ? "Mail!" : "Mailbox"}
-        </Chip>
-        {potTotal !== null && (
-          <Chip onClick={props.onKiuluClick} label={`Pot of the Day: ${potTotal} credits`}>
-            ♨️ Pot {potTotal}
-          </Chip>
-        )}
-        <Chip onClick={props.onNoticeBoardClick} label="Badges notice board">
-          📋 Badges
         </Chip>
         <Chip onClick={onOpen} label="Open your mökki">
           🔨 Build

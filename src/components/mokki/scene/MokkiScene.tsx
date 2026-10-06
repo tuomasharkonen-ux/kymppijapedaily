@@ -42,8 +42,6 @@ export interface PorchHandlers {
   hasMail: boolean;
   potTotal: number | null;
   onMailboxClick?: () => void;
-  onKiuluClick?: () => void;
-  onNoticeBoardClick?: () => void;
 }
 
 export interface MokkiSceneProps {
@@ -212,13 +210,13 @@ const Diorama = (props: MokkiSceneProps) => {
         </group>
       </Interactive>
       {porch && porch.potTotal !== null && (
-        <Interactive position={PORCH_POSITIONS.kiulu} onClick={porch.onKiuluClick} label="kiulu" hint={mode === "hero"} ringRadius={0.38}>
+        <group position={PORCH_POSITIONS.kiulu}>
           <Kiulu potTotal={porch.potTotal} />
-        </Interactive>
+        </group>
       )}
-      <Interactive position={PORCH_POSITIONS.noticeBoard} onClick={porch?.onNoticeBoardClick} label="notice board" hint={false} ringRadius={0.55}>
+      <group position={PORCH_POSITIONS.noticeBoard}>
         <NoticeBoard snow={snow} />
-      </Interactive>
+      </group>
 
       {/* Buildable pieces */}
       {slot("sauna", <Sauna lightsOn={lightsOn} snow={snow} smoke={showSmoke} loylyKey={loylyKey} />)}

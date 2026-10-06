@@ -96,8 +96,6 @@ const MokkiScenePreview = () => {
             hasMail={params.get("mail") === "1"}
             potTotal={potTotal}
             onMailboxClick={() => note("mailbox")}
-            onKiuluClick={() => note("kiulu")}
-            onNoticeBoardClick={() => note("notice board")}
             onOpen={() => note("open /mokki")}
             notice={params.get("notice")}
           />

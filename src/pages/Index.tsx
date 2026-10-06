@@ -297,12 +297,6 @@ ${diceEmojis}
               hasMail={!!reveal}
               onMailboxClick={() => (reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
               potTotal={hasLicense ? board?.pot.total ?? 0 : null}
-              onKiuluClick={() =>
-                toast(`♨️ Pot of the Day: ${board?.pot.total ?? 0} cr, ${board?.pot.entrants.length ?? 0} in`, {
-                  description: board?.pot.joined ? "You're in! Results after midnight." : "Join after throwing your opening.",
-                })
-              }
-              onNoticeBoardClick={() => navigate("/badges")}
             />
           </div>
         )}
