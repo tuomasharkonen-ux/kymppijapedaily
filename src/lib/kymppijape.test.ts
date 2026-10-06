@@ -88,6 +88,12 @@ describe("pricing", () => {
     expect(locked.bet.odds).toBeCloseTo(plain.bet.odds * 1.1, 1);
   });
 
+  it("pays less back on the Crazy tier", () => {
+    const res = priceBet({ type: "nopea", tier: "hullu", stake: 10 }, OPENING, NO_PERSONAL);
+    if (!res.ok) throw new Error("expected ok");
+    expect(res.bet.odds * res.bet.probability).toBeCloseTo(0.75, 2);
+  });
+
   it("requires history for personal bets", () => {
     expect(computePersonalLines([10, 12, 14])).toEqual(NO_PERSONAL);
     const lines = computePersonalLines([14, 16, 15, 7, 23]); // avg 15
@@ -98,10 +104,10 @@ describe("pricing", () => {
   });
 
   it("enforces slip limits", () => {
-    const bet = { type: "nopea" as const, tier: "varma" as const, stake: 100 };
-    expect(priceSlip([bet, bet, bet], OPENING, NO_PERSONAL).ok).toBe(true);
+    const bet = { type: "nopea" as const, tier: "varma" as const, stake: 60 };
+    expect(priceSlip([bet, bet, { ...bet, stake: 80 }], OPENING, NO_PERSONAL).ok).toBe(true);
     expect(priceSlip([bet, bet, bet, bet], OPENING, NO_PERSONAL).ok).toBe(false);
-    expect(priceSlip([bet, bet, { ...bet, stake: 101 }], OPENING, NO_PERSONAL).ok).toBe(false);
+    expect(priceSlip([bet, bet, { ...bet, stake: 81 }], OPENING, NO_PERSONAL).ok).toBe(false);
     expect(priceSlip([{ ...bet, stake: 5 }], OPENING, NO_PERSONAL).ok).toBe(false);
     expect(priceSlip([bet], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2], NO_PERSONAL).ok).toBe(false);
     expect(priceSlip([{ ...bet, lukitut: true }, { ...bet, lukitut: true }], OPENING, NO_PERSONAL).ok).toBe(true);

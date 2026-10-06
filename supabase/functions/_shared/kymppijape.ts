@@ -10,7 +10,7 @@ export const MIN_ODDS = 1.05;
 export const MAX_ODDS = 100;
 export const MAX_BETS_PER_DAY = 3;
 export const MIN_STAKE = 10;
-export const MAX_TOTAL_STAKE = 300;
+export const MAX_TOTAL_STAKE = 200;
 export const MAX_PAYOUT_PER_BET = 10000;
 export const LUKITUT_MULTIPLIER = 1.1;
 export const PERSONAL_BETS_MIN_GAMES = 5;
@@ -97,10 +97,11 @@ export function probFinishWithin(n: number, k: number): number {
 
 export type TierId = "varma" | "rohkea" | "hullu";
 
-export const TIERS: { id: TierId; name: string; emoji: string; tagline: string; target: number }[] = [
+/** `returnToPlayer` overrides the default payback; Crazy pays a little less to tame the big wins. */
+export const TIERS: { id: TierId; name: string; emoji: string; tagline: string; target: number; returnToPlayer?: number }[] = [
   { id: "varma", name: "Safe", emoji: "🙂", tagline: "~50% chance", target: 0.5 },
   { id: "rohkea", name: "Bold", emoji: "😬", tagline: "~20% chance", target: 0.2 },
-  { id: "hullu", name: "Crazy", emoji: "🤯", tagline: "~5% chance", target: 0.05 },
+  { id: "hullu", name: "Crazy", emoji: "🤯", tagline: "~5% chance", target: 0.05, returnToPlayer: 0.75 },
 ];
 
 /** Max-throws line for each Quick Finish tier, chosen so the tier lands near its target chance. */
@@ -129,9 +130,9 @@ export function isBettingDisabled(opening: number[]): boolean {
   return bestCount(opening) >= DICE_COUNT;
 }
 
-export function oddsForProbability(p: number, multiplier = 1): number {
+export function oddsForProbability(p: number, multiplier = 1, returnToPlayer = RETURN_TO_PLAYER): number {
   if (p <= 0) return MAX_ODDS;
-  const raw = (RETURN_TO_PLAYER / p) * multiplier;
+  const raw = (returnToPlayer / p) * multiplier;
   return Math.round(Math.min(MAX_ODDS, Math.max(MIN_ODDS, raw)) * 100) / 100;
 }
 
@@ -195,7 +196,7 @@ export function priceBet(spec: BetSpec, opening: number[], personal: PersonalLin
     const p = probFinishWithin(maxThrows, kBest);
     return {
       ok: true,
-      bet: { type: "nopea", tier: tier.id, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier) },
+      bet: { type: "nopea", tier: tier.id, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier, tier.returnToPlayer) },
     };
   }
 
