@@ -15,6 +15,7 @@ import { Smartphone, Share2 } from "lucide-react";
  import { AnimatedNumber } from "@/components/motion";
  import { staggerContainer, staggerItem, popIn } from "@/lib/animations";
 import { format } from "date-fns";
+import { helsinkiDate } from "@/lib/kymppijape";
 import { SaunaThermometer } from "@/components/SaunaThermometer";
 import { SaunaSteamOverlay } from "@/components/SaunaSteamOverlay";
 
@@ -50,7 +51,7 @@ const getStoredResult = (): StoredPracticeResult | null => {
     const stored = localStorage.getItem(PRACTICE_RESULT_KEY);
     if (!stored) return null;
     const result: StoredPracticeResult = JSON.parse(stored);
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = helsinkiDate();
     if (result.date === today) {
       return result;
     }
@@ -66,7 +67,7 @@ const storeResult = (throwCount: number, winningNumber: number) => {
   const result: StoredPracticeResult = {
     throwCount,
     winningNumber,
-    date: format(new Date(), "yyyy-MM-dd"),
+    date: helsinkiDate(),
   };
   localStorage.setItem(PRACTICE_RESULT_KEY, JSON.stringify(result));
 };

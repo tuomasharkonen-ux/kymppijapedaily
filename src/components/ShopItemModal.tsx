@@ -14,6 +14,7 @@ import { DicePreview } from "@/components/DicePreview";
 import { ActionPreview } from "@/components/ActionPreview";
 import { ThrowAnimationPreview } from "@/components/ThrowAnimationPreview";
 import { BackgroundPreview } from "@/components/BackgroundPreview";
+import { FeaturePreview } from "@/components/FeaturePreview";
 
 import type { DiceSkin } from "@/components/Dice";
 import type { ThrowAnimationStyle } from "@/lib/animations";
@@ -92,6 +93,8 @@ export const ShopItemModal = ({
         return <ThrowAnimationPreview animationId={item.id as ThrowAnimationStyle} />;
       case "background":
         return <BackgroundPreview backgroundId={item.id} />;
+      case "feature":
+        return <FeaturePreview featureId={item.id} />;
       default:
         return null;
     }
@@ -107,6 +110,8 @@ export const ShopItemModal = ({
         return "⚡ Throw Animation";
       case "background":
         return "🖼️ Game Background";
+      case "feature":
+        return "🔓 New Feature";
       default:
         return "";
     }

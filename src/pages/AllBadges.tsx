@@ -65,6 +65,18 @@
      emoji: "🪖",
      triggerTypes: ["helldivers_stratagem", "helldivers_all_stratagems"],
    },
+   {
+     id: "sieni",
+     name: "Suomen Sienet",
+     emoji: "🍄",
+     triggerTypes: ["sieni_win", "sieni_master"],
+   },
+   {
+     id: "vedot",
+     name: "Bets & Pot",
+     emoji: "🎟️",
+     triggerTypes: ["vedot"],
+   },
  ];
  
  const rarityStyles: Record<string, string> = {

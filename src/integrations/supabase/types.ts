@@ -47,12 +47,89 @@ export type Database = {
         }
         Relationships: []
       }
+      bets: {
+        Row: {
+          bet_type: string
+          created_at: string
+          game_date: string
+          id: string
+          lukitut: boolean
+          max_throws: number
+          odds: number
+          payout: number
+          settled_at: string | null
+          stake: number
+          status: string
+          tier: string | null
+          user_id: string
+        }
+        Insert: {
+          bet_type: string
+          created_at?: string
+          game_date: string
+          id?: string
+          lukitut?: boolean
+          max_throws: number
+          odds: number
+          payout?: number
+          settled_at?: string | null
+          stake: number
+          status?: string
+          tier?: string | null
+          user_id: string
+        }
+        Update: {
+          bet_type?: string
+          created_at?: string
+          game_date?: string
+          id?: string
+          lukitut?: boolean
+          max_throws?: number
+          odds?: number
+          payout?: number
+          settled_at?: string | null
+          stake?: number
+          status?: string
+          tier?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_ledger: {
+        Row: {
+          created_at: string
+          delta: number
+          id: number
+          reason: string
+          ref: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: number
+          reason: string
+          ref?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: number
+          reason?: string
+          ref?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_records: {
         Row: {
           created_at: string
           id: string
           played_date: string
+          throw_log: Json | null
           throws_count: number
+          unlocked_any: boolean
           user_id: string | null
           winning_number: number
         }
@@ -60,7 +137,9 @@ export type Database = {
           created_at?: string
           id?: string
           played_date?: string
+          throw_log?: Json | null
           throws_count: number
+          unlocked_any?: boolean
           user_id?: string | null
           winning_number: number
         }
@@ -68,7 +147,9 @@ export type Database = {
           created_at?: string
           id?: string
           played_date?: string
+          throw_log?: Json | null
           throws_count?: number
+          unlocked_any?: boolean
           user_id?: string | null
           winning_number?: number
         }
@@ -101,6 +182,174 @@ export type Database = {
           played_date?: string
           throw_number?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      jackpot: {
+        Row: {
+          balance: number
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jackpot_wins: {
+        Row: {
+          amount: number
+          created_at: string
+          game_date: string
+          id: string
+          throws_count: number
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          game_date: string
+          id?: string
+          throws_count: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          game_date?: string
+          id?: string
+          throws_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_loylyt: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          seen_at: string | null
+          sent_date: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          seen_at?: string | null
+          sent_date: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          seen_at?: string | null
+          sent_date?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_pieces: {
+        Row: {
+          build_days: number
+          id: string
+          piece_id: string
+          played_days_at_purchase: number
+          price_paid: number
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          build_days: number
+          id?: string
+          piece_id: string
+          played_days_at_purchase: number
+          price_paid: number
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          build_days?: number
+          id?: string
+          piece_id?: string
+          played_days_at_purchase?: number
+          price_paid?: number
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pot_entries: {
+        Row: {
+          created_at: string
+          game_date: string
+          payout: number
+          reveal_seen_at: string | null
+          throws_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_date: string
+          payout?: number
+          reveal_seen_at?: string | null
+          throws_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_date?: string
+          payout?: number
+          reveal_seen_at?: string | null
+          throws_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pots: {
+        Row: {
+          buy_in: number
+          created_at: string
+          game_date: string
+          jackpot_cut: number
+          prize_per_winner: number
+          settled_at: string | null
+          status: string
+          total: number
+          winner_ids: string[]
+          winning_throws: number | null
+        }
+        Insert: {
+          buy_in?: number
+          created_at?: string
+          game_date: string
+          jackpot_cut?: number
+          prize_per_winner?: number
+          settled_at?: string | null
+          status?: string
+          total?: number
+          winner_ids?: string[]
+          winning_throws?: number | null
+        }
+        Update: {
+          buy_in?: number
+          created_at?: string
+          game_date?: string
+          jackpot_cut?: number
+          prize_per_winner?: number
+          settled_at?: string | null
+          status?: string
+          total?: number
+          winner_ids?: string[]
+          winning_throws?: number | null
         }
         Relationships: []
       }
@@ -228,6 +477,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_jackpot: {
+        Args: { p_game_date: string; p_throws: number; p_user_id: string }
+        Returns: number
+      }
       decrement_user_credits: {
         Args: { p_amount: number; p_user_id: string }
         Returns: number
@@ -244,6 +497,21 @@ export type Database = {
           username: string
         }[]
       }
+      get_mokki_owner: {
+        Args: { p_user_id: string }
+        Returns: {
+          games_played: number
+          owns_plot: boolean
+          played_today: boolean
+          username: string
+        }[]
+      }
+      get_mokki_owners: {
+        Args: never
+        Returns: {
+          user_id: string
+        }[]
+      }
       get_player_rankings: {
         Args: { p_user_id: string }
         Returns: {
@@ -252,9 +520,35 @@ export type Database = {
           total_players: number
         }[]
       }
+      helsinki_today: { Args: never; Returns: string }
       increment_user_credits: {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
+      }
+      mark_mokki_loylyt_seen: { Args: never; Returns: undefined }
+      mark_pot_reveal_seen: {
+        Args: { p_game_date: string }
+        Returns: undefined
+      }
+      place_daily_bets: {
+        Args: {
+          p_bets: Json
+          p_buy_in: number
+          p_game_date: string
+          p_join_pot: boolean
+          p_user_id: string
+        }
+        Returns: number
+      }
+      send_mokki_loyly: { Args: { p_to_user_id: string }; Returns: boolean }
+      settle_due_pots: { Args: never; Returns: number }
+      settle_user_bets: {
+        Args: { p_game_date: string; p_results: Json; p_user_id: string }
+        Returns: number
+      }
+      vedot_apply_credit: {
+        Args: { p_delta: number; p_reason: string; p_ref: string; p_user_id: string }
+        Returns: number
       }
     }
     Enums: {
