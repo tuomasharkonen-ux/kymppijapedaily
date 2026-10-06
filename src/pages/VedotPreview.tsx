@@ -1,8 +1,9 @@
-// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser|promo|game|shop(&item=mokki_plot)
+// Dev-only preview of the betting UI with mock data: /vedot-preview?view=sheet|tracker|stamp|settlement|jackpot|reveal|stakes|teaser|promo|customize|game|shop(&item=mokki_plot)
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { GameBoard } from "@/components/GameBoard";
 import { ShopItemModal } from "@/components/ShopItemModal";
+import { CustomizationSection } from "@/components/CustomizationSection";
 import { shopItems } from "@/lib/shopItems";
 import { useSearchParams } from "react-router-dom";
 import { Dice } from "@/components/Dice";
@@ -103,6 +104,25 @@ const GamePreview = () => {
   );
 };
 
+const CustomizePreview = () => {
+  const [hidden, setHidden] = useState<string[]>(["mokki_plot"]);
+  return (
+    <CustomizationSection
+      purchasedItems={["betting_license", "mokki_plot", "golden_dice", "sauna_dice"]}
+      activeSkin="sauna_dice"
+      activeActions={[]}
+      activeThrowAnimation={null}
+      activeBackground={null}
+      onSkinChange={noop}
+      onActionToggle={noop}
+      onThrowAnimationChange={noop}
+      onBackgroundChange={noop}
+      hiddenFeatures={hidden}
+      onFeatureToggle={(id) => setHidden((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]))}
+    />
+  );
+};
+
 const VedotPreview = () => {
   const [params] = useSearchParams();
   const view = params.get("view") ?? "sheet";
@@ -130,6 +150,7 @@ const VedotPreview = () => {
         )}
 
         {view === "game" && <GamePreview />}
+        {view === "customize" && <CustomizePreview />}
         {view === "promo" && <BettingPromo opening={OPENING} jackpot={640} onPlaceBets={noop} />}
         {view === "tracker" && <BetTracker bets={BETS} inPot progress={progress} />}
         {view === "stakes" && <DailyStakesCard board={BOARD} />}

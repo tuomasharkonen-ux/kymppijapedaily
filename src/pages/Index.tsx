@@ -83,6 +83,7 @@ const Index = () => {
     toggleAction,
     updateThrowAnimation,
     updateBackground,
+    toggleFeature,
   } = useUserSettings(user?.id || null);
 
   // Profile hook for username
@@ -102,6 +103,9 @@ const Index = () => {
   } = useDailyBoard(user?.id || null);
   const hasLicense = purchasedItems.includes(BETTING_LICENSE_ID);
   const hasMokki = purchasedItems.includes(MOKKI_PLOT_ID);
+  // Owned features can be switched off in Customization
+  const showBetting = hasLicense && !settings.hiddenFeatures.includes(BETTING_LICENSE_ID);
+  const showMokki = hasMokki && !settings.hiddenFeatures.includes(MOKKI_PLOT_ID);
   const [openingRevealed, setOpeningRevealed] = useState(false);
   const [bettingOpen, setBettingOpen] = useState(false);
   const [showStamp, setShowStamp] = useState(false);
@@ -111,7 +115,7 @@ const Index = () => {
   const reveal = board?.reveals[0] ?? null;
   const hasBetsToday = !!board && (board.myBets.length > 0 || board.pot.joined);
   const lukitutActive = !!board?.myBets.some((b) => b.lukitut && b.status === "open");
-  const canOfferBets = hasLicense && !!board && !board.bettingDisabled && !hasBetsToday;
+  const canOfferBets = showBetting && !!board && !board.bettingDisabled && !hasBetsToday;
   const gameInProgress = !!user && (loadGame(user.id, helsinkiDate())?.throwCount ?? 0) > 0;
 
   const handleOpeningRevealed = useCallback(() => setOpeningRevealed(true), []);
@@ -140,13 +144,13 @@ const Index = () => {
 
   // Yesterday's pot: pops up on its own, or waits in the mökki mailbox
   useEffect(() => {
-    if (!reveal) return;
-    if (hasMokki) {
+    if (!reveal || settingsLoading || !showBetting) return;
+    if (showMokki) {
       toast("📬 Yesterday's Pot results are in your mailbox");
     } else {
       setRevealOpen(true);
     }
-  }, [reveal?.gameDate, hasMokki]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [reveal?.gameDate, settingsLoading, showBetting, showMokki]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const closeReveal = () => {
     setRevealOpen(false);
@@ -287,16 +291,16 @@ ${diceEmojis}
             </div>}
         </header>
 
-        {user && hasMokki && !showPracticeMode && (
+        {user && showMokki && !showPracticeMode && (
           <div className="mb-6">
             <MokkiHero
               userId={user.id}
               hasPlayedToday={hasPlayedToday || justCompletedGame}
               activeSkin={activeSkin}
               purchasedItems={purchasedItems}
-              hasMail={!!reveal}
-              onMailboxClick={() => (reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
-              potTotal={hasLicense ? board?.pot.total ?? 0 : null}
+              hasMail={showBetting && !!reveal}
+              onMailboxClick={() => (showBetting && reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
+              potTotal={showBetting ? board?.pot.total ?? 0 : null}
             />
           </div>
         )}
@@ -330,7 +334,7 @@ ${diceEmojis}
                 
                 <ResultsPanel todayResult={todayResult} personalBest={personalBest} personalWorst={personalWorst} averageThrows={averageThrows} favoriteNumber={favoriteNumber} currentStreak={currentStreak} rankByAverage={rankByAverage} rankByBest={rankByBest} totalPlayers={totalPlayers} gamesPlayed={gamesPlayed} isLoading={isLoading} />
 
-                {hasLicense && board && <DailyStakesCard board={board} />}
+                {showBetting && board && <DailyStakesCard board={board} />}
                 {!hasLicense && board && gamesPlayed >= 3 && <VedotTeaser board={board} />}
 
                 <BadgesSection userBadges={userBadges} isLoading={badgesLoading} userCredits={userCredits} />
@@ -347,10 +351,12 @@ ${diceEmojis}
                   onActionToggle={toggleAction}
                   onThrowAnimationChange={updateThrowAnimation}
                   onBackgroundChange={updateBackground}
+                  hiddenFeatures={settings.hiddenFeatures}
+                  onFeatureToggle={toggleFeature}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
-                {hasLicense && board && !openingRevealed && !gameInProgress && !justCompletedGame && <DailyStakesCard board={board} />}
+                {showBetting && board && !openingRevealed && !gameInProgress && !justCompletedGame && <DailyStakesCard board={board} />}
                 {!hasLicense && board && gamesPlayed >= 3 && !justCompletedGame && <VedotTeaser board={board} />}
 
                 <GameBoard
@@ -372,7 +378,7 @@ ${diceEmojis}
                   onOpeningRevealed={handleOpeningRevealed}
                   lukitut={lukitutActive}
                   renderAboveDice={(progress) => {
-                    if (board && hasBetsToday) {
+                    if (board && hasBetsToday && showBetting) {
                       return <BetTracker bets={board.myBets} inPot={board.pot.joined} progress={progress} />;
                     }
                     // Betting is open from the opening throw until the first die is locked
@@ -403,6 +409,8 @@ ${diceEmojis}
                   onActionToggle={toggleAction}
                   onThrowAnimationChange={updateThrowAnimation}
                   onBackgroundChange={updateBackground}
+                  hiddenFeatures={settings.hiddenFeatures}
+                  onFeatureToggle={toggleFeature}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 

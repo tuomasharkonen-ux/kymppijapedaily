@@ -459,6 +459,7 @@ export type Database = {
           active_background: string | null
           active_skin: string | null
           active_throw_animation: string | null
+          hidden_features: string[]
           updated_at: string | null
           user_id: string
         }
@@ -467,6 +468,7 @@ export type Database = {
           active_background?: string | null
           active_skin?: string | null
           active_throw_animation?: string | null
+          hidden_features?: string[]
           updated_at?: string | null
           user_id: string
         }
@@ -475,6 +477,7 @@ export type Database = {
           active_background?: string | null
           active_skin?: string | null
           active_throw_animation?: string | null
+          hidden_features?: string[]
           updated_at?: string | null
           user_id?: string
         }

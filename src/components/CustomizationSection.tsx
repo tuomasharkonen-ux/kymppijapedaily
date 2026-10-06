@@ -3,7 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { shopItems } from "@/lib/shopItems";
-import { Palette, Sparkles, Zap, Image } from "lucide-react";
+import { Palette, Sparkles, Zap, Image, ToggleRight } from "lucide-react";
 
 interface CustomizationSectionProps {
   purchasedItems: string[];
@@ -15,8 +15,16 @@ interface CustomizationSectionProps {
   onActionToggle: (actionId: string) => void;
   onThrowAnimationChange: (animationId: string | null) => void;
   onBackgroundChange: (backgroundId: string | null) => void;
+  hiddenFeatures?: string[];
+  onFeatureToggle?: (featureId: string) => void;
   isLoading?: boolean;
 }
+
+// What each owned feature switch controls
+const FEATURE_LABELS: Record<string, { label: string; description: string }> = {
+  betting_license: { label: "Bets & Pot of the Day", description: "Betting slip, jackpot and the daily pot" },
+  mokki_plot: { label: "Mökki", description: "Your island on the home screen" },
+};
 
 export const CustomizationSection = ({
   purchasedItems,
@@ -28,8 +36,13 @@ export const CustomizationSection = ({
   onActionToggle,
   onThrowAnimationChange,
   onBackgroundChange,
+  hiddenFeatures = [],
+  onFeatureToggle,
   isLoading = false,
 }: CustomizationSectionProps) => {
+  const ownedFeatures = shopItems.filter(
+    (item) => item.category === "feature" && purchasedItems.includes(item.id)
+  );
   const ownedSkins = shopItems.filter(
     (item) => item.category === "skin" && purchasedItems.includes(item.id)
   );
@@ -60,7 +73,7 @@ export const CustomizationSection = ({
     );
   }
 
-  const hasOwnedItems = ownedSkins.length > 0 || ownedActions.length > 0 || ownedThrowAnimations.length > 0 || ownedBackgrounds.length > 0;
+  const hasOwnedItems = ownedFeatures.length > 0 || ownedSkins.length > 0 || ownedActions.length > 0 || ownedThrowAnimations.length > 0 || ownedBackgrounds.length > 0;
 
   if (!hasOwnedItems) {
     return null;
@@ -75,6 +88,36 @@ export const CustomizationSection = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Features Section: hide bought features without losing them */}
+        {ownedFeatures.length > 0 && onFeatureToggle && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <ToggleRight className="h-4 w-4" />
+              Features
+            </h3>
+            <div className="space-y-3">
+              {ownedFeatures.map((feature) => (
+                <div key={feature.id} className="flex items-center justify-between gap-3">
+                  <Label htmlFor={`feature-${feature.id}`} className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-lg">{feature.emoji}</span>
+                    <span>
+                      <span className="block">{FEATURE_LABELS[feature.id]?.label ?? feature.name}</span>
+                      {FEATURE_LABELS[feature.id] && (
+                        <span className="block text-xs text-muted-foreground">{FEATURE_LABELS[feature.id].description}</span>
+                      )}
+                    </span>
+                  </Label>
+                  <Switch
+                    id={`feature-${feature.id}`}
+                    checked={!hiddenFeatures.includes(feature.id)}
+                    onCheckedChange={() => onFeatureToggle(feature.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Skins Section */}
         {ownedSkins.length > 0 && (
           <div className="space-y-3">

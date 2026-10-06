@@ -6,6 +6,8 @@ export interface UserSettings {
   activeActions: string[];
   activeThrowAnimation: string | null;
   activeBackground: string | null;
+  /** Owned features the player has switched off (e.g. betting_license, mokki_plot). */
+  hiddenFeatures: string[];
 }
 
 export const useUserSettings = (userId: string | null) => {
@@ -14,12 +16,13 @@ export const useUserSettings = (userId: string | null) => {
     activeActions: [],
     activeThrowAnimation: null,
     activeBackground: null,
+    hiddenFeatures: [],
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
     if (!userId) {
-      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null, activeBackground: null });
+      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null, activeBackground: null, hiddenFeatures: [] });
       setIsLoading(false);
       return;
     }
@@ -37,12 +40,25 @@ export const useUserSettings = (userId: string | null) => {
       }
 
       if (data) {
-        setSettings({
+        setSettings((prev) => ({
+          ...prev,
           activeSkin: data.active_skin,
           activeActions: data.active_action || [],
           activeThrowAnimation: data.active_throw_animation,
-          activeBackground: (data as any).active_background ?? null,
-        });
+          activeBackground: data.active_background ?? null,
+        }));
+      }
+
+      // Separate query so the other settings still load if this column doesn't exist yet
+      const { data: featureData, error: featureError } = await supabase
+        .from("user_settings")
+        .select("hidden_features")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (featureError) {
+        console.warn("Feature toggles unavailable:", featureError.message);
+      } else if (featureData) {
+        setSettings((prev) => ({ ...prev, hiddenFeatures: featureData.hidden_features ?? [] }));
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -175,7 +191,7 @@ export const useUserSettings = (userId: string | null) => {
         const { error } = await supabase
           .from("user_settings")
           .upsert(
-            { user_id: userId, active_background: backgroundId } as any,
+            { user_id: userId, active_background: backgroundId },
             { onConflict: "user_id" }
           );
 
@@ -192,9 +208,29 @@ export const useUserSettings = (userId: string | null) => {
     [userId]
   );
 
+  const toggleFeature = useCallback(
+    async (featureId: string) => {
+      if (!userId) return;
+      const previous = settings.hiddenFeatures;
+      const next = previous.includes(featureId) ? previous.filter((id) => id !== featureId) : [...previous, featureId];
+      // Optimistic: the UI hides or shows the feature right away
+      setSettings((prev) => ({ ...prev, hiddenFeatures: next }));
+
+      const { error } = await supabase
+        .from("user_settings")
+        .upsert({ user_id: userId, hidden_features: next }, { onConflict: "user_id" });
+      if (error) {
+        console.error("Error updating feature toggles:", error);
+        setSettings((prev) => ({ ...prev, hiddenFeatures: previous }));
+      }
+    },
+    [userId, settings.hiddenFeatures]
+  );
+
   return {
     settings,
     isLoading,
+    toggleFeature,
     updateSkin,
     toggleAction,
     activateAction,
