@@ -50,7 +50,7 @@ const Chip = ({ onClick, children, highlight, label }: { onClick: () => void; ch
     }}
     aria-label={label}
     className={`flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1.5 text-xs font-semibold shadow-md sm:px-3 backdrop-blur transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
-      highlight ? "bg-amber-300/95 text-amber-950 animate-pulse" : "bg-black/35 text-white"
+      highlight ? "bg-amber-300 text-amber-950 animate-pulse" : "bg-black/55 text-white"
     }`}
   >
     {children}
@@ -109,7 +109,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
               🔨 Build
             </Chip>
           </div>
-          <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-[11px] text-white backdrop-blur">
+          <span className="rounded-full bg-black/55 px-2.5 py-0.5 text-[11px] text-white backdrop-blur">
             {showSmoke ? "♨️ Sauna is warm" : "🪵 Play today to light the stove"}
             {building > 0 ? ` · 🔨 ${building} under construction` : ""}
           </span>
@@ -164,14 +164,14 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
 
       {/* Title + status */}
       <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1">
-        <span className="rounded-full bg-black/35 px-3 py-1 text-sm font-bold text-white backdrop-blur">🏡 Mökki</span>
+        <span className="rounded-full bg-black/55 px-3 py-1 text-sm font-bold text-white backdrop-blur">🏡 Mökki</span>
         {showSmoke ? (
-          <span className="rounded-full bg-black/25 px-2 py-0.5 text-[11px] text-white/90 backdrop-blur">♨️ Sauna is warm</span>
+          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">♨️ Sauna is warm</span>
         ) : (
-          <span className="rounded-full bg-black/25 px-2 py-0.5 text-[11px] text-white/90 backdrop-blur">🪵 Play today to light the stove</span>
+          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">🪵 Play today to light the stove</span>
         )}
         {building > 0 && (
-          <span className="rounded-full bg-black/25 px-2 py-0.5 text-[11px] text-white/90 backdrop-blur">🔨 {building} under construction</span>
+          <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">🔨 {building} under construction</span>
         )}
       </div>
 

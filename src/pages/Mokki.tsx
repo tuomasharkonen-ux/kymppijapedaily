@@ -176,17 +176,16 @@ const Mokki = () => {
       {/* Top bar */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
         <Button
-          variant="secondary"
           size="sm"
-          className="pointer-events-auto bg-background/85 shadow backdrop-blur"
+          className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
           onClick={() => (isOwn ? navigate("/") : navigate(-1))}
         >
           <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
           {isOwn ? "Back to Game" : "Back"}
         </Button>
-        <div className="rounded-2xl bg-black/35 px-3 py-1.5 text-right text-white backdrop-blur">
+        <div className="rounded-2xl bg-black/55 px-3 py-1.5 text-right text-white backdrop-blur">
           <h1 className="text-base font-bold leading-tight">🏡 {title}</h1>
-          <p className="text-[11px] text-white/85">
+          <p className="text-[11px] text-white/90">
             {data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
           </p>
         </div>
