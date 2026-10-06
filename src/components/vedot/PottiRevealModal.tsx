@@ -14,7 +14,7 @@ interface PottiRevealModalProps {
 
 const FLIP_MS = 1100;
 
-/** "Eilisen Potti": cards flip worst to best, then the kiulu tips over for the winner. */
+/** "Yesterday's Pot": cards flip worst to best, then the kiulu tips over for the winner. */
 export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => {
   // Did-not-finish first, then most throws → fewest throws (the winner flips last)
   const order = useMemo(
@@ -61,7 +61,7 @@ export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       role="dialog"
-      aria-label="Päivän Potti results"
+      aria-label="Pot of the Day results"
     >
       <motion.div
         className="w-full max-w-sm rounded-3xl border border-[#f7d774]/40 bg-gradient-to-b from-[#3a2414] to-[#1b1009] p-5 text-white shadow-2xl"
@@ -71,14 +71,14 @@ export const PottiRevealModal = ({ reveal, onClose }: PottiRevealModalProps) => 
       >
         <div className="text-center">
           <div className="text-[11px] uppercase tracking-[0.25em] text-white/50">{dateLabel}</div>
-          <h2 className="font-display text-4xl tracking-wide text-[#f7d774]">Eilisen Potti</h2>
+          <h2 className="font-display text-4xl tracking-wide text-[#f7d774]">Yesterday's Pot</h2>
         </div>
 
         <div className="my-3 flex justify-center">
           <Kiulu fill={Math.min(1, reveal.total / 400)} size={88} tipped={allFlipped && reveal.status === "settled"} />
         </div>
         <p className="mb-3 text-center text-sm text-white/70">
-          {reveal.total} cr in the kiulu · {reveal.entries.length} player{reveal.entries.length === 1 ? "" : "s"}
+          {reveal.total} cr in the pot · {reveal.entries.length} player{reveal.entries.length === 1 ? "" : "s"}
         </p>
 
         <ul className="space-y-2 [perspective:800px]">

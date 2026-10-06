@@ -126,8 +126,8 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
           📬 {hasMail ? "Mail!" : "Mailbox"}
         </Chip>
         {potTotal !== null && (
-          <Chip onClick={props.onKiuluClick} label={`Päivän Potti: ${potTotal} credits`}>
-            ♨️ Potti {potTotal}
+          <Chip onClick={props.onKiuluClick} label={`Pot of the Day: ${potTotal} credits`}>
+            ♨️ Pot {potTotal}
           </Chip>
         )}
         <Chip onClick={props.onNoticeBoardClick} label="Badges notice board">

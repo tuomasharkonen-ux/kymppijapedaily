@@ -1,4 +1,4 @@
-# Deploying Vedot, Päivän Potti, Jackpot & Mökki
+# Deploying Bets, Pot of the Day, Jackpot & Mökki
 
 Branch: `feature/vedot-potti-mokki` (not pushed). Plan: `docs/plans/2026-10-06-vedot-potti-jackpot.md`.
 
@@ -11,7 +11,7 @@ Run in this order, each file in full:
 1. `supabase/migrations/20261006120000_vedot_potti_jackpot.sql`
    - Tables: bets, pots, pot_entries, jackpot (seeded with 200), jackpot_wins, credit_ledger
    - New `game_records` columns: `throw_log`, `unlocked_any`
-   - Transactional money functions, plus 5 new badges
+   - Transactional money functions, plus 4 new badges
    - **Security fix:** revokes client access to `increment_user_credits` and `decrement_user_credits`. Until now any logged-in user could probably call them over RPC to add credits to themselves or drain someone else's balance. Only the edge functions (service role) use them, so nothing in the app breaks.
 2. `supabase/migrations/20261006130000_mokki.sql`
    - Tables: mokki_pieces, mokki_loylyt, plus four RPCs
@@ -26,7 +26,7 @@ New:
 Changed (redeploy):
 - `save-game-result` (Helsinki date, throw log, settles bets and the jackpot)
 - `check-achievements` (Helsinki date, shared opening, Vedot badges)
-- `purchase-item` (new shop items `betting_license` 300 cr and `mokki_plot` 1000 cr)
+- `purchase-item` (new shop items Betting License `betting_license` 300 cr and Mökkitontti `mokki_plot` 1000 cr)
 
 All of them import from `supabase/functions/_shared/`, which must be deployed alongside them.
 
@@ -35,8 +35,8 @@ All of them import from `supabase/functions/_shared/`, which must be deployed al
 ## 3. Smoke test after deploying
 
 - [ ] The game still works for a player without the licence: same opening for two accounts, random throws after that, refreshing mid-game continues the game.
-- [ ] Buy Vedonlyöntilupa → throw the opening → the sheet appears → place a bet and join the pot → PELATTU stamp → tracker shows the bets → win → Tilitys shows the right payout and the balance updates.
-- [ ] Second account joins the same pot. The next day (after Helsinki midnight) both see Eilisen Potti, and the winner's balance went up.
+- [ ] Buy the Betting License → throw the opening → the sheet appears → place a bet and join the pot → LOCKED IN stamp → tracker shows the bets → win → Results screen shows the right payout and the balance updates.
+- [ ] Second account joins the same pot. The next day (after Helsinki midnight) both see Yesterday's Pot, and the winner's balance went up.
 - [ ] Buy Mökkitontti → the home screen shows the island → buy a piece → it shows scaffolding until enough days are played.
 - [ ] `credit_ledger` has a row for every bet, payout and pot movement.
 

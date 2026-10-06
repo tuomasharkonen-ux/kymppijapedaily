@@ -3,9 +3,22 @@
 Status: implemented on branch `feature/vedot-potti-mokki` (2026-10-06). See `docs/DEPLOY-vedot-mokki.md` for rollout.
 
 ## Implementation notes (where the build differs from the plan below)
+- **Simplified after review (2026-10-06):**
+  - Lempinumero removed.
+  - Labels are English, except Lukitut nopat (an inside joke):
+    - Varma / Rohkea / Hullu → Safe / Bold / Crazy
+    - Nopea Jape → Quick Finish
+    - Keskiarvon alle → Beat Your Average
+    - Ennätysjahti → Record Chase
+    - Päivän Potti → Pot of the Day
+    - Eilisen Potti → Yesterday's Pot
+    - Vedonlyöntilupa → Betting License
+    - PELATTU → LOCKED IN
+  - The jackpot sits on its own row above the pot.
+  - Internal ids (`nopea`, `varma`, …) are unchanged.
 - **No `daily_boards` table and no Monte Carlo.** For greedy play the odds have an exact closed form, P(T ≤ n) = (1 − (5/6)^(n−1))^(10−k). The opening is deterministic per day, so client and server compute identical odds from the shared module `supabase/functions/_shared/kymppijape.ts`, and the server prices every bet itself.
 - **Jackpot pays out instantly** to the first ticket holder who wins in ≤ 5 throws, then reseeds at 200. Splitting same-day hits would delay the payout moment to midnight.
-- **Lukitut nopat can be added to any bet**, not just Nopea Jape. It applies to the whole game, and the UI blocks unlocking and locking a different number.
+- **Lukitut nopat can be added to any bet**, not just Quick Finish. It applies to the whole game, and the UI blocks unlocking and locking a different number.
 - **Security fix:** clients can no longer execute `increment_user_credits` / `decrement_user_credits` (they were SECURITY DEFINER with default grants).
 - **Bets settle inside `save-game-result`.** Pots settle lazily on the first `get-daily-board` call after Helsinki midnight.
 - **Mökki catalog (4500 cr total):**
@@ -16,7 +29,7 @@ Status: implemented on branch `feature/vedot-potti-mokki` (2026-10-06). See `doc
   - Grillikota 800 (30 days)
   - Palju 900 (needs sauna, 30 days)
   - Pieces build over 1–4 played days.
-- **New badges:** Vedonlyöjä, Lempinumero, Pottimestari, Hullu mikä hullu, Jättipotti.
+- **New badges:** First Bet, Pot Master, Absolutely Crazy, Jackpot!.
 
 ## Goals
 - Give veteran players (2000–3000 credit hoards) something to spend on that also gives every daily game stakes.

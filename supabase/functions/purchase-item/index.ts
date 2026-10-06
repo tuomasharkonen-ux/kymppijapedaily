@@ -9,7 +9,7 @@ const corsHeaders = {
 // Hardcoded item catalog - must match shopItems.ts
 // Prices are validated server-side to prevent manipulation
 const SHOP_ITEMS: Record<string, { price: number; name: string }> = {
-  betting_license: { price: 300, name: "Vedonlyöntilupa" },
+  betting_license: { price: 300, name: "Betting License" },
   mokki_plot: { price: 1000, name: "Mökkitontti" },
   golden_dice: { price: 200, name: "Golden Dice" },
   diamond_dice: { price: 500, name: "Diamond Dice" },

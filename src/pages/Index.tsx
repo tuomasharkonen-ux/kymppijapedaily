@@ -91,7 +91,7 @@ const Index = () => {
     updateUsername,
   } = useProfile(user?.id || null);
 
-  // Vedot, Päivän Potti & Jackpot (unlocked with the Vedonlyöntilupa)
+  // Bets, Pot of the Day & Jackpot (unlocked with the Betting License)
   const {
     board,
     isLoading: boardLoading,
@@ -162,7 +162,7 @@ const Index = () => {
   useEffect(() => {
     if (!reveal) return;
     if (hasMokki) {
-      toast("📬 Eilisen Potti results are in your mailbox");
+      toast("📬 Yesterday's Pot results are in your mailbox");
     } else {
       setRevealOpen(true);
     }
@@ -318,7 +318,7 @@ ${diceEmojis}
               onMailboxClick={() => (reveal ? setRevealOpen(true) : toast("📭 No mail today"))}
               potTotal={hasLicense ? board?.pot.total ?? 0 : null}
               onKiuluClick={() =>
-                toast(`♨️ Päivän Potti: ${board?.pot.total ?? 0} cr, ${board?.pot.entrants.length ?? 0} in`, {
+                toast(`♨️ Pot of the Day: ${board?.pot.total ?? 0} cr, ${board?.pot.entrants.length ?? 0} in`, {
                   description: board?.pot.joined ? "You're in! Results after midnight." : "Join after throwing your opening.",
                 })
               }
@@ -431,7 +431,7 @@ ${diceEmojis}
         {/* Badge unlock modal (after any bet settlement) */}
         {!isVictoryAnimating && !showSettlement && !pendingSettlement && <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />}
 
-        {/* Vedot & Päivän Potti */}
+        {/* Bets & Pot of the Day */}
         <AnimatePresence>
           {bettingOpen && board && (
             <BettingSheet

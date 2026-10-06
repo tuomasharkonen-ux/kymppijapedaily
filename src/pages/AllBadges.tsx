@@ -73,7 +73,7 @@
    },
    {
      id: "vedot",
-     name: "Vedot & Potti",
+     name: "Bets & Pot",
      emoji: "🎟️",
      triggerTypes: ["vedot"],
    },

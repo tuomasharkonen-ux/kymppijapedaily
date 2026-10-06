@@ -11,7 +11,7 @@ interface KiuluProps {
 
 const STEAM = [0, 1, 2];
 
-/** The Päivän Potti: a wooden sauna bucket (kiulu) filling up with coins. */
+/** The Pot of the Day: a wooden sauna bucket (kiulu) filling up with coins. */
 export const Kiulu = ({ fill, dropKey = 0, size = 96, tipped = false }: KiuluProps) => {
   const coinRows = Math.max(0, Math.min(5, Math.round(fill * 5)));
 

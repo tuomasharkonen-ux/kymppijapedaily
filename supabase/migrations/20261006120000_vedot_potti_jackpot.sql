@@ -1,4 +1,4 @@
--- Vedot (bets), Päivän Potti (daily pot) and Jackpot.
+-- Bets, Pot of the Day and Jackpot.
 -- All credit movements happen in SECURITY DEFINER functions that only the
 -- edge functions (service role) may execute.
 
@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS public.bets (
   game_date DATE NOT NULL,
   bet_type TEXT NOT NULL CHECK (bet_type IN ('nopea', 'keskiarvo', 'ennatys')),
   tier TEXT CHECK (tier IN ('varma', 'rohkea', 'hullu')),
-  lucky_number SMALLINT CHECK (lucky_number BETWEEN 1 AND 6),
   lukitut BOOLEAN NOT NULL DEFAULT false,
   max_throws INTEGER NOT NULL CHECK (max_throws >= 1),
   stake INTEGER NOT NULL CHECK (stake > 0),
@@ -174,7 +173,7 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Place the day's bets (already priced by the edge function) and/or join the pot.
--- p_bets: [{ type, tier, number, lukitut, maxThrows, stake, odds }]
+-- p_bets: [{ type, tier, lukitut, maxThrows, stake, odds }]
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.place_daily_bets(
   p_user_id UUID,
@@ -217,13 +216,12 @@ BEGIN
 
   v_balance := vedot_apply_credit(p_user_id, -v_total, 'vedot_placed', p_game_date::text);
 
-  INSERT INTO bets (user_id, game_date, bet_type, tier, lucky_number, lukitut, max_throws, stake, odds)
+  INSERT INTO bets (user_id, game_date, bet_type, tier, lukitut, max_throws, stake, odds)
   SELECT
     p_user_id,
     p_game_date,
     b->>'type',
     b->>'tier',
-    (b->>'number')::SMALLINT,
     COALESCE((b->>'lukitut')::BOOLEAN, false),
     (b->>'maxThrows')::INTEGER,
     (b->>'stake')::INTEGER,
@@ -472,9 +470,8 @@ GRANT EXECUTE ON FUNCTION public.mark_pot_reveal_seen(DATE) TO authenticated;
 -- Badges (awarded by check-achievements)
 -- ---------------------------------------------------------------------------
 INSERT INTO public.badges (id, name, description, trigger_type, trigger_value, prize_credits, rarity) VALUES
-  ('vedot_first_bet',       'Vedonlyöjä',       'Place your first bet or join Päivän Potti',          'vedot', 'first_bet', 25,  'Common'),
-  ('vedot_lempinumero_win', 'Lempinumero',      'Win a bet with a Lempinumero',                        'vedot', 'lempinumero', 50, 'Uncommon'),
-  ('vedot_pot_win',         'Pottimestari',     'Take home the whole kiulu in Päivän Potti',           'vedot', 'pot_win', 50,    'Uncommon'),
-  ('vedot_hullu_win',       'Hullu mikä hullu', 'Win a Hullu bet',                                     'vedot', 'hullu', 100,     'Rare'),
-  ('vedot_jackpot',         'Jättipotti',       'Hit the Jackpot: a Kymppijape in 5 throws or less',   'vedot', 'jackpot', 200,   'Legendary')
+  ('vedot_first_bet', 'First Bet',        'Place your first bet or join the Pot of the Day',    'vedot', 'first_bet', 25,  'Common'),
+  ('vedot_pot_win',   'Pot Master',       'Win the Pot of the Day',                             'vedot', 'pot_win',   50,  'Uncommon'),
+  ('vedot_hullu_win', 'Absolutely Crazy', 'Win a Crazy bet',                                    'vedot', 'hullu',     100, 'Rare'),
+  ('vedot_jackpot',   'Jackpot!',         'Hit the Jackpot: a Kymppijape in 5 throws or less',  'vedot', 'jackpot',   200, 'Legendary')
 ON CONFLICT (id) DO NOTHING;

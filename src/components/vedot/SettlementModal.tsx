@@ -85,7 +85,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
               onClick={() => setPhase("bets")}
               className="mt-6 w-full rounded-xl bg-yellow-300 py-3 font-display text-xl text-black"
             >
-              {bets.length ? "And your bets…" : "Kiitos!"}
+              {bets.length ? "And your bets…" : "Nice!"}
             </button>
           </motion.div>
         ) : (
@@ -96,7 +96,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
           >
-            <h2 className="text-center font-display text-3xl tracking-wide text-[#f7d774]">Tilitys</h2>
+            <h2 className="text-center font-display text-3xl tracking-wide text-[#f7d774]">Results</h2>
             <p className="mb-4 text-center text-xs text-white/50">Settling today's bets</p>
 
             <ul className="space-y-2">
@@ -169,7 +169,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
 
             {inPot && done && (
               <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-3 rounded-lg bg-white/5 p-2 text-center text-xs text-white/70">
-                ♨️ Päivän Potti is revealed after midnight. Sleep tight! 🌙
+                ♨️ The Pot of the Day is revealed after midnight. Sleep tight! 🌙
               </motion.p>
             )}
 
@@ -179,7 +179,7 @@ export const SettlementModal = ({ settlement, inPot, onClose }: SettlementModalP
               disabled={!done}
               className="mt-4 w-full rounded-xl bg-gradient-to-b from-[#ffe28a] to-[#e2b53a] py-3 font-display text-xl text-black shadow-[0_3px_0_#8a6510] disabled:opacity-40"
             >
-              Kiitos!
+              Nice!
             </button>
           </motion.div>
         )}

@@ -20,8 +20,8 @@ DO $$
 DECLARE v_balance INTEGER; v_failed BOOLEAN := false;
 BEGIN
   v_balance := place_daily_bets('00000000-0000-0000-0000-00000000000a', helsinki_today(),
-    '[{"type":"nopea","tier":"rohkea","number":null,"lukitut":false,"maxThrows":9,"stake":50,"odds":4.3},
-      {"type":"nopea","tier":"hullu","number":6,"lukitut":true,"maxThrows":6,"stake":100,"odds":40}]'::jsonb,
+    '[{"type":"nopea","tier":"rohkea","lukitut":false,"maxThrows":9,"stake":50,"odds":4.3},
+      {"type":"nopea","tier":"hullu","lukitut":true,"maxThrows":6,"stake":100,"odds":40}]'::jsonb,
     true, 50);
   ASSERT v_balance = 800, format('balance after placing: %s', v_balance);
   ASSERT (SELECT COUNT(*) FROM bets WHERE user_id = '00000000-0000-0000-0000-00000000000a') = 2;

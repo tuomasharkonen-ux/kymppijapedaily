@@ -12,9 +12,9 @@ export const shopItems: ShopItem[] = [
   {
     id: 'betting_license',
     emoji: '🎟️',
-    name: 'Vedonlyöntilupa',
-    shortDescription: 'Unlock Vedot, Päivän Potti and the Jackpot.',
-    longDescription: 'Your official Kymppijape betting licence. After throwing the opening, put credits on how fast you\'ll land your Kymppijape: pick Varma, Rohkea or Hullu, chase your Lempinumero, or go hardcore with Lukitut nopat. Hop into Päivän Potti for 50 credits — fewest throws takes the whole kiulu, revealed after midnight. And every bet is a ticket to the Jackpot: win in 5 throws or less and it\'s all yours. Pelaa vastuullisesti (it\'s just credits).',
+    name: 'Betting License',
+    shortDescription: 'Unlock Bets, the Pot of the Day and the Jackpot.',
+    longDescription: 'Your official Kymppijape betting license. After throwing the opening, put credits on how fast you\'ll land your Kymppijape: play it Safe, go Bold or go Crazy, bet on beating your own average or record, and add Lukitut nopat if you dare. Join the Pot of the Day for 50 credits — fewest throws takes the whole pot, revealed after midnight. And every bet is a ticket to the Jackpot: win in 5 throws or less and it\'s all yours. (It\'s just credits.)',
     price: 300,
     category: 'feature',
   },

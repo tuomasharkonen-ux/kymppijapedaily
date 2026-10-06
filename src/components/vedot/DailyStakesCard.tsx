@@ -11,10 +11,11 @@ export const DailyStakesCard = ({ board }: { board: DailyBoard }) => {
   return (
     <Card className="overflow-hidden border-[#f7d774]/30 bg-gradient-to-br from-[#3a2414] to-[#1b1009] text-white">
       <CardContent className="space-y-3 p-4">
+        <JackpotMeter balance={jackpot.balance} />
         <div className="flex items-center gap-3">
           <Kiulu fill={Math.min(1, pot.total / 400)} size={56} />
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f7d774]/80">Päivän Potti</div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f7d774]/80">Pot of the Day</div>
             <div className="font-display text-2xl leading-none">
               {pot.total} <span className="text-sm text-white/50">cr</span>
             </div>
@@ -23,9 +24,6 @@ export const DailyStakesCard = ({ board }: { board: DailyBoard }) => {
                 ? "Nobody in yet"
                 : `${pot.entrants.map((e) => e.username).join(", ")}${pot.joined ? " (incl. you)" : ""}`}
             </div>
-          </div>
-          <div className="w-28">
-            <JackpotMeter balance={jackpot.balance} compact />
           </div>
         </div>
         {jackpot.lastWin && (
@@ -66,10 +64,10 @@ export const VedotTeaser = ({ board }: { board: DailyBoard }) => (
     <div className="min-w-0 flex-1 text-sm">
       <div className="font-semibold">
         {board.pot.entrants.length > 0
-          ? `🪙 ${board.pot.entrants.length} player${board.pot.entrants.length === 1 ? "" : "s"} in today's Päivän Potti`
-          : "🪙 Päivän Potti & Vedot"}
+          ? `🪙 ${board.pot.entrants.length} player${board.pot.entrants.length === 1 ? "" : "s"} in today's Pot of the Day`
+          : "🪙 Bets & Pot of the Day"}
       </div>
-      <div className="text-xs text-white/60">Jackpot {board.jackpot.balance} cr · get a Vedonlyöntilupa in the shop →</div>
+      <div className="text-xs text-white/60">Jackpot {board.jackpot.balance} cr · get a Betting License in the shop →</div>
     </div>
   </Link>
 );

@@ -53,7 +53,6 @@ export type Database = {
           created_at: string
           game_date: string
           id: string
-          lucky_number: number | null
           lukitut: boolean
           max_throws: number
           odds: number
@@ -69,7 +68,6 @@ export type Database = {
           created_at?: string
           game_date: string
           id?: string
-          lucky_number?: number | null
           lukitut?: boolean
           max_throws: number
           odds: number
@@ -85,7 +83,6 @@ export type Database = {
           created_at?: string
           game_date?: string
           id?: string
-          lucky_number?: number | null
           lukitut?: boolean
           max_throws?: number
           odds?: number

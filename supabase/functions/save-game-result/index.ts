@@ -23,7 +23,6 @@ interface BetRow {
   id: string;
   bet_type: string;
   tier: string | null;
-  lucky_number: number | null;
   lukitut: boolean;
   max_throws: number;
   stake: number;
@@ -40,7 +39,7 @@ async function settleDay(
 ) {
   const { data: openBets, error } = await service
     .from("bets")
-    .select("id, bet_type, tier, lucky_number, lukitut, max_throws, stake, odds")
+    .select("id, bet_type, tier, lukitut, max_throws, stake, odds")
     .eq("user_id", userId)
     .eq("game_date", gameDate)
     .eq("status", "open");
@@ -52,7 +51,7 @@ async function settleDay(
     // An inconsistent throw log voids (refunds) the bets instead of paying out
     outcome: !outcome.logConsistent
       ? "void"
-      : betWins({ maxThrows: b.max_throws, number: b.lucky_number, lukitut: b.lukitut }, outcome)
+      : betWins({ maxThrows: b.max_throws, lukitut: b.lukitut }, outcome)
       ? "won"
       : "lost",
   }));

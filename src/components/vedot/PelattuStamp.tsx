@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { buzz, playSound } from "@/lib/sound";
 
-/** "PELATTU!" rubber stamp slam shown when bets are locked in. */
+/** "LOCKED IN!" rubber stamp slam shown when bets are placed. */
 export const PelattuStamp = ({ onDone }: { onDone: () => void }) => {
   useEffect(() => {
     const hit = setTimeout(() => {
@@ -36,7 +36,7 @@ export const PelattuStamp = ({ onDone }: { onDone: () => void }) => {
           maskImage: "radial-gradient(circle at 50% 50%, black 70%, rgba(0,0,0,0.75) 100%)",
         }}
       >
-        PELATTU!
+        LOCKED IN!
       </motion.div>
     </motion.div>
   );

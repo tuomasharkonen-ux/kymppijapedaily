@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Coins, Lock, X } from "lucide-react";
 import {
   type BetSpec,
   type BetType,
-  countFaces,
   MAX_BETS_PER_DAY,
   MAX_TOTAL_STAKE,
   MIN_STAKE,
@@ -34,36 +33,16 @@ export interface BettingSheetProps {
 
 type Selection = { type: "nopea"; tier: TierId } | { type: Exclude<BetType, "nopea"> };
 
-const DIE_PIPS: Record<number, [number, number][]> = {
-  1: [[50, 50]],
-  2: [[28, 28], [72, 72]],
-  3: [[25, 25], [50, 50], [75, 75]],
-  4: [[28, 28], [72, 28], [28, 72], [72, 72]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-  6: [[28, 22], [72, 22], [28, 50], [72, 50], [28, 78], [72, 78]],
-};
-
-const MiniDie = ({ value, active }: { value: number; active: boolean }) => (
-  <svg viewBox="0 0 100 100" className="h-7 w-7" aria-hidden="true">
-    <rect x="4" y="4" width="92" height="92" rx="18" fill={active ? "#f7d774" : "#f5efe6"} stroke={active ? "#b45309" : "#57534e"} strokeWidth="5" />
-    {DIE_PIPS[value].map(([cx, cy], i) => (
-      <circle key={i} cx={cx} cy={cy} r="9" fill="#1c1917" />
-    ))}
-  </svg>
-);
-
 const sectionTitle = "text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f7d774]/80";
 
 export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlacing, onLockIn, onSkip }: BettingSheetProps) => {
   const [joinPot, setJoinPot] = useState(false);
   const [dropKey, setDropKey] = useState(0);
   const [selection, setSelection] = useState<Selection>({ type: "nopea", tier: "rohkea" });
-  const [luckyNumber, setLuckyNumber] = useState<number | null>(null);
   const [lukitut, setLukitut] = useState(false);
   const [stake, setStake] = useState(25);
   const [slip, setSlip] = useState<BetSpec[]>([]);
 
-  const counts = useMemo(() => countFaces(opening), [opening]);
   const personalLines: PersonalLines = personal ?? { keskiarvo: null, ennatys: null };
 
   const slipStake = slip.reduce((a, b) => a + b.stake, 0);
@@ -73,7 +52,6 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
   const currentSpec: BetSpec = {
     type: selection.type,
     tier: selection.type === "nopea" ? selection.tier : undefined,
-    number: selection.type === "nopea" ? luckyNumber : null,
     lukitut,
     stake: Math.max(stake, MIN_STAKE),
   };
@@ -81,7 +59,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
 
   const tierPrices = TIERS.map((tier) => ({
     tier,
-    price: priceBet({ type: "nopea", tier: tier.id, number: luckyNumber, lukitut, stake: MIN_STAKE }, opening, personalLines),
+    price: priceBet({ type: "nopea", tier: tier.id, lukitut, stake: MIN_STAKE }, opening, personalLines),
   }));
 
   const pricedSlip = slip.map((spec) => priceBet(spec, opening, personalLines));
@@ -114,7 +92,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
       exit={{ y: "100%" }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
       role="dialog"
-      aria-label="Vedot ja Päivän Potti"
+      aria-label="Bets and Pot of the Day"
     >
       <div className="flex max-h-[74vh] flex-col overflow-hidden rounded-t-3xl border-t-2 border-x border-[#f7d774]/40 bg-gradient-to-b from-[#3a2414] via-[#2a190d] to-[#1b1009] text-white shadow-[0_-12px_40px_rgba(0,0,0,0.55)]">
         {/* Grab handle + header */}
@@ -125,17 +103,22 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
             <span className="font-semibold">{balance - totalCost}</span>
             <span className="text-white/50 text-xs">cr</span>
           </div>
-          <h2 className="mt-2 flex-1 text-center font-display text-2xl tracking-wide text-[#f7d774]">Vedot & Potti</h2>
+          <h2 className="mt-2 flex-1 text-center font-display text-2xl tracking-wide text-[#f7d774]">Bets & Pot</h2>
           <SoundToggle className="mt-2" />
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
-          {/* Päivän Potti + jackpot */}
-          <section className="flex items-stretch gap-3">
-            <div className="flex flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+          {/* Jackpot */}
+          <section>
+            <JackpotMeter balance={jackpot} />
+          </section>
+
+          {/* Pot of the Day */}
+          <section>
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
               <Kiulu fill={Math.min(1, (pot.total + buyIn) / 400)} dropKey={dropKey} size={72} />
               <div className="min-w-0 flex-1">
-                <div className={sectionTitle}>Päivän Potti</div>
+                <div className={sectionTitle}>Pot of the Day</div>
                 <div className="font-display text-2xl leading-none">{pot.total + buyIn} <span className="text-sm text-white/50">cr</span></div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {pot.entrants.map((e) => (
@@ -159,17 +142,13 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                 </motion.button>
               </div>
             </div>
-            <div className="flex w-28 flex-col justify-center">
-              <JackpotMeter balance={jackpot} compact />
-              <p className="mt-1 text-center text-[10px] leading-tight text-white/50">Win in ≤ 5 throws with a bet or pot entry</p>
-            </div>
+            <p className="mt-1.5 text-[11px] text-white/45">Fewest throws takes the pot. Scores stay secret until the reveal after midnight.</p>
           </section>
-          <p className="-mt-3 text-[11px] text-white/45">Fewest throws takes the kiulu. Scores stay secret until the reveal after midnight.</p>
 
-          {/* Nopea Jape tiers */}
+          {/* Quick Finish tiers */}
           <section>
             <div className="mb-2 flex items-baseline justify-between">
-              <h3 className={sectionTitle}>⚡ Nopea Jape</h3>
+              <h3 className={sectionTitle}>⚡ Quick Finish</h3>
               <span className="text-[11px] text-white/45">How lucky do you feel?</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -201,46 +180,6 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
               })}
             </div>
 
-            {/* Add-ons */}
-            <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">🔢 Lempinumero</span>
-                <span className="text-[11px] text-white/45">Win on this number</span>
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-1">
-                <button
-                  type="button"
-                  onClick={() => setLuckyNumber(null)}
-                  className={`h-9 rounded-lg px-2 text-xs font-semibold ${luckyNumber === null ? "bg-[#f7d774] text-black" : "bg-white/10 text-white/70"}`}
-                  aria-pressed={luckyNumber === null}
-                >
-                  Any
-                </button>
-                {[1, 2, 3, 4, 5, 6].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setLuckyNumber(n)}
-                    disabled={selection.type !== "nopea"}
-                    className="flex flex-col items-center disabled:opacity-30"
-                    aria-label={`Lempinumero ${n}, ${counts[n]} in the opening`}
-                    aria-pressed={luckyNumber === n}
-                  >
-                    <motion.span animate={{ scale: luckyNumber === n ? 1.15 : 1 }}>
-                      <MiniDie value={n} active={luckyNumber === n} />
-                    </motion.span>
-                    <span className="text-[10px] text-white/50">×{counts[n]}</span>
-                  </button>
-                ))}
-              </div>
-              <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 border-t border-white/10 pt-3">
-                <span>
-                  <span className="text-sm font-semibold">🔒 Lukitut nopat</span>
-                  <span className="block text-[11px] text-white/45">Locked dice stay locked for the whole game · ×1.1</span>
-                </span>
-                <input type="checkbox" checked={lukitut} onChange={(e) => setLukitut(e.target.checked)} className="h-5 w-5 accent-[#f7d774]" />
-              </label>
-            </div>
           </section>
 
           {/* Personal bets */}
@@ -257,10 +196,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                     key={type}
                     type="button"
                     disabled={line === null}
-                    onClick={() => {
-                      setSelection({ type });
-                      setLuckyNumber(null);
-                    }}
+                    onClick={() => setSelection({ type })}
                     animate={{ y: selected ? -3 : 0 }}
                     className={`rounded-xl border-2 p-2 text-left disabled:opacity-40 ${
                       selected ? "border-[#f7d774] bg-[#f7d774]/10" : "border-white/10 bg-black/25"
@@ -281,6 +217,15 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
               })}
             </div>
           </section>
+
+          {/* Lukitut nopat modifier */}
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
+            <span>
+              <span className="text-sm font-semibold">🔒 Lukitut nopat</span>
+              <span className="block text-[11px] text-white/45">Locked dice stay locked for the whole game · ×1.1</span>
+            </span>
+            <input type="checkbox" checked={lukitut} onChange={(e) => setLukitut(e.target.checked)} className="h-5 w-5 accent-[#f7d774]" />
+          </label>
 
           {/* Stake */}
           <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
@@ -328,7 +273,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
                     >
                       <Chip value={spec.stake} size={26} />
                       <span className="flex-1 truncate">
-                        {title} <span className="text-white/50">≤{p.bet.maxThrows}{spec.number ? ` · ${spec.number}s` : ""}{spec.lukitut ? " · 🔒" : ""}</span>
+                        {title} <span className="text-white/50">≤{p.bet.maxThrows}{spec.lukitut ? " · 🔒" : ""}</span>
                       </span>
                       <span className="font-mono text-[#f7d774]">×{formatOdds(p.bet.odds)}</span>
                       <button type="button" onClick={() => setSlip((s) => s.filter((_, j) => j !== i))} aria-label="Remove bet" className="text-white/40 hover:text-white">
@@ -343,7 +288,7 @@ export const BettingSheet = ({ opening, personal, balance, jackpot, pot, isPlaci
           <div className="flex items-center gap-3">
             <div className="text-xs leading-tight text-white/60">
               <div>
-                🧾 {slip.length} bet{slip.length === 1 ? "" : "s"}{joinPot ? " + potti" : ""} · <span className="text-white">{totalCost} cr</span>
+                🧾 {slip.length} bet{slip.length === 1 ? "" : "s"}{joinPot ? " + pot" : ""} · <span className="text-white">{totalCost} cr</span>
               </div>
               <div>max win <span className="font-semibold text-emerald-300">+{maxWin}</span></div>
             </div>

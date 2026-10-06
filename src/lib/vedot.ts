@@ -5,7 +5,6 @@ export interface BetRow {
   id: string;
   bet_type: BetType;
   tier: TierId | null;
-  lucky_number: number | null;
   lukitut: boolean;
   max_throws: number;
   stake: number;
@@ -51,24 +50,23 @@ export interface Settlement {
 }
 
 export const BET_TYPE_META: Record<BetType, { name: string; emoji: string; blurb: string }> = {
-  nopea: { name: "Nopea Jape", emoji: "⚡", blurb: "Finish fast" },
-  keskiarvo: { name: "Keskiarvon alle", emoji: "📉", blurb: "Beat your average" },
-  ennatys: { name: "Ennätysjahti", emoji: "🏅", blurb: "Tie or beat your best" },
+  nopea: { name: "Quick Finish", emoji: "⚡", blurb: "Finish fast" },
+  keskiarvo: { name: "Beat Your Average", emoji: "📉", blurb: "Fewer throws than your average" },
+  ennatys: { name: "Record Chase", emoji: "🏅", blurb: "Tie or beat your best" },
 };
 
 export function betTitle(bet: Pick<BetRow, "bet_type" | "tier">): string {
   if (bet.bet_type === "nopea") {
     const tier = TIERS.find((t) => t.id === bet.tier);
-    return `${tier?.emoji ?? "⚡"} ${tier?.name ?? "Nopea Jape"}`;
+    return `${tier?.emoji ?? "⚡"} ${tier?.name ?? "Quick Finish"}`;
   }
   const meta = BET_TYPE_META[bet.bet_type];
   return `${meta.emoji} ${meta.name}`;
 }
 
-export function betConditions(bet: Pick<BetRow, "max_throws" | "lucky_number" | "lukitut">): string {
+export function betConditions(bet: Pick<BetRow, "max_throws" | "lukitut">): string {
   const parts = [`≤ ${bet.max_throws} throws`];
-  if (bet.lucky_number) parts.push(`on ${bet.lucky_number}s`);
-  if (bet.lukitut) parts.push("🔒 locked");
+  if (bet.lukitut) parts.push("🔒 Lukitut nopat");
   return parts.join(" · ");
 }
 
@@ -92,17 +90,16 @@ export function liveBetStatus(
   game: { throwCount: number; showing: number[]; complete: boolean; winningNumber: number | null; unlockedAny: boolean },
 ): LiveBetStatus {
   if (bet.status !== "open") return bet.status;
-  const meetsExtras = (n: number | null) =>
-    (bet.lucky_number === null || bet.lucky_number === n) && !(bet.lukitut && game.unlockedAny);
+  const keptLocks = !(bet.lukitut && game.unlockedAny);
 
   if (game.complete) {
-    return game.throwCount <= bet.max_throws && meetsExtras(game.winningNumber) ? "won" : "lost";
+    return game.throwCount <= bet.max_throws && keptLocks ? "won" : "lost";
   }
   if (game.throwCount > bet.max_throws) return "busted";
   if (bet.lukitut && game.unlockedAny) return "busted";
   if (game.throwCount === bet.max_throws) {
     const first = game.showing[0];
-    const canFinish = game.showing.length > 0 && game.showing.every((v) => v === first) && meetsExtras(first);
+    const canFinish = game.showing.length > 0 && game.showing.every((v) => v === first) && keptLocks;
     return canFinish ? "last_chance" : "busted";
   }
   return "alive";

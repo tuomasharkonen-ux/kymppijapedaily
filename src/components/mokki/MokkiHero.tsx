@@ -11,7 +11,7 @@ export interface MokkiHeroProps {
   hasPlayedToday: boolean; // chimney smoke
   activeSkin: string; // die on the porch table
   purchasedItems: string[]; // e.g. sieni_dice → autumn mushrooms
-  hasMail: boolean; // mailbox flag raised (unrevealed Päivän Potti result)
+  hasMail: boolean; // mailbox flag raised (unrevealed Pot of the Day result)
   onMailboxClick: () => void;
   potTotal: number | null; // kiulu on the porch fills with coins; null = hide kiulu (no betting licence)
   onKiuluClick: () => void;

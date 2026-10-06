@@ -74,14 +74,11 @@ describe("pricing", () => {
     }
   });
 
-  it("prices Lempinumero higher for numbers that are rare in the opening", () => {
-    const on3 = priceBet({ type: "nopea", tier: "rohkea", number: 3, stake: 10 }, OPENING, NO_PERSONAL);
-    const on6 = priceBet({ type: "nopea", tier: "rohkea", number: 6, stake: 10 }, OPENING, NO_PERSONAL);
-    const any = priceBet({ type: "nopea", tier: "rohkea", stake: 10 }, OPENING, NO_PERSONAL);
-    if (!on3.ok || !on6.ok || !any.ok) throw new Error("expected ok");
-    expect(on3.bet.odds).toBe(any.bet.odds);
-    expect(on6.bet.odds).toBeGreaterThan(on3.bet.odds);
-    expect(any.bet.odds).toBeCloseTo(4.3, 1);
+  it("prices the Bold tier off the most common number in the opening", () => {
+    const res = priceBet({ type: "nopea", tier: "rohkea", stake: 10 }, OPENING, NO_PERSONAL);
+    if (!res.ok) throw new Error("expected ok");
+    expect(res.bet.maxThrows).toBe(9);
+    expect(res.bet.odds).toBeCloseTo(4.3, 1);
   });
 
   it("applies the Lukitut nopat multiplier", () => {
@@ -111,16 +108,15 @@ describe("pricing", () => {
 });
 
 describe("settlement", () => {
-  const bet = { maxThrows: 9, number: null, lukitut: false };
+  const bet = { maxThrows: 9, lukitut: false };
 
   it("only rewards finishing fast enough", () => {
     expect(betWins(bet, { throws: 9, winningNumber: 3, unlockedAny: false })).toBe(true);
     expect(betWins(bet, { throws: 10, winningNumber: 3, unlockedAny: false })).toBe(false);
   });
 
-  it("checks Lempinumero and Lukitut nopat", () => {
-    expect(betWins({ ...bet, number: 6 }, { throws: 5, winningNumber: 3, unlockedAny: false })).toBe(false);
-    expect(betWins({ ...bet, number: 6 }, { throws: 5, winningNumber: 6, unlockedAny: false })).toBe(true);
+  it("checks Lukitut nopat", () => {
+    expect(betWins({ ...bet, lukitut: true }, { throws: 5, winningNumber: 6, unlockedAny: false })).toBe(true);
     expect(betWins({ ...bet, lukitut: true }, { throws: 5, winningNumber: 6, unlockedAny: true })).toBe(false);
   });
 

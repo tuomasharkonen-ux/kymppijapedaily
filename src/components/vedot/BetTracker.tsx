@@ -22,7 +22,7 @@ const STATUS_STYLES: Record<LiveBetStatus, string> = {
 
 const shortLabel = (bet: BetRow) => {
   const emoji = bet.bet_type === "nopea" ? TIERS.find((t) => t.id === bet.tier)?.emoji : BET_TYPE_META[bet.bet_type].emoji;
-  return `${emoji} ≤${bet.max_throws}${bet.lucky_number ? ` ·${bet.lucky_number}s` : ""}${bet.lukitut ? " 🔒" : ""}`;
+  return `${emoji} ≤${bet.max_throws}${bet.lukitut ? " 🔒" : ""}`;
 };
 
 const TrackerChip = ({ label, odds, status }: { label: string; odds?: string; status: LiveBetStatus }) => {
@@ -85,7 +85,7 @@ export const BetTracker = ({ bets, inPot, progress }: BetTrackerProps) => {
       {bets.map((bet) => (
         <TrackerChip key={bet.id} label={shortLabel(bet)} odds={formatOdds(Number(bet.odds))} status={liveBetStatus(bet, progress)} />
       ))}
-      {inPot && <TrackerChip label={progress.complete ? "♨️ Potti · reveal after midnight 🌙" : "♨️ Potti"} status="alive" />}
+      {inPot && <TrackerChip label={progress.complete ? "♨️ Pot · reveal after midnight 🌙" : "♨️ Pot"} status="alive" />}
       <TrackerChip label={`🏆 ≤${JACKPOT_MAX_THROWS}`} status={jackpotStatus} />
     </div>
   );

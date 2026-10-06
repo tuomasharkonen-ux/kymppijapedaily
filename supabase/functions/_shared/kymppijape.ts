@@ -98,12 +98,12 @@ export function probFinishWithin(n: number, k: number): number {
 export type TierId = "varma" | "rohkea" | "hullu";
 
 export const TIERS: { id: TierId; name: string; emoji: string; tagline: string; target: number }[] = [
-  { id: "varma", name: "Varma", emoji: "🙂", tagline: "Safe", target: 0.5 },
-  { id: "rohkea", name: "Rohkea", emoji: "😬", tagline: "Bold", target: 0.2 },
-  { id: "hullu", name: "Hullu", emoji: "🤯", tagline: "Crazy", target: 0.05 },
+  { id: "varma", name: "Safe", emoji: "🙂", tagline: "~50% chance", target: 0.5 },
+  { id: "rohkea", name: "Bold", emoji: "😬", tagline: "~20% chance", target: 0.2 },
+  { id: "hullu", name: "Crazy", emoji: "🤯", tagline: "~5% chance", target: 0.05 },
 ];
 
-/** Max-throws line for each Nopea Jape tier, chosen so the tier lands near its target chance. */
+/** Max-throws line for each Quick Finish tier, chosen so the tier lands near its target chance. */
 export function computeTierLines(opening: number[]): Record<TierId, number> {
   const k = bestCount(opening);
   const lineFor = (target: number) => {
@@ -140,8 +140,6 @@ export type BetType = "nopea" | "keskiarvo" | "ennatys";
 export interface BetSpec {
   type: BetType;
   tier?: TierId;
-  /** Lempinumero: must win on this number (Nopea Jape only). */
-  number?: number | null;
   /** Lukitut nopat: locked dice can never be unlocked. */
   lukitut?: boolean;
   stake: number;
@@ -150,7 +148,6 @@ export interface BetSpec {
 export interface PricedBet {
   type: BetType;
   tier: TierId | null;
-  number: number | null;
   lukitut: boolean;
   stake: number;
   maxThrows: number;
@@ -172,7 +169,7 @@ export function computePersonalLines(previousThrows: number[]): PersonalLines {
   const avg = previousThrows.reduce((a, b) => a + b, 0) / previousThrows.length;
   // Beat the average = strictly fewer throws than the average
   const keskiarvo = Math.ceil(avg) - 1;
-  // Ennätysjahti = tie or beat the personal best
+  // Record Chase = tie or beat the personal best
   const ennatys = Math.min(...previousThrows);
   return {
     keskiarvo: keskiarvo >= 2 ? keskiarvo : null,
@@ -183,7 +180,6 @@ export function computePersonalLines(previousThrows: number[]): PersonalLines {
 export type PriceResult = { ok: true; bet: PricedBet } | { ok: false; error: string };
 
 export function priceBet(spec: BetSpec, opening: number[], personal: PersonalLines): PriceResult {
-  const counts = countFaces(opening);
   const kBest = bestCount(opening);
   const lukitut = !!spec.lukitut;
   const multiplier = lukitut ? LUKITUT_MULTIPLIER : 1;
@@ -195,26 +191,21 @@ export function priceBet(spec: BetSpec, opening: number[], personal: PersonalLin
   if (spec.type === "nopea") {
     const tier = TIERS.find((t) => t.id === spec.tier);
     if (!tier) return { ok: false, error: "Unknown tier" };
-    const number = spec.number ?? null;
-    if (number !== null && !(Number.isInteger(number) && number >= 1 && number <= 6)) {
-      return { ok: false, error: "Invalid number" };
-    }
     const maxThrows = computeTierLines(opening)[tier.id];
-    const p = probFinishWithin(maxThrows, number === null ? kBest : counts[number]);
+    const p = probFinishWithin(maxThrows, kBest);
     return {
       ok: true,
-      bet: { type: "nopea", tier: tier.id, number, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier) },
+      bet: { type: "nopea", tier: tier.id, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier) },
     };
   }
 
   if (spec.type === "keskiarvo" || spec.type === "ennatys") {
     const maxThrows = personal[spec.type];
     if (maxThrows === null) return { ok: false, error: "Personal bets unlock after 5 games" };
-    if (spec.number != null) return { ok: false, error: "Lempinumero is only for Nopea Jape" };
     const p = probFinishWithin(maxThrows, kBest);
     return {
       ok: true,
-      bet: { type: spec.type, tier: null, number: null, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier) },
+      bet: { type: spec.type, tier: null, lukitut, stake: spec.stake, maxThrows, probability: p, odds: oddsForProbability(p, multiplier) },
     };
   }
 
@@ -248,11 +239,10 @@ export interface GameOutcome {
 }
 
 export function betWins(
-  bet: { maxThrows: number; number: number | null; lukitut: boolean },
+  bet: { maxThrows: number; lukitut: boolean },
   outcome: GameOutcome,
 ): boolean {
   if (outcome.throws > bet.maxThrows) return false;
-  if (bet.number !== null && bet.number !== outcome.winningNumber) return false;
   if (bet.lukitut && outcome.unlockedAny) return false;
   return true;
 }

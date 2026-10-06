@@ -19,7 +19,6 @@ const bet = (over: Partial<BetRow>): BetRow => ({
   id: Math.random().toString(36).slice(2),
   bet_type: "nopea",
   tier: "rohkea",
-  lucky_number: null,
   lukitut: false,
   max_throws: 9,
   stake: 50,
@@ -31,7 +30,7 @@ const bet = (over: Partial<BetRow>): BetRow => ({
 
 const BETS: BetRow[] = [
   bet({}),
-  bet({ tier: "hullu", max_throws: 6, odds: 19.2, stake: 25, lucky_number: 3, lukitut: true }),
+  bet({ tier: "hullu", max_throws: 6, odds: 19.2, stake: 25, lukitut: true }),
   bet({ bet_type: "keskiarvo", tier: null, max_throws: 14, odds: 1.6, stake: 100 }),
 ];
 
@@ -61,7 +60,7 @@ const GamePreview = () => {
     const priced = priceSlip(specs, opening, { keskiarvo: 14, ennatys: 7 });
     if (priced.ok === false) return;
     const rows = priced.bets.map((b) =>
-      bet({ bet_type: b.type, tier: b.tier, lucky_number: b.number, lukitut: b.lukitut, max_throws: b.maxThrows, stake: b.stake, odds: b.odds }),
+      bet({ bet_type: b.type, tier: b.tier, lukitut: b.lukitut, max_throws: b.maxThrows, stake: b.stake, odds: b.odds }),
     );
     sessionStorage.setItem("preview_bets", JSON.stringify(rows));
     setBets(rows);

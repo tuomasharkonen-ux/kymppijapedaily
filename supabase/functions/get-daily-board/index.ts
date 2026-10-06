@@ -1,5 +1,5 @@
 // Today's betting board: opening, tier lines, personal lines, jackpot, pot status,
-// the caller's bets, and any settled Päivän Potti results they haven't seen yet.
+// the caller's bets, and any settled Pot of the Day results they haven't seen yet.
 // Also settles pots from previous days (lazy settlement, idempotent).
 import {
   BETTING_LICENSE_ID,

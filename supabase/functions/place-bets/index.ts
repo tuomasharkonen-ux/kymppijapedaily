@@ -1,4 +1,4 @@
-// Lock in the day's bets and/or the Päivän Potti entry.
+// Lock in the day's bets and/or the Pot of the Day entry.
 // Odds are always priced here from the shared rules, never taken from the client.
 import {
   BETTING_LICENSE_ID,
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const { user, service } = auth;
 
     if (!(await hasPurchase(service, user.id, BETTING_LICENSE_ID))) {
-      return json({ error: "You need a Vedonlyöntilupa to bet" }, 403);
+      return json({ error: "You need a Betting License to bet" }, 403);
     }
 
     const body: PlaceBetsRequest = await req.json();
@@ -45,7 +45,6 @@ Deno.serve(async (req) => {
     const sanitized: BetSpec[] = specs.map((s) => ({
       type: s.type,
       tier: s.tier,
-      number: s.number ?? null,
       lukitut: s.lukitut === true,
       stake: s.stake,
     }));

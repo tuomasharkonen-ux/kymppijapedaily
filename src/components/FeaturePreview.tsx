@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 import { MokkiPreview } from "@/components/mokki/MokkiPreview";
 
 const DEMO_TIERS = [
-  { emoji: "🙂", name: "Varma", odds: ["1.8", "1.7", "1.9"] },
-  { emoji: "😬", name: "Rohkea", odds: ["4.3", "3.9", "4.8"] },
-  { emoji: "🤯", name: "Hullu", odds: ["19", "16", "22"] },
+  { emoji: "🙂", name: "Safe", odds: ["1.8", "1.7", "1.9"] },
+  { emoji: "😬", name: "Bold", odds: ["4.3", "3.9", "4.8"] },
+  { emoji: "🤯", name: "Crazy", odds: ["19", "16", "22"] },
 ];
 
 const BettingPreview = () => {
