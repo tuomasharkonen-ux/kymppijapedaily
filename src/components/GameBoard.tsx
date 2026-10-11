@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dice, DiceSkin, DiceAnimationType } from "./Dice";
+import { cn } from "@/lib/utils";
 import { type ThrowAnimationStyle, type BackgroundStyle, getBackgroundStyles } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -381,7 +382,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                  onClick={onCopyResult}
                  disabled={isStatsLoading}
                  size="lg"
-                 className="min-w-[220px]"
+                 className="game-press min-w-[220px]"
                  variant={showCopied ? "secondary" : "default"}
                >
                  {isStatsLoading ? (
@@ -397,11 +398,16 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
          )}
        </AnimatePresence>
 
+      <div className="game-stage-lift">
       <Card
-        className={`${!hasStarted ? "animate-border-glow" : ""} overflow-hidden ${activeSkin === "sauna_dice" ? "sauna-wood-bg" : ""}`}
-        style={saunaHeatLevel >= 3 ? { boxShadow: "0 0 0 1px hsl(22 40% 30%), 0 0 30px 4px rgba(239,68,68,0.35), 0 0 60px 8px rgba(239,68,68,0.15)" } : undefined}
+        className={cn(
+          "game-stage overflow-hidden rounded-2xl",
+          !hasStarted && "animate-border-glow",
+          activeSkin === "sauna_dice" && "sauna-wood-bg",
+          saunaHeatLevel >= 3 && "sauna-heat-max",
+        )}
       >
-        <CardContent className="p-4 md:p-6 relative">
+        <CardContent className="relative z-[1] p-4 md:p-6">
           {/* Sauna ambient steam overlay */}
           <SaunaSteamOverlay level={saunaHeatLevel} />
 
@@ -428,7 +434,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                      animate={{ opacity: 1 }}
                      transition={{ duration: 0.3 }}
                    >
-                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                     <motion.div className="game-stat flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
                        <AnimatedNumber value={throwCount} className={`font-display font-bold ${numColor} text-4xl md:text-5xl`} />
                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Throws</span>
                      </motion.div>
@@ -445,7 +451,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                        </div>
                      )}
 
-                     <motion.div className="flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
+                     <motion.div className="game-stat flex flex-col items-center" animate={shakeAnim} transition={shakeTrans}>
                        <span className={`font-display font-bold ${numColor} text-4xl md:text-5xl`}>
                          <AnimatedNumber value={dice.filter(d => d.isLocked).length} />/10
                        </span>
@@ -477,7 +483,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
               )}
 
                <motion.div 
-                 className="relative grid grid-cols-5 gap-2 md:gap-4 justify-items-center mb-6"
+                 className="dice-tray relative grid grid-cols-5 gap-2 md:gap-3 justify-items-center"
                  variants={staggerContainer}
                  initial="initial"
                  animate="animate"
@@ -497,6 +503,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
                        animationType={currentAction}
                        throwAnimation={activeThrowAnimation}
                        heatLevel={saunaHeatLevel}
+                       tactile
                      />
                    </motion.div>
                  ))}
@@ -511,7 +518,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
               <Button
                 onClick={rollDice}
                 disabled={isRolling || gameComplete || bettingOpen || dice.every(d => d.isLocked) || currentAction !== null}
-                className="w-full"
+                className="game-press w-full"
                 size="lg"
                 aria-label={isRolling ? "Rolling dice" : "Roll dice"}
               >
@@ -533,7 +540,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
           ) : (
             <div className="py-8">
               <p className="text-muted-foreground mb-6 text-center">Ready for today's challenge?</p>
-              <Button onClick={rollDice} disabled={isRolling || currentAction !== null} size="lg" className="w-full" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
+              <Button onClick={rollDice} disabled={isRolling || currentAction !== null} size="lg" className="game-press w-full" aria-label={isRolling ? "Rolling dice" : "Roll dice"}>
                 {isRolling ? <span className="animate-shake"><span aria-hidden="true">🎲</span> Rolling...</span> : <><span aria-hidden="true">🎲</span> Roll Dice</>}
               </Button>
               <ActionButtons
@@ -547,6 +554,7 @@ export const GameBoard = ({ onGameComplete, hasPlayedToday, personalBest, userId
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

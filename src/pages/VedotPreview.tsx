@@ -6,7 +6,10 @@ import { ShopItemModal } from "@/components/ShopItemModal";
 import { CustomizationSection } from "@/components/CustomizationSection";
 import { shopItems } from "@/lib/shopItems";
 import { useSearchParams } from "react-router-dom";
-import { Dice } from "@/components/Dice";
+import { Dice, type DiceSkin } from "@/components/Dice";
+import { type BackgroundStyle, getBackgroundStyles } from "@/lib/animations";
+import { TwinkleStars } from "@/components/TwinkleStars";
+import { cn } from "@/lib/utils";
 import { BettingSheet } from "@/components/vedot/BettingSheet";
 import { BetTracker } from "@/components/vedot/BetTracker";
 import { BettingPromo } from "@/components/vedot/BettingPromo";
@@ -53,8 +56,14 @@ const BOARD: DailyBoard = {
 
 const noop = () => {};
 
+const DICE_SKINS = ["default", "golden_dice", "diamond_dice", "german_supermarket_dice", "sauna_dice", "helldivers_dice", "sieni_dice"] as const satisfies readonly DiceSkin[];
+const BACKGROUNDS = ["default", "casino_felt_bg", "starfield_bg"] as const satisfies readonly BackgroundStyle[];
+
+const pickAllowed = <T extends string>(value: string | null, allowed: readonly T[], fallback: T): T =>
+  value !== null && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+
 /** The real GameBoard wired to the betting sheet with in-memory bets (no backend). */
-const GamePreview = () => {
+const GamePreview = ({ skin = "default" }: { skin?: DiceSkin }) => {
   const opening = useMemo(() => getOpeningDice(helsinkiDate()), []);
   const [bettingOpen, setBettingOpen] = useState(false);
   const [bets, setBets] = useState<BetRow[]>(() => JSON.parse(sessionStorage.getItem("preview_bets") ?? "[]"));
@@ -77,6 +86,7 @@ const GamePreview = () => {
         userId="preview-user"
         hasPlayedToday={false}
         personalBest={7}
+        activeSkin={skin}
         onGameComplete={(throws, winningNumber, _initial, _action, extras) =>
           setResult(JSON.stringify({ throws, winningNumber, logLength: extras.throwLog.length, firstIsOpening: extras.throwLog[0]?.join() === opening.join(), unlockedAny: extras.unlockedAny }))
         }
@@ -128,6 +138,9 @@ const VedotPreview = () => {
   const view = params.get("view") ?? "sheet";
   const throws = Number(params.get("throws") ?? 7);
   const done = params.get("done") === "1";
+  const skin = pickAllowed(params.get("skin"), DICE_SKINS, "default");
+  const background = pickAllowed(params.get("bg"), BACKGROUNDS, "default");
+  const bgClass = getBackgroundStyles(background);
 
   const progress = useMemo(
     () =>
@@ -138,8 +151,9 @@ const VedotPreview = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-lg space-y-4 px-4 py-6">
+    <div className={cn("min-h-screen", bgClass || "bg-background", bgClass && "relative")}>
+      {background === "starfield_bg" && <TwinkleStars />}
+      <div className={cn("container relative z-[1] mx-auto max-w-lg space-y-4 px-4 py-6", bgClass && "text-white")}>
         <h1 className="text-center text-2xl font-bold">🎲 Kymppijape Daily</h1>
 {view !== "game" && (
         <div className="grid grid-cols-5 justify-items-center gap-2 rounded-xl border bg-card p-4">
@@ -149,7 +163,7 @@ const VedotPreview = () => {
         </div>
         )}
 
-        {view === "game" && <GamePreview />}
+        {view === "game" && <GamePreview skin={skin} />}
         {view === "customize" && <CustomizePreview />}
         {view === "promo" && <BettingPromo jackpot={640} onPlaceBets={noop} />}
         {view === "tracker" && <BetTracker bets={BETS} inPot progress={progress} />}

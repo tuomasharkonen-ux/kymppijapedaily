@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Lock, HelpCircle, Wind, Angry } from "lucide-react";
 import { springs, diceShake, diceBlow, diceCower, hoverScale, tapScale, pulseGlow, getThrowAnimation, type ThrowAnimationStyle } from "@/lib/animations";
 
@@ -46,6 +46,11 @@ interface DiceProps {
   animationType?: DiceAnimationType;
   throwAnimation?: ThrowAnimationStyle;
   heatLevel?: number;
+  /**
+   * Sample depth treatment for the main game board.
+   * Lighting is painted in overlays so skin colors, gradients, glows, and face art stay intact.
+   */
+  tactile?: boolean;
 }
  
  // Skin-specific styles
@@ -119,17 +124,17 @@ interface DiceProps {
          src={helldiversFaceIcons[value]}
          alt=""
          draggable={false}
-         className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
-       />
-     );
-   }
-   if (skin === "sieni_dice" && value > 0) {
-     return (
-       <img
-         src={sieniFaceIcons[value]}
-         alt=""
-         draggable={false}
-         className="absolute inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
+        className="absolute z-[2] inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
+      />
+    );
+  }
+  if (skin === "sieni_dice" && value > 0) {
+    return (
+      <img
+        src={sieniFaceIcons[value]}
+        alt=""
+        draggable={false}
+        className="absolute z-[2] inset-1 md:inset-1.5 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] md:w-[calc(100%-0.75rem)] md:h-[calc(100%-0.75rem)] object-contain pointer-events-none select-none"
        />
      );
    }
@@ -142,7 +147,7 @@ interface DiceProps {
          <div
            key={index}
            className={cn(
-             "absolute w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
+             "dice-pip absolute z-[2] w-2.5 h-2.5 md:w-3 md:h-3 rounded-full",
              dotColor,
              positionClasses[pos]
            )}
@@ -183,7 +188,9 @@ export const Dice = ({
   animationType = null,
   throwAnimation = "default",
   heatLevel = 0,
+  tactile = false,
 }: DiceProps) => {
+   const reduceMotion = useReducedMotion();
    const [displayValue, setDisplayValue] = useState(value);
    const [lastScrambleType, setLastScrambleType] = useState<DiceAnimationType>(null);
    const [currentAnimation, setCurrentAnimation] = useState<'idle' | 'rolling' | 'shake' | 'blow' | 'cower'>('idle');
@@ -289,7 +296,14 @@ export const Dice = ({
   const iconColor = skinStyles[skin].dot;
 
   return (
-    <div className="relative w-12 h-12 md:w-16 md:h-16">
+    <div
+      className={cn(
+        "relative w-12 h-12 md:w-16 md:h-16",
+        tactile && "dice-stage",
+        tactile && isLocked && "dice-stage--held",
+        tactile && isRolling && "dice-stage--rolling",
+      )}
+    >
       {/* Sauna Dice: birch leaves burst on roll */}
       <AnimatePresence>
         {leaves.map(leaf => (
@@ -330,7 +344,8 @@ export const Dice = ({
        aria-label={`Die ${value > 0 ? `showing ${value}` : 'not rolled'}, ${isLocked ? (lockPending ? 'locked, locks in on the next throw' : 'locked') : 'unlocked'}${isScrambled ? ', scrambled' : ''}. Click to ${isLocked ? 'unlock' : 'lock'}.`}
        aria-pressed={isLocked}
        className={cn(
-         "relative w-12 h-12 md:w-16 md:h-16 rounded-lg shadow-md",
+         "relative w-12 h-12 md:w-16 md:h-16",
+         tactile ? "dice-tactile rounded-xl" : "rounded-lg shadow-md",
          styles.bg,
          "border-2",
          isLocked
@@ -343,12 +358,28 @@ export const Dice = ({
          !disabled && "cursor-pointer"
        )}
        animate={getAnimateValue()}
-       whileHover={!disabled && !isRolling ? hoverScale : undefined}
-       whileTap={!disabled && !isRolling ? tapScale : undefined}
+       whileHover={
+         !disabled && !isRolling
+           ? tactile
+             ? reduceMotion
+               ? undefined
+               : { scale: 1.045 }
+             : hoverScale
+           : undefined
+       }
+       whileTap={
+         !disabled && !isRolling
+           ? tactile
+             ? reduceMotion
+               ? undefined
+               : { scale: 0.96 }
+             : tapScale
+           : undefined
+       }
       >
         {showScrambled ? (
           <motion.div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 z-[2] flex items-center justify-center"
             animate={{
               opacity: [0.5, 1, 0.5],
               rotate: [0, 5, -5, 0],
@@ -376,7 +407,7 @@ export const Dice = ({
          {isLocked && (
            <motion.div 
              className={cn(
-               "absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center",
+               "dice-lock absolute z-10 -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center",
                lockPending ? "bg-background border-2 border-dashed border-primary" : "bg-primary"
              )}
              initial={{ scale: 0 }}
