@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.buy-mokki-piece]
 verify_jwt = false
+
+[functions.mokki-action]
+verify_jwt = false

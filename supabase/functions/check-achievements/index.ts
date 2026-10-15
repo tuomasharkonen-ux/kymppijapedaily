@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getOpeningDice, helsinkiDate } from '../_shared/kymppijape.ts';
+import { napsFromDate, streakWithNaps } from '../_shared/mokki.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,51 +32,6 @@ interface GameRecord {
   played_date: string;
   winning_number: number;
   throws_count: number;
-}
-
-// Calculate streak from played dates
-function calculateStreak(playedDates: string[]): number {
-  if (playedDates.length === 0) return 0;
-
-  // Sort dates descending (most recent first)
-  const sortedDates = [...playedDates].sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
-  );
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const mostRecentDate = new Date(sortedDates[0]);
-  mostRecentDate.setHours(0, 0, 0, 0);
-
-  // Most recent game must be today or yesterday to count
-  if (mostRecentDate < yesterday) {
-    return 0;
-  }
-
-  let streak = 1;
-  let currentDate = mostRecentDate;
-
-  for (let i = 1; i < sortedDates.length; i++) {
-    const prevDate = new Date(sortedDates[i]);
-    prevDate.setHours(0, 0, 0, 0);
-
-    const expectedPrevDate = new Date(currentDate);
-    expectedPrevDate.setDate(expectedPrevDate.getDate() - 1);
-
-    if (prevDate.getTime() === expectedPrevDate.getTime()) {
-      streak++;
-      currentDate = prevDate;
-    } else if (prevDate.getTime() < expectedPrevDate.getTime()) {
-      break;
-    }
-    // Skip duplicates (same day)
-  }
-
-  return streak;
 }
 
 // Check if a YYYY-MM-DD game day is Friday the 13th
@@ -211,7 +167,14 @@ Deno.serve(async (req) => {
     // Calculate verified values server-side
     const verifiedThrows = todayGame?.throws_count ?? 0;
     const verifiedWinningNumber = todayGame?.winning_number ?? 0;
-    const verifiedStreak = calculateStreak(typedGames.map(g => g.played_date));
+    // A finished Riippumatto forgives one missed day a week (shared with the client's sauna line)
+    const { data: hammockRows } = await supabase
+      .from('mokki_pieces')
+      .select('piece_id, build_days, played_days_at_purchase, purchased_at')
+      .eq('user_id', userId)
+      .eq('piece_id', 'riippumatto');
+    const napsFrom = napsFromDate(hammockRows ?? [], totalGamesPlayed);
+    const verifiedStreak = streakWithNaps(typedGames.map(g => g.played_date), today, napsFrom).streak;
     const isFirstGame = typedGames.length === 1 && todayGame !== null;
     // The opening is shared by all players on the same day
     const verifiedInitialDice = getOpeningDice(today);
