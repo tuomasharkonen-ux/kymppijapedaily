@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -227,6 +227,84 @@ export type Database = {
           id?: string
           throws_count?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_actions: {
+        Row: {
+          action_date: string
+          action_id: string
+          created_at: string
+          foiled: boolean
+          id: string
+          label: string | null
+          reward: number
+          target_reward: number
+          target_user_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_date: string
+          action_id: string
+          created_at?: string
+          foiled?: boolean
+          id?: string
+          label?: string | null
+          reward?: number
+          target_reward?: number
+          target_user_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_date?: string
+          action_id?: string
+          created_at?: string
+          foiled?: boolean
+          id?: string
+          label?: string | null
+          reward?: number
+          target_reward?: number
+          target_user_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_effects: {
+        Row: {
+          action_id: string
+          cleared_at: string | null
+          created_at: string
+          foiled: boolean
+          from_user_id: string
+          id: string
+          seen_at: string | null
+          target_reward: number
+          target_user_id: string
+          visible_until: string | null
+        }
+        Insert: {
+          action_id: string
+          cleared_at?: string | null
+          created_at?: string
+          foiled?: boolean
+          from_user_id: string
+          id?: string
+          seen_at?: string | null
+          target_reward?: number
+          target_user_id: string
+          visible_until?: string | null
+        }
+        Update: {
+          action_id?: string
+          cleared_at?: string | null
+          created_at?: string
+          foiled?: boolean
+          from_user_id?: string
+          id?: string
+          seen_at?: string | null
+          target_reward?: number
+          target_user_id?: string
+          visible_until?: string | null
         }
         Relationships: []
       }
