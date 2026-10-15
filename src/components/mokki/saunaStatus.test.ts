@@ -11,4 +11,10 @@ describe("saunaStatus", () => {
     expect(saunaStatus(false, 12)).toBe("🪵 Light the stove to keep your 12-day streak");
     expect(saunaStatus(false, 0)).toBe("🪵 Play today to light the stove");
   });
+
+  it("credits the hammock when it saved the streak", () => {
+    expect(saunaStatus(true, 8, true)).toBe("♨️ Sauna warm 8 days in a row · 😴 the hammock saved it");
+    expect(saunaStatus(false, 5, true)).toBe("🪵 Light the stove to keep your 5-day streak · 😴 the hammock saved it");
+    expect(saunaStatus(true, 1, true)).toBe("♨️ Sauna is warm · streak started");
+  });
 });

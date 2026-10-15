@@ -17,6 +17,8 @@ interface CustomizationSectionProps {
   onBackgroundChange: (backgroundId: string | null) => void;
   hiddenFeatures?: string[];
   onFeatureToggle?: (featureId: string) => void;
+  peacefulMokki?: boolean;
+  onPeacefulMokkiChange?: (peaceful: boolean) => void;
   isLoading?: boolean;
 }
 
@@ -38,6 +40,8 @@ export const CustomizationSection = ({
   onBackgroundChange,
   hiddenFeatures = [],
   onFeatureToggle,
+  peacefulMokki = false,
+  onPeacefulMokkiChange,
   isLoading = false,
 }: CustomizationSectionProps) => {
   const ownedFeatures = shopItems.filter(
@@ -114,6 +118,18 @@ export const CustomizationSection = ({
                   />
                 </div>
               ))}
+              {purchasedItems.includes("mokki_plot") && onPeacefulMokkiChange && (
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="peaceful-mokki" className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-lg">☮️</span>
+                    <span>
+                      <span className="block">Rauhallinen mökki</span>
+                      <span className="block text-xs text-muted-foreground">No pranks against you, and you can't prank anyone either</span>
+                    </span>
+                  </Label>
+                  <Switch id="peaceful-mokki" checked={peacefulMokki} onCheckedChange={onPeacefulMokkiChange} />
+                </div>
+              )}
             </div>
           </div>
         )}

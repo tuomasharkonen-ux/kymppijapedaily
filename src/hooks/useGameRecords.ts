@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { parseISO, differenceInDays } from "date-fns";
-import { helsinkiDate, shiftDate } from "@/lib/kymppijape";
+import { helsinkiDate } from "@/lib/kymppijape";
+import { napsFromDate, streakWithNaps } from "@/lib/mokki";
 import type { Settlement } from "@/lib/vedot";
 
 interface GameRecord {
@@ -9,39 +9,6 @@ interface GameRecord {
   winning_number: number;
   played_date: string;
 }
-
-const calculateStreak = (playedDates: string[]): number => {
-  if (playedDates.length === 0) return 0;
-
-  const today = helsinkiDate();
-  const yesterday = shiftDate(today, -1);
-
-  // Sort dates in descending order (most recent first)
-  const sortedDates = [...new Set(playedDates)].sort((a, b) => 
-    parseISO(b).getTime() - parseISO(a).getTime()
-  );
-
-  // Check if the most recent game was today or yesterday
-  const mostRecent = sortedDates[0];
-  if (mostRecent !== today && mostRecent !== yesterday) {
-    return 0; // Streak broken
-  }
-
-  let streak = 1;
-  for (let i = 0; i < sortedDates.length - 1; i++) {
-    const current = parseISO(sortedDates[i]);
-    const next = parseISO(sortedDates[i + 1]);
-    const diff = differenceInDays(current, next);
-
-    if (diff === 1) {
-      streak++;
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-};
 
 export const useGameRecords = (userId: string | null) => {
   const [todayResult, setTodayResult] = useState<GameRecord | null>(null);
@@ -51,6 +18,8 @@ export const useGameRecords = (userId: string | null) => {
   const [previousAverage, setPreviousAverage] = useState<number | null>(null);
   const [favoriteNumber, setFavoriteNumber] = useState<number | null>(null);
   const [currentStreak, setCurrentStreak] = useState<number>(0);
+  /** The Riippumatto forgave a missed day inside the current streak. */
+  const [streakNapped, setStreakNapped] = useState(false);
   const [rankByAverage, setRankByAverage] = useState<number | null>(null);
   const [rankByBest, setRankByBest] = useState<number | null>(null);
   const [totalPlayers, setTotalPlayers] = useState<number | null>(null);
@@ -127,9 +96,16 @@ export const useGameRecords = (userId: string | null) => {
         );
         setFavoriteNumber(parseInt(favorite[0]));
 
-        // Calculate streak
+        // Calculate streak; a finished Riippumatto forgives one missed day a week (same rule as the server)
         const playedDates = userRecords.map(r => r.played_date);
-        setCurrentStreak(calculateStreak(playedDates));
+        const { data: hammock } = await supabase
+          .from("mokki_pieces")
+          .select("piece_id, build_days, played_days_at_purchase, purchased_at")
+          .eq("user_id", userId)
+          .eq("piece_id", "riippumatto");
+        const { streak, napDays } = streakWithNaps(playedDates, today, napsFromDate(hammock ?? [], userRecords.length));
+        setCurrentStreak(streak);
+        setStreakNapped(napDays.length > 0);
 
         // Fetch rankings using the secure database function
         const { data: rankingData } = await supabase
@@ -190,6 +166,7 @@ export const useGameRecords = (userId: string | null) => {
     previousAverage,
     favoriteNumber,
     currentStreak,
+    streakNapped,
     rankByAverage,
     rankByBest,
     totalPlayers,

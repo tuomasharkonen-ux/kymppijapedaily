@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
-import type { MokkiPieceId } from "@/lib/mokki";
+import type { DogBreedId, FlagId, MokkiPieceId } from "@/lib/mokki";
 import type { MokkiEnvironment } from "../environment";
 import { SEASON_PALETTES } from "../palette";
 import { SkyBackdrop } from "../SkyBackdrop";
@@ -11,7 +11,6 @@ import { Birch, DioramaBase, FarShore, GROUND_Y, Island, Islet, Mushrooms, Pine,
 import { Interactive, Kiulu, Mailbox, NoticeBoard, PORCH_POSITIONS, PorchTable } from "./Porch";
 import {
   Grillikota,
-  HAMMOCK_BIRCHES,
   Huussi,
   Kokko,
   Laituri,
@@ -27,6 +26,10 @@ import {
   type PieceStatus,
 } from "./Pieces";
 import { Burst, Smoke } from "./primitives";
+import { BIRCHES, birchScale, PINES } from "./layout";
+import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
+import { Dog } from "./Dog";
+import { Marjavarkaus, Vessapaperi } from "./Effects";
 
 type Vec3 = [number, number, number];
 
@@ -64,6 +67,31 @@ export interface MokkiSceneProps {
   islandOnly?: boolean;
   onPieceLanded?: (id: MokkiPieceId) => void;
   className?: string;
+  /** The island's dog, once the Koira is finished. */
+  dog?: SceneDog | null;
+  /** Flag on the Lipputanko (default siniristi). A Swedish-flag prank overrides it. */
+  flag?: FlagId;
+  /** Prank marks showing on the island. */
+  effects?: SceneEffect[];
+  /** Today's palju guests: their heads bob in the tub. */
+  paljuGuests?: string[];
+  /** Tapping the dog (own island: opens the dog sheet). */
+  onDogClick?: () => void;
+  /** Tapping a prank mark (own island: clean it up). */
+  onEffectClick?: (effectId: string) => void;
+  /** Dev preview only: look at a point, zoomed in (full mode). */
+  debugFocus?: { target: Vec3; zoom: number };
+}
+
+export interface SceneDog {
+  breed: DogBreedId;
+  name: string;
+}
+
+export interface SceneEffect {
+  id: string;
+  /** MOKKI_ACTIONS id: vessapaperi, ruotsin_lippu, marjavarkaus. */
+  actionId: string;
 }
 
 const TARGET = new THREE.Vector3(0.4, 0.5, 0.3);
@@ -82,7 +110,17 @@ function cameraPosition(azimuth: number, polar: number, target: THREE.Vector3 = 
 }
 
 /** Fits the orthographic zoom to the canvas; in hero mode also gently sways the camera. */
-const CameraRig = ({ mode, framing, onFit }: { mode: "hero" | "full"; framing: "crop" | "island"; onFit: (zoom: number) => void }) => {
+const CameraRig = ({
+  mode,
+  framing,
+  onFit,
+  zoomFactor = 1,
+}: {
+  mode: "hero" | "full";
+  framing: "crop" | "island";
+  onFit: (zoom: number) => void;
+  zoomFactor?: number;
+}) => {
   const { camera, size } = useThree();
   useEffect(() => {
     // Hero crops into the island; the backdrop shows the whole floating island; full view shows
@@ -94,11 +132,11 @@ const CameraRig = ({ mode, framing, onFit }: { mode: "hero" | "full"; framing: "
           ? Math.min(size.width / 23, size.height / 13.5)
           : Math.min(size.width / 15.5, size.height / 10.5)
         : Math.min(size.width / (portrait ? 13.5 : 19.5), size.height / (portrait ? 13 : 15));
-    camera.zoom = fit;
+    camera.zoom = fit * zoomFactor;
     camera.updateProjectionMatrix();
     onFit(fit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size.width, size.height, mode, framing, camera]);
+  }, [size.width, size.height, mode, framing, camera, zoomFactor]);
 
   useFrame(({ clock }) => {
     if (mode !== "hero") return;
@@ -125,24 +163,17 @@ const ShadowSetup = ({ deps }: { deps: unknown[] }) => {
   return null;
 };
 
-const BIRCHES: Vec3[] = [
-  ...HAMMOCK_BIRCHES,
-  [-1.0, GROUND_Y, -3.45],
-  [1.35, GROUND_Y, -3.1],
-  [-4.1, GROUND_Y, 1.95],
-  [2.85, GROUND_Y, -3.4],
-  [-3.15, GROUND_Y, 2.95],
-];
-const PINES: Vec3[] = [
-  [-4.1, GROUND_Y, -1.95],
-  [-3.65, GROUND_Y, -3.1],
-  [0.2, GROUND_Y, -3.95],
-  [-4.45, GROUND_Y, 0.85],
-  [-1.95, GROUND_Y, -3.85],
-];
-
 const Diorama = (props: MokkiSceneProps) => {
   const { env, pieces, showSmoke, loylyKey = 0, mushrooms, skin, mode, porch, onPieceLanded } = props;
+  const { dog, flag, effects = [], paljuGuests = [], onDogClick, onEffectClick } = props;
+  const full = mode === "full";
+  const effectOf = (actionId: string) => effects.find((e) => e.actionId === actionId);
+  const cleanUp = (actionId: string) => {
+    const effect = effectOf(actionId);
+    return effect && onEffectClick ? () => onEffectClick(effect.id) : undefined;
+  };
+  const swedishFlag = effectOf("ruotsin_lippu");
+  const raided = !!effectOf("marjavarkaus");
   const palette = SEASON_PALETTES[env.season];
   const snow = palette.snow;
   const lightsOn = env.lightsOn;
@@ -198,7 +229,7 @@ const Diorama = (props: MokkiSceneProps) => {
       <Islet snow={snow}>{env.juhannus && <Kokko />}</Islet>
 
       {BIRCHES.map((p, i) => (
-        <Birch key={`b${i}`} position={p} palette={palette} seed={i} scale={0.95 + (i % 3) * 0.1} />
+        <Birch key={`b${i}`} position={p} palette={palette} seed={i} scale={birchScale(i)} />
       ))}
       {PINES.map((p, i) => (
         <Pine key={`p${i}`} position={p} palette={palette} scale={0.9 + (i % 2) * 0.2} />
@@ -231,17 +262,30 @@ const Diorama = (props: MokkiSceneProps) => {
       {slot("sauna", <Sauna lightsOn={lightsOn} snow={snow} smoke={showSmoke} loylyKey={loylyKey} />)}
       {slot("laituri", <Laituri snow={snow} />)}
       {slot("soutuvene", <Soutuvene frozen={palette.frozen} />)}
-      {slot("palju", <Palju frozen={palette.frozen} snow={snow} />)}
+      {slot("palju", <Palju frozen={palette.frozen} snow={snow} guests={paljuGuests} showLabels={full} />)}
       {slot("huussi", <Huussi snow={snow} />)}
       {slot("puuvaja", <Puuvaja snow={snow} />)}
       {slot("grillikota", <Grillikota snow={snow} smoke={showSmoke} lightsOn={lightsOn} />)}
-      {slot("lipputanko", <Lipputanko juhannus={env.juhannus} />)}
+      {slot("lipputanko", <Lipputanko juhannus={env.juhannus} flag={swedishFlag ? "ruotsi" : flag} onFlagClick={cleanUp("ruotsin_lippu")} />)}
       {slot("riippumatto", <Riippumatto />)}
-      {slot("marjapensaat", <Marjapensaat palette={palette} />)}
+      {slot("marjapensaat", <Marjapensaat palette={palette} raided={raided} />)}
+      {slot("nuotiopaikka", <Nuotiopaikka fire={showSmoke} snow={snow} lightsOn={lightsOn} />)}
+      {slot("onkipaikka", <Onkipaikka frozen={palette.frozen} snow={snow} />)}
+      {slot("riukuaita", <Riukuaita snow={snow} />)}
+      {slot("koira", <Koirankoppi snow={snow} />)}
+
+      {/* The dog moves in once the doghouse is finished */}
+      {isComplete("koira") && !byId.get("koira")?.justCompleted && dog && <Dog breed={dog.breed} name={dog.name} night={env.timeOfDay === "night"} showLabels={full} onClick={onDogClick} />}
+
+      {/* Pranks from the neighbors */}
+      {effectOf("vessapaperi") && <Vessapaperi onClick={cleanUp("vessapaperi")} />}
+      {raided && isComplete("marjapensaat") && <Marjavarkaus onClick={cleanUp("marjavarkaus")} />}
 
       {snow && <Snowfall />}
 
-      <ShadowSetup deps={[pieces, env.season, env.juhannus, porch?.potTotal, porch?.hasMail, mushrooms]} />
+      <ShadowSetup
+        deps={[pieces, env.season, env.juhannus, porch?.potTotal, porch?.hasMail, mushrooms, dog?.breed, flag, effects.map((e) => e.actionId).join(), paljuGuests.join()]}
+      />
     </>
   );
 };
@@ -270,7 +314,12 @@ const MokkiScene = (props: MokkiSceneProps) => {
   const container = useRef<HTMLDivElement>(null);
   const visible = useVisible(container);
   const [fitZoom, setFitZoom] = useState(30);
-  const target = mode === "full" ? TARGET_FULL : TARGET;
+  const { debugFocus } = props;
+  const target = useMemo(
+    () => (debugFocus ? new THREE.Vector3(...debugFocus.target) : mode === "full" ? TARGET_FULL : TARGET),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mode, debugFocus?.target.join()],
+  );
   const initialPosition = useMemo(() => cameraPosition(ISO_AZIMUTH, ISO_POLAR, target), [target]);
 
   return (
@@ -287,7 +336,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
         onPointerMissed={() => !islandOnly && onBackgroundClick?.()}
         style={{ position: "absolute", inset: 0, touchAction: mode === "full" ? "none" : "pan-y" }}
       >
-        <CameraRig mode={mode} framing={framing} onFit={setFitZoom} />
+        <CameraRig mode={mode} framing={framing} onFit={setFitZoom} zoomFactor={debugFocus?.zoom} />
         <group
           onClick={(e) => {
             // One tap hits several meshes; open the mökki once
@@ -308,7 +357,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
             minPolarAngle={0.7}
             maxPolarAngle={1.2}
             minZoom={fitZoom * 0.8}
-            maxZoom={fitZoom * 2.6}
+            maxZoom={fitZoom * Math.max(2.6, debugFocus?.zoom ?? 0)}
             rotateSpeed={0.6}
           />
         )}

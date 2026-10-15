@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { canBuyPiece, getPieceDef } from "../_shared/mokki.ts";
+import { canBuyPiece, getDogBreed, getPieceDef, validateDogName } from "../_shared/mokki.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,6 +49,18 @@ Deno.serve(async (req) => {
       return json({ error: "Invalid piece" }, 400);
     }
 
+    // The dog comes with a breed and a name
+    let variant: string | null = null;
+    let nickname: string | null = null;
+    if (piece.id === "koira") {
+      const breed = getDogBreed(body?.breed);
+      if (!breed) return json({ error: "Pick a breed" }, 400);
+      const name = validateDogName(body?.name);
+      if (name.ok === false) return json({ error: name.reason }, 400);
+      variant = breed.id;
+      nickname = name.name;
+    }
+
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Must own the plot
@@ -68,7 +80,7 @@ Deno.serve(async (req) => {
 
     // Owned pieces and days played (server-side, cannot be spoofed)
     const [{ data: ownedRows, error: ownedError }, { count: gamesPlayed, error: countError }] = await Promise.all([
-      serviceClient.from("mokki_pieces").select("piece_id").eq("user_id", userId),
+      serviceClient.from("mokki_pieces").select("piece_id, build_days, played_days_at_purchase").eq("user_id", userId),
       serviceClient.from("game_records").select("id", { count: "exact", head: true }).eq("user_id", userId),
     ]);
     if (ownedError || countError) {
@@ -76,9 +88,9 @@ Deno.serve(async (req) => {
       return json({ error: "Failed to load your mökki" }, 500);
     }
 
-    const ownedIds = (ownedRows ?? []).map((r: { piece_id: string }) => r.piece_id);
     const totalGames = gamesPlayed ?? 0;
-    const check = canBuyPiece(pieceId, ownedIds, totalGames);
+    // Tree order: parents owned and finished, era unlocked. Pieces bought before the tree stay owned.
+    const check = canBuyPiece(pieceId, ownedRows ?? [], totalGames);
     if (check.ok === false) {
       return json({ error: check.reason }, 400);
     }
@@ -105,8 +117,10 @@ Deno.serve(async (req) => {
         price_paid: piece.price,
         build_days: piece.buildDays,
         played_days_at_purchase: totalGames,
+        variant,
+        nickname,
       })
-      .select("piece_id, build_days, played_days_at_purchase, purchased_at")
+      .select("piece_id, build_days, played_days_at_purchase, purchased_at, variant, nickname")
       .single();
 
     if (insertError) {

@@ -257,33 +257,117 @@ export type Database = {
         }
         Relationships: []
       }
+      mokki_actions: {
+        Row: {
+          action_date: string
+          action_id: string
+          created_at: string
+          foiled: boolean
+          id: string
+          label: string | null
+          reward: number
+          target_reward: number
+          target_user_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_date: string
+          action_id: string
+          created_at?: string
+          foiled?: boolean
+          id?: string
+          label?: string | null
+          reward?: number
+          target_reward?: number
+          target_user_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_date?: string
+          action_id?: string
+          created_at?: string
+          foiled?: boolean
+          id?: string
+          label?: string | null
+          reward?: number
+          target_reward?: number
+          target_user_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mokki_effects: {
+        Row: {
+          action_id: string
+          cleared_at: string | null
+          created_at: string
+          foiled: boolean
+          from_user_id: string
+          id: string
+          seen_at: string | null
+          target_reward: number
+          target_user_id: string
+          visible_until: string | null
+        }
+        Insert: {
+          action_id: string
+          cleared_at?: string | null
+          created_at?: string
+          foiled?: boolean
+          from_user_id: string
+          id?: string
+          seen_at?: string | null
+          target_reward?: number
+          target_user_id: string
+          visible_until?: string | null
+        }
+        Update: {
+          action_id?: string
+          cleared_at?: string | null
+          created_at?: string
+          foiled?: boolean
+          from_user_id?: string
+          id?: string
+          seen_at?: string | null
+          target_reward?: number
+          target_user_id?: string
+          visible_until?: string | null
+        }
+        Relationships: []
+      }
       mokki_pieces: {
         Row: {
           build_days: number
           id: string
+          nickname: string | null
           piece_id: string
           played_days_at_purchase: number
           price_paid: number
           purchased_at: string
           user_id: string
+          variant: string | null
         }
         Insert: {
           build_days: number
           id?: string
+          nickname?: string | null
           piece_id: string
           played_days_at_purchase: number
           price_paid: number
           purchased_at?: string
           user_id: string
+          variant?: string | null
         }
         Update: {
           build_days?: number
           id?: string
+          nickname?: string | null
           piece_id?: string
           played_days_at_purchase?: number
           price_paid?: number
           purchased_at?: string
           user_id?: string
+          variant?: string | null
         }
         Relationships: []
       }
@@ -460,6 +544,7 @@ export type Database = {
           active_skin: string | null
           active_throw_animation: string | null
           hidden_features: string[]
+          peaceful_mokki: boolean
           updated_at: string | null
           user_id: string
         }
@@ -469,6 +554,7 @@ export type Database = {
           active_skin?: string | null
           active_throw_animation?: string | null
           hidden_features?: string[]
+          peaceful_mokki?: boolean
           updated_at?: string | null
           user_id: string
         }
@@ -478,6 +564,7 @@ export type Database = {
           active_skin?: string | null
           active_throw_animation?: string | null
           hidden_features?: string[]
+          peaceful_mokki?: boolean
           updated_at?: string | null
           user_id?: string
         }
@@ -508,6 +595,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_mokki_island: { Args: { p_user_id: string }; Returns: Json }
       get_mokki_owner: {
         Args: { p_user_id: string }
         Returns: {
@@ -536,6 +624,7 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      mark_mokki_effects_seen: { Args: never; Returns: undefined }
       mark_mokki_loylyt_seen: { Args: never; Returns: undefined }
       mark_pot_reveal_seen: {
         Args: { p_game_date: string }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
@@ -21,7 +21,12 @@ import { MokkiIllustration } from "@/components/mokki/MokkiIllustration";
 import { hasWebGL } from "@/components/mokki/MokkiHeroView";
 import { SkyBackdrop } from "@/components/mokki/SkyBackdrop";
 import { playLoyly } from "@/components/mokki/mokkiSound";
-import { getPieceDef } from "@/lib/mokki";
+import { ChoresTray } from "@/components/mokki/ChoresTray";
+import { NeighborActions } from "@/components/mokki/NeighborActions";
+import { InboxSheet } from "@/components/mokki/InboxSheet";
+import { DogSheet } from "@/components/mokki/DogSheet";
+import { paljuGuestNames, sceneDog, sceneFlag } from "@/components/mokki/mokkiActions";
+import { getPieceDef, REWARDS } from "@/lib/mokki";
 
 const MokkiScene = lazy(() => import("@/components/mokki/scene/MokkiScene"));
 
@@ -56,17 +61,23 @@ const Mokki = () => {
   const ownerId = visitId ?? user?.id ?? null;
   const isOwn = !!user && ownerId === user.id;
   const env = useLiveEnvironment();
-  const { data, isLoading, buyPiece, sendLoyly, markLoylySeen } = useMokki(ownerId, user?.id ?? null);
+  const { data, isLoading, buyPiece, doAction, sendLoyly, markLoylySeen, markInboxSeen } = useMokki(ownerId, user?.id ?? null);
   const { userCredits, refetchBadges } = useBadges(isOwn ? user?.id ?? null : null);
   const { purchasedItems } = useUserPurchases(isOwn ? user?.id ?? null : null);
   const { settings } = useUserSettings(isOwn ? user?.id ?? null : null);
   // Streaks are private (own game records only), so friends' islands keep the plain line
-  const { currentStreak } = useGameRecords(isOwn ? user?.id ?? null : null);
+  const { currentStreak, streakNapped } = useGameRecords(isOwn ? user?.id ?? null : null);
   const { pieces, onPieceLanded } = useScenePieces(ownerId, data.pieces, data.gamesPlayed, isOwn);
   const [loylyKey, setLoylyKey] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
   const [neighborsOpen, setNeighborsOpen] = useState(false);
+  const [dogOpen, setDogOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [inboxOpen, setInboxOpen] = useState(() => searchParams.get("mail") === "1");
   const webgl = useMemo(() => hasWebGL(), []);
+  const dog = useMemo(() => sceneDog(data.pieces, data.gamesPlayed), [data.pieces, data.gamesPlayed]);
+  const effects = useMemo(() => data.effects.map((e) => ({ id: e.id, actionId: e.actionId })), [data.effects]);
+  const paljuGuests = useMemo(() => paljuGuestNames(data), [data]);
 
   // Received löyly: puff on arrival, then mark seen
   useEffect(() => {
@@ -80,8 +91,8 @@ const Mokki = () => {
     return () => clearTimeout(t);
   }, [isOwn, data.loylyFrom, markLoylySeen]);
 
-  const handleBuy = async (pieceId: string) => {
-    const res = await buyPiece(pieceId);
+  const handleBuy = async (pieceId: string, dogChoice?: { breed: string; name: string }) => {
+    const res = await buyPiece(pieceId, dogChoice);
     if (!res.success) {
       toast.error(res.error ?? "Building failed");
       return false;
@@ -90,6 +101,37 @@ const Mokki = () => {
     toast.success(`🔨 Builders are on ${piece?.name ?? "it"}! Play to finish it.`);
     refetchBadges();
     return true;
+  };
+
+  // The mailbox: closing it marks everything read; ?mail=1 (from the home screen) opens it
+  const setInbox = (open: boolean) => {
+    setInboxOpen(open);
+    if (open) return;
+    if (data.inbox.length > 0) markInboxSeen();
+    if (searchParams.has("mail")) {
+      searchParams.delete("mail");
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
+
+  const handleEffectClick = async (effectId: string) => {
+    const effect = data.effects.find((e) => e.id === effectId);
+    if (!isOwn) {
+      toast(`${effect?.fromName ?? "Someone"} did this 😈`);
+      return;
+    }
+    const res = await doAction("cleanup", { effectId });
+    if (!res.success) {
+      toast.error(res.error ?? "Couldn't clean up");
+      return;
+    }
+    toast.success(`🧹 All clean! +${REWARDS.cleanup} cr siivouspalkkio`);
+    refetchBadges();
+  };
+
+  const handleDogClick = () => {
+    if (isOwn) setDogOpen(true);
+    else if (dog) toast(`🐕 Hau! ${dog.name} says hi`);
   };
 
   const handleSendLoyly = async () => {
@@ -161,8 +203,7 @@ const Mokki = () => {
 
   return (
     <div className="relative h-[100dvh] w-full overflow-hidden bg-background">
-      {/* Scene shrinks above the build panel while it's open */}
-      <div className={`absolute inset-x-0 top-0 ${isOwn && panelOpen ? "h-[42dvh]" : "h-full"}`}>
+      <div className="absolute inset-0">
         {webgl ? (
           <Suspense fallback={<SkyBackdrop env={env} />}>
             <MokkiScene
@@ -173,8 +214,14 @@ const Mokki = () => {
               mushrooms={isOwn && purchasedItems.includes("sieni_dice")}
               skin={isOwn ? settings.activeSkin ?? "default" : "default"}
               mode="full"
-              porch={isOwn ? { hasMail: false, potTotal: null } : undefined}
+              porch={isOwn ? { hasMail: data.inbox.length > 0, potTotal: null, onMailboxClick: () => setInbox(true) } : undefined}
               onPieceLanded={onPieceLanded}
+              dog={dog}
+              flag={sceneFlag(data.pieces)}
+              effects={effects}
+              paljuGuests={paljuGuests}
+              onDogClick={dog ? handleDogClick : undefined}
+              onEffectClick={handleEffectClick}
             />
           </Suspense>
         ) : (
@@ -210,7 +257,7 @@ const Mokki = () => {
         <div className="max-w-full rounded-2xl bg-black/45 px-4 py-1.5 text-center text-white backdrop-blur-sm">
           <h1 className="truncate font-display text-lg font-bold leading-tight drop-shadow">{title}</h1>
           <p className="text-[11px] text-white/85">
-            {isOwn ? saunaStatus(data.playedToday, currentStreak) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
+            {isOwn ? saunaStatus(data.playedToday, currentStreak, streakNapped) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
           </p>
         </div>
       </div>
@@ -224,13 +271,14 @@ const Mokki = () => {
       />
 
       {isOwn ? (
-        <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />
+        <>
+          {!panelOpen && <ChoresTray data={data} onDo={doAction} onRewarded={refetchBadges} className="absolute inset-x-0 bottom-[5.25rem] z-10" />}
+          <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />
+          <InboxSheet open={inboxOpen} onOpenChange={setInbox} items={data.inbox} onMarkRead={() => setInbox(false)} />
+          {dog && <DogSheet open={dogOpen} onOpenChange={setDogOpen} data={data} onDo={doAction} onRewarded={refetchBadges} />}
+        </>
       ) : (
-        <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center p-4">
-          <Button size="lg" className="shadow-xl" disabled={data.loylySentToday} onClick={handleSendLoyly}>
-            {data.loylySentToday ? "💨 Löyly sent today" : "Send löyly 💨"}
-          </Button>
-        </div>
+        <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />
       )}
     </div>
   );

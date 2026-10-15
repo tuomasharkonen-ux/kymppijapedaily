@@ -8,6 +8,8 @@ export interface UserSettings {
   activeBackground: string | null;
   /** Owned features the player has switched off (e.g. betting_license, mokki_plot). */
   hiddenFeatures: string[];
+  /** Peaceful mökki: no pranks against you, and you can't prank anyone either. */
+  peacefulMokki: boolean;
 }
 
 export const useUserSettings = (userId: string | null) => {
@@ -17,12 +19,13 @@ export const useUserSettings = (userId: string | null) => {
     activeThrowAnimation: null,
     activeBackground: null,
     hiddenFeatures: [],
+    peacefulMokki: false,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
     if (!userId) {
-      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null, activeBackground: null, hiddenFeatures: [] });
+      setSettings({ activeSkin: null, activeActions: [], activeThrowAnimation: null, activeBackground: null, hiddenFeatures: [], peacefulMokki: false });
       setIsLoading(false);
       return;
     }
@@ -59,6 +62,18 @@ export const useUserSettings = (userId: string | null) => {
         console.warn("Feature toggles unavailable:", featureError.message);
       } else if (featureData) {
         setSettings((prev) => ({ ...prev, hiddenFeatures: featureData.hidden_features ?? [] }));
+      }
+
+      // Also separate: the Rakennuspuu migration may not be applied yet
+      const { data: peaceData, error: peaceError } = await supabase
+        .from("user_settings")
+        .select("peaceful_mokki")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (peaceError) {
+        console.warn("Peaceful mökki unavailable:", peaceError.message);
+      } else if (peaceData) {
+        setSettings((prev) => ({ ...prev, peacefulMokki: !!peaceData.peaceful_mokki }));
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -227,10 +242,27 @@ export const useUserSettings = (userId: string | null) => {
     [userId, settings.hiddenFeatures]
   );
 
+  const updatePeacefulMokki = useCallback(
+    async (peaceful: boolean) => {
+      if (!userId) return;
+      const previous = settings.peacefulMokki;
+      setSettings((prev) => ({ ...prev, peacefulMokki: peaceful }));
+      const { error } = await supabase
+        .from("user_settings")
+        .upsert({ user_id: userId, peaceful_mokki: peaceful }, { onConflict: "user_id" });
+      if (error) {
+        console.error("Error updating peaceful mökki:", error);
+        setSettings((prev) => ({ ...prev, peacefulMokki: previous }));
+      }
+    },
+    [userId, settings.peacefulMokki]
+  );
+
   return {
     settings,
     isLoading,
     toggleFeature,
+    updatePeacefulMokki,
     updateSkin,
     toggleAction,
     activateAction,

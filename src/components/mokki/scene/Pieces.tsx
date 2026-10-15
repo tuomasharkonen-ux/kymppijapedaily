@@ -2,15 +2,17 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import type { MokkiPieceId } from "@/lib/mokki";
+import type { FlagId, MokkiPieceId } from "@/lib/mokki";
 import { C, type SeasonPalette } from "../palette";
 import { GROUND_Y } from "./Nature";
 import { Block, Burst, Cyl, GableFill, GableRoof, LogWalls, Mat, Smoke, rand } from "./primitives";
+import { HAMMOCK_BIRCHES, KOPPI_POSITION } from "./layout";
 
 type Vec3 = [number, number, number];
 const G = GROUND_Y;
 
-// Where each piece sits on the island, and the scaffolding footprint while it's being built
+// Where each piece sits on the island, and the scaffolding footprint while it's being built.
+// Coming-soon pieces have placeholder spots; they can't be bought yet.
 export const PIECE_LAYOUT: Record<MokkiPieceId, { center: Vec3; footprint: Vec3 }> = {
   sauna: { center: [3.0, G, -1.8], footprint: [1.8, 1.9, 1.7] },
   laituri: { center: [5.9, 0.3, -1.7], footprint: [3.0, 0.5, 0.9] },
@@ -22,13 +24,24 @@ export const PIECE_LAYOUT: Record<MokkiPieceId, { center: Vec3; footprint: Vec3 
   lipputanko: { center: [4.15, G, 0.35], footprint: [0.5, 2.4, 0.5] },
   riippumatto: { center: [3.25, G, 1.85], footprint: [1.2, 0.8, 0.5] },
   marjapensaat: { center: [1.25, G, -1.1], footprint: [0.8, 0.7, 2.0] },
+  nuotiopaikka: { center: [-0.15, G, 3.35], footprint: [1.3, 0.6, 1.3] },
+  onkipaikka: { center: [3.3, G, 3.55], footprint: [0.9, 0.7, 0.9] },
+  riukuaita: { center: [-2.75, G, 3.45], footprint: [1.3, 0.5, 0.5] },
+  koira: { center: KOPPI_POSITION, footprint: [0.7, 0.7, 0.7] },
+  // Coming soon
+  mehilaispesat: { center: [0.6, G, -2.45], footprint: [0.8, 0.7, 0.6] },
+  aurinkopaneeli: { center: [-2.6, G, -3.0], footprint: [0.8, 1.6, 0.8] },
+  mokkiradio: { center: [-1.5, G, 0.66], footprint: [0.4, 0.4, 0.4] },
+  avanto: { center: [7.7, 0.05, -1.7], footprint: [0.9, 0.4, 0.9] },
+  silta: { center: [-1.7, 0.3, 5.4], footprint: [0.9, 0.5, 1.6] },
+  aitta: { center: [-4.45, G, 0.85], footprint: [1.2, 1.4, 1.0] },
+  peramoottori: { center: [6.0, 0.05, -0.75], footprint: [1.7, 0.5, 0.7] },
+  savusauna: { center: [-1.7, 0.3, 6.5], footprint: [1.2, 1.4, 1.0] },
+  saunalautta: { center: [6.6, 0.05, 2.6], footprint: [1.6, 1.0, 1.2] },
+  lasikuisti: { center: [-0.6, G, 0.6], footprint: [3.0, 1.3, 1.0] },
 };
 
-/** Birch pair that the hammock hangs between (always on the island). */
-export const HAMMOCK_BIRCHES: Vec3[] = [
-  [2.55, G, 2.4],
-  [3.95, G, 1.3],
-];
+export { HAMMOCK_BIRCHES };
 
 export const SAUNA_CHIMNEY_TOP: Vec3 = [2.55, G + 2.35, -2.25];
 export const GRILLIKOTA_TOP: Vec3 = [-1.9, G + 2.2, 2.65];
@@ -272,10 +285,60 @@ export const Soutuvene = ({ frozen }: { frozen: boolean }) => {
   );
 };
 
-export const Palju = ({ frozen, snow }: { frozen: boolean; snow: boolean }) => {
+const SKIN_TONES = ["#f1c9a5", "#e0ac69", "#c68642", "#8d5524", "#ffdbac"];
+const TOWELS = ["#ffffff", "#e85d75", "#5b8fd1", "#f2c14e", "#6cc04a"];
+
+/** Today's palju guests: heads with towel turbans bobbing in the hot water. */
+const PaljuGuests = ({ guests, showLabels }: { guests: string[]; showLabels: boolean }) => {
+  const refs = useRef<(THREE.Group | null)[]>([]);
+  const shown = guests.slice(0, 5);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    refs.current.forEach((g, i) => {
+      if (!g) return;
+      g.position.y = 0.64 + Math.sin(t * 1.4 + i * 1.7) * 0.012;
+      g.rotation.y = Math.sin(t * 0.5 + i) * 0.4;
+    });
+  });
+  return (
+    <group>
+      {shown.map((name, i) => {
+        // Spread around the rim, leaving the stove side free
+        const a = Math.PI * 0.35 + (i / Math.max(1, shown.length)) * Math.PI * 1.6;
+        return (
+          <group key={`${name}${i}`} ref={(el) => (refs.current[i] = el)} position={[Math.cos(a) * 0.28, 0.64, Math.sin(a) * 0.28]}>
+            <mesh>
+              <sphereGeometry args={[0.085, 10, 8]} />
+              <Mat color={SKIN_TONES[(i + name.length) % SKIN_TONES.length]} />
+            </mesh>
+            <mesh position={[0, 0.07, 0]} scale={[1, 0.6, 1]}>
+              <sphereGeometry args={[0.08, 8, 6]} />
+              <Mat color={TOWELS[i % TOWELS.length]} />
+            </mesh>
+            <mesh position={[0, -0.07, 0]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.07, 0.02, 4, 12]} />
+              <Mat color={SKIN_TONES[(i + name.length) % SKIN_TONES.length]} />
+            </mesh>
+          </group>
+        );
+      })}
+      {showLabels && (
+        <Html position={[0, 1.15, 0]} center zIndexRange={[4, 0]}>
+          <div className="pointer-events-none whitespace-nowrap rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-slate-800 shadow">
+            ♨️ {shown.slice(0, 3).join(", ")}
+            {guests.length > 3 ? ` +${guests.length - 3}` : ""}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+};
+
+export const Palju = ({ frozen, snow, guests = [], showLabels = false }: { frozen: boolean; snow: boolean; guests?: string[]; showLabels?: boolean }) => {
   const [cx, , cz] = PIECE_LAYOUT.palju.center;
   return (
     <group position={[cx, G, cz]}>
+      {guests.length > 0 && <PaljuGuests guests={guests} showLabels={showLabels} />}
       {/* Wooden deck */}
       <Block size={[1.2, 0.08, 1.2]} position={[0, 0.04, 0]} color={C.plankDark} />
       {/* Tub of vertical staves */}
@@ -425,24 +488,122 @@ export const Grillikota = ({ snow, smoke, lightsOn }: { snow: boolean; smoke: bo
   </group>
 );
 
-export const Lipputanko = ({ juhannus }: { juhannus: boolean }) => {
-  const flag = useRef<THREE.Mesh>(null);
-  const { geometry, texture } = useMemo(() => {
+/** Flags the Lipputanko can fly; "ruotsi" is the Swedish-flag prank. */
+export type SceneFlag = FlagId | "ruotsi";
+
+function drawFlag(ctx: CanvasRenderingContext2D, flag: SceneFlag) {
+  const W = 180;
+  const H = 110;
+  const nordicCross = (field: string, cross: string, inner?: string) => {
+    ctx.fillStyle = field;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = cross;
+    ctx.fillRect(50, 0, 30, H);
+    ctx.fillRect(0, 40, W, 30);
+    if (inner) {
+      ctx.fillStyle = inner;
+      ctx.fillRect(59, 0, 12, H);
+      ctx.fillRect(0, 49, W, 12);
+    }
+  };
+  switch (flag) {
+    case "ahvenanmaa":
+      nordicCross("#0053a5", "#ffce00", "#d21034");
+      return;
+    case "ruotsi":
+      nordicCross("#006aa7", "#fecc00");
+      return;
+    case "saame": {
+      ctx.fillStyle = "#d52b1e";
+      ctx.fillRect(0, 0, 66, H);
+      ctx.fillStyle = "#007229";
+      ctx.fillRect(66, 0, 14, H);
+      ctx.fillStyle = "#ffce00";
+      ctx.fillRect(80, 0, 14, H);
+      ctx.fillStyle = "#0039a6";
+      ctx.fillRect(94, 0, W - 94, H);
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = "#0039a6";
+      ctx.beginPath();
+      ctx.arc(80, H / 2, 30, Math.PI / 2, (Math.PI * 3) / 2);
+      ctx.stroke();
+      ctx.strokeStyle = "#d52b1e";
+      ctx.beginPath();
+      ctx.arc(80, H / 2, 30, -Math.PI / 2, Math.PI / 2);
+      ctx.stroke();
+      return;
+    }
+    case "sateenkaari": {
+      const stripes = ["#e40303", "#ff8c00", "#ffed00", "#008026", "#004dff", "#750787"];
+      stripes.forEach((c, i) => {
+        ctx.fillStyle = c;
+        ctx.fillRect(0, (i * H) / 6, W, H / 6 + 1);
+      });
+      return;
+    }
+    case "piraatti": {
+      ctx.fillStyle = "#151515";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#f4f1ea";
+      // Crossed bones
+      for (const angle of [0.6, -0.6]) {
+        ctx.save();
+        ctx.translate(90, 62);
+        ctx.rotate(angle);
+        ctx.fillRect(-42, -5, 84, 10);
+        ctx.beginPath();
+        ctx.arc(-42, -5, 6, 0, Math.PI * 2);
+        ctx.arc(-42, 5, 6, 0, Math.PI * 2);
+        ctx.arc(42, -5, 6, 0, Math.PI * 2);
+        ctx.arc(42, 5, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      // Skull
+      ctx.beginPath();
+      ctx.arc(90, 46, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(78, 56, 24, 16);
+      ctx.fillStyle = "#151515";
+      ctx.beginPath();
+      ctx.arc(82, 46, 6, 0, Math.PI * 2);
+      ctx.arc(98, 46, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(84, 64, 3, 8);
+      ctx.fillRect(93, 64, 3, 8);
+      return;
+    }
+    default:
+      nordicCross("#ffffff", C.flagBlue);
+  }
+}
+
+export const Lipputanko = ({
+  flag = "siniristi",
+  onFlagClick,
+}: {
+  /** Juhannus is a flag day too: the flag stays at full mast. */
+  juhannus: boolean;
+  flag?: SceneFlag;
+  /** Set while a prank flag flies: tapping it takes it down. */
+  onFlagClick?: () => void;
+}) => {
+  const flagMesh = useRef<THREE.Mesh>(null);
+  const geometry = useMemo(() => {
+    const g = new THREE.PlaneGeometry(0.9, 0.55, 14, 1);
+    g.translate(0.45, 0, 0);
+    return g;
+  }, []);
+  const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 180;
     canvas.height = 110;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, 180, 110);
-    ctx.fillStyle = C.flagBlue;
-    ctx.fillRect(50, 0, 30, 110);
-    ctx.fillRect(0, 40, 180, 30);
+    drawFlag(canvas.getContext("2d")!, flag);
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
-    const g = new THREE.PlaneGeometry(0.9, 0.55, 14, 1);
-    g.translate(0.45, 0, 0);
-    return { geometry: g, texture: tex };
-  }, []);
+    return tex;
+  }, [flag]);
+  useEffect(() => () => texture.dispose(), [texture]);
   const base = useMemo(() => Float32Array.from(geometry.attributes.position.array), [geometry]);
 
   useFrame(({ clock }) => {
@@ -467,8 +628,22 @@ export const Lipputanko = ({ juhannus }: { juhannus: boolean }) => {
         <sphereGeometry args={[0.05, 8, 6]} />
         <Mat color={C.coin} metalness={0.7} roughness={0.3} />
       </mesh>
-      {/* Flag at full mast (juhannus is a flag day too) */}
-      <mesh ref={flag} geometry={geometry} position={[0.03, h - 0.32, 0]} rotation={[0, 0.55, 0]}>
+      <mesh
+        ref={flagMesh}
+        geometry={geometry}
+        position={[0.03, h - 0.32, 0]}
+        rotation={[0, 0.55, 0]}
+        onClick={
+          onFlagClick
+            ? (e) => {
+                e.stopPropagation();
+                onFlagClick();
+              }
+            : undefined
+        }
+        onPointerOver={onFlagClick ? () => (document.body.style.cursor = "pointer") : undefined}
+        onPointerOut={onFlagClick ? () => (document.body.style.cursor = "") : undefined}
+      >
         <meshStandardMaterial map={texture} side={THREE.DoubleSide} roughness={0.8} />
       </mesh>
     </group>
@@ -564,7 +739,8 @@ export const Riippumatto = () => {
   );
 };
 
-export const Marjapensaat = ({ palette }: { palette: SeasonPalette }) => {
+/** `raided`: a neighbor picked the bushes bare (Marjavarkaus prank). */
+export const Marjapensaat = ({ palette, raided = false }: { palette: SeasonPalette; raided?: boolean }) => {
   const bushes: { pos: Vec3; r: number; berry: string }[] = [
     { pos: [1.3, G + 0.2, -0.35], r: 0.3, berry: "#2b3f8f" },
     { pos: [1.35, G + 0.22, -1.15], r: 0.34, berry: "#c3172c" },
@@ -572,6 +748,7 @@ export const Marjapensaat = ({ palette }: { palette: SeasonPalette }) => {
   ];
   const flowers = ["#f2d14b", "#e85d75", "#ffffff", "#9b6bd6", "#f08a3c"];
   const blooming = !palette.snow;
+  const berries = blooming && !raided;
   return (
     <group>
       {bushes.map((b, i) => (
@@ -586,7 +763,7 @@ export const Marjapensaat = ({ palette }: { palette: SeasonPalette }) => {
               <Mat color={C.snow} />
             </mesh>
           )}
-          {blooming &&
+          {berries &&
             Array.from({ length: 7 }, (_, j) => {
               const a = j * 0.9 + i;
               return (
@@ -604,7 +781,8 @@ export const Marjapensaat = ({ palette }: { palette: SeasonPalette }) => {
         <Block size={[1.0, 0.12, 0.04]} position={[0, 0.06, 0.17]} color={C.plankDark} />
         {blooming
           ? Array.from({ length: 11 }, (_, i) => (
-              <group key={i} position={[-0.4 + i * 0.08, 0.1, (rand(i) - 0.5) * 0.18]}>
+              // Raided: flowers trampled flat
+              <group key={i} position={[-0.4 + i * 0.08, 0.1, (rand(i) - 0.5) * 0.18]} rotation={raided ? [1.2 + rand(i) * 0.3, rand(i + 5) - 0.5, 0] : undefined}>
                 <Cyl radiusTop={0.008} height={0.14} segments={4} position={[0, 0.07, 0]} color="#4f8a3a" />
                 <mesh position={[0, 0.15, 0]}>
                   <icosahedronGeometry args={[0.035, 0]} />

@@ -19,6 +19,7 @@ import AdminTest from "./pages/AdminTest";
 const Mokki = lazy(() => import("./pages/Mokki"));
 const MokkiScenePreview = lazy(() => import("./pages/MokkiScenePreview"));
 const VedotPreview = lazy(() => import("./pages/VedotPreview"));
+const MokkiUiPreview = lazy(() => import("./pages/MokkiUiPreview"));
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,9 @@ const App = () => (
           )}
           {import.meta.env.DEV && (
             <Route path="/vedot-preview" element={<Suspense fallback={null}><VedotPreview /></Suspense>} />
+          )}
+          {import.meta.env.DEV && (
+            <Route path="/mokki-ui-preview" element={<Suspense fallback={null}><MokkiUiPreview /></Suspense>} />
           )}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

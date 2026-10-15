@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMokki } from "@/hooks/useMokki";
 import { computeEnvironment } from "./environment";
 import { MokkiHeroView } from "./MokkiHeroView";
 import { useScenePieces } from "./useScenePieces";
 import { playLoyly } from "./mokkiSound";
+import { paljuGuestNames, sceneDog, sceneFlag } from "./mokkiActions";
 
 export interface MokkiHeroProps {
   userId: string;
@@ -16,7 +17,8 @@ export interface MokkiHeroProps {
   potTotal: number | null; // kiulu on the porch fills with coins; null = hide kiulu (no betting licence)
   variant?: "card" | "backdrop";
   header?: React.ReactNode;
-  streak?: number; // daily streak for the sauna line // page header drawn on the sky (backdrop variant)
+  streak?: number; // daily streak for the sauna line
+  streakNapped?: boolean; // the hammock forgave a missed day in the streak
 }
 
 /** Re-evaluates season/time of day every few minutes so the island follows real Helsinki time. */
@@ -41,6 +43,7 @@ export const MokkiHero = ({
   variant = "card",
   header,
   streak = 0,
+  streakNapped = false,
 }: MokkiHeroProps) => {
   const navigate = useNavigate();
   const env = useLiveEnvironment();
@@ -48,6 +51,12 @@ export const MokkiHero = ({
   const { pieces, onPieceLanded } = useScenePieces(userId, data.pieces, data.gamesPlayed, true);
   const [loylyKey, setLoylyKey] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
+  const dog = useMemo(() => sceneDog(data.pieces, data.gamesPlayed), [data.pieces, data.gamesPlayed]);
+  const effects = useMemo(() => data.effects.map((e) => ({ id: e.id, actionId: e.actionId })), [data.effects]);
+  const paljuGuests = useMemo(() => paljuGuestNames(data), [data]);
+  // Neighbors' pranks and visits land in the porch mailbox too; the Pot result stays first in line
+  const inboxWaiting = data.inbox.length > 0;
+  const handleMailbox = () => (!hasMail && inboxWaiting ? navigate("/mokki?mail=1") : onMailboxClick());
 
   // Friends sent löyly: puff of steam, a note, then mark as seen
   useEffect(() => {
@@ -76,15 +85,20 @@ export const MokkiHero = ({
       loylyKey={loylyKey}
       mushrooms={purchasedItems.includes("sieni_dice")}
       skin={activeSkin}
-      hasMail={hasMail}
+      hasMail={hasMail || inboxWaiting}
       potTotal={potTotal}
-      onMailboxClick={onMailboxClick}
+      onMailboxClick={handleMailbox}
       onOpen={() => navigate("/mokki")}
       onPieceLanded={onPieceLanded}
       notice={notice}
       variant={variant}
       header={header}
       streak={streak}
+      streakNapped={streakNapped}
+      dog={dog}
+      flag={sceneFlag(data.pieces)}
+      effects={effects}
+      paljuGuests={paljuGuests}
     />
   );
 };

@@ -54,6 +54,7 @@ const Index = () => {
     previousAverage,
     favoriteNumber,
     currentStreak,
+    streakNapped,
     rankByAverage,
     rankByBest,
     totalPlayers,
@@ -84,6 +85,7 @@ const Index = () => {
     updateThrowAnimation,
     updateBackground,
     toggleFeature,
+    updatePeacefulMokki,
   } = useUserSettings(user?.id || null);
 
   // Profile hook for username
@@ -307,6 +309,7 @@ ${diceEmojis}
           userId={user.id}
           hasPlayedToday={hasPlayedToday || justCompletedGame}
           streak={currentStreak}
+          streakNapped={streakNapped}
           activeSkin={activeSkin}
           purchasedItems={purchasedItems}
           hasMail={showBetting && !!reveal}
@@ -365,6 +368,8 @@ ${diceEmojis}
                   onBackgroundChange={updateBackground}
                   hiddenFeatures={settings.hiddenFeatures}
                   onFeatureToggle={toggleFeature}
+                  peacefulMokki={settings.peacefulMokki}
+                  onPeacefulMokkiChange={updatePeacefulMokki}
                   isLoading={purchasesLoading || settingsLoading}
                 />
               </> : <>
@@ -423,6 +428,8 @@ ${diceEmojis}
                   onBackgroundChange={updateBackground}
                   hiddenFeatures={settings.hiddenFeatures}
                   onFeatureToggle={toggleFeature}
+                  peacefulMokki={settings.peacefulMokki}
+                  onPeacefulMokkiChange={updatePeacefulMokki}
                   isLoading={purchasesLoading || settingsLoading}
                 />
 

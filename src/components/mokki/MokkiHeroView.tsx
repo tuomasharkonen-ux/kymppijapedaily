@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from "react";
-import type { MokkiPieceId } from "@/lib/mokki";
+import type { FlagId, MokkiPieceId } from "@/lib/mokki";
 import type { MokkiEnvironment } from "./environment";
-import type { ScenePiece } from "./scene/MokkiScene";
+import type { SceneDog, SceneEffect, ScenePiece } from "./scene/MokkiScene";
 import { SkyBackdrop } from "./SkyBackdrop";
 import { MokkiIllustration } from "./MokkiIllustration";
 import { saunaStatus } from "./saunaStatus";
@@ -39,6 +39,12 @@ export interface MokkiHeroViewProps {
   variant?: "card" | "backdrop";
   /** Page header rendered on the sky (backdrop variant). */
   header?: React.ReactNode;
+  /** The Hammock forgave a missed day inside the current streak. */
+  streakNapped?: boolean;
+  dog?: SceneDog | null;
+  flag?: FlagId;
+  effects?: SceneEffect[];
+  paljuGuests?: string[];
 }
 
 // The backdrop fades into whatever page background is active (plain or premium)
@@ -92,6 +98,10 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
                 porch={{ hasMail, potTotal, onMailboxClick: props.onMailboxClick }}
                 onBackgroundClick={onOpen}
                 onPieceLanded={props.onPieceLanded}
+                dog={props.dog}
+                flag={props.flag}
+                effects={props.effects}
+                paljuGuests={props.paljuGuests}
                 className="cursor-pointer"
               />
             </Suspense>
@@ -113,7 +123,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
             </Chip>
           </div>
           <span className="rounded-full bg-black/55 px-2.5 py-0.5 text-[11px] text-white backdrop-blur">
-            {saunaStatus(showSmoke, props.streak ?? 0)}
+            {saunaStatus(showSmoke, props.streak ?? 0, props.streakNapped)}
             {building > 0 ? ` · 🔨 ${building} under construction` : ""}
           </span>
         </div>
@@ -156,6 +166,10 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
             }}
             onBackgroundClick={onOpen}
             onPieceLanded={props.onPieceLanded}
+            dog={props.dog}
+            flag={props.flag}
+            effects={props.effects}
+            paljuGuests={props.paljuGuests}
           />
         </Suspense>
       ) : (
@@ -168,7 +182,7 @@ export const MokkiHeroView = (props: MokkiHeroViewProps) => {
       {/* Title + status */}
       <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1">
         <span className="rounded-full bg-black/55 px-3 py-1 text-sm font-bold text-white backdrop-blur">🏡 Mökki</span>
-        <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">{saunaStatus(showSmoke, props.streak ?? 0)}</span>
+        <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">{saunaStatus(showSmoke, props.streak ?? 0, props.streakNapped)}</span>
         {building > 0 && (
           <span className="rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white backdrop-blur">🔨 {building} under construction</span>
         )}

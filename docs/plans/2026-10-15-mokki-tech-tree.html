@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mökki Rakennuspuu — tech tree plan</title>
+<style>
+  :root {
+    --bg: #0d1b2a; --bg2: #13263a; --panel: #182f47; --line: #2a4560;
+    --text: #e8eef4; --muted: #8fa6bc; --gold: #f2c14e; --amber: #f0973c;
+    --tuli: #e8693c; --jarvi: #3fa7e0; --piha: #6cc04a; --pihapiiri: #c48a52; --elama: #b98be0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: radial-gradient(1200px 600px at 20% -10%, #1f3d5c 0%, var(--bg) 60%); color: var(--text); }
+  header { padding: 28px 32px 8px; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: .3px; }
+  h1 small { font-weight: 400; color: var(--muted); font-size: 15px; margin-left: 8px; }
+  h2 { font-size: 20px; margin: 40px 0 14px; }
+  .sub { color: var(--muted); max-width: 900px; line-height: 1.5; }
+  main { padding: 0 32px 60px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0 12px; }
+  .toolbar button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+  .toolbar button.active { border-color: var(--gold); color: var(--gold); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+  /* Tree */
+  .tree-wrap { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+  @media (max-width: 1100px) { .tree-wrap { grid-template-columns: 1fr; } }
+  .tree-scroll { overflow: auto; border-radius: 16px; border: 1px solid var(--line); background: rgba(10, 22, 36, .6); }
+  .tree { position: relative; }
+  .era-head { position: absolute; top: 0; height: 54px; display: flex; flex-direction: column; justify-content: center; padding-left: 14px; border-left: 1px dashed var(--line); }
+  .era-head b { font-size: 14px; }
+  .era-head span { font-size: 11px; color: var(--muted); }
+  .era-head.locked b::after { content: " 🔒"; }
+  .lane { position: absolute; left: 0; right: 0; border-top: 1px solid rgba(255,255,255,.04); }
+  .lane-label { position: sticky; left: 0; width: 120px; height: 100%; display: flex; align-items: center; padding-left: 14px; font-weight: 600; font-size: 13px; background: linear-gradient(90deg, rgba(13,27,42,.95) 70%, transparent); z-index: 3; }
+  .lane-label i { font-style: normal; width: 6px; height: 60%; border-radius: 3px; margin-right: 8px; }
+  svg.edges { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: visible; }
+  .edge { fill: none; stroke-width: 2.2; }
+  .edge.locked { stroke: #3a5068; stroke-dasharray: 3 5; }
+  .edge.ready { stroke: var(--gold); stroke-dasharray: 8 6; animation: flow 1s linear infinite; }
+  .edge.done { stroke-width: 3; }
+  .edge.path { stroke: #fff !important; stroke-width: 3.5; stroke-dasharray: none; filter: drop-shadow(0 0 4px #fff8); }
+  .edge.dim { opacity: .18; }
+  @keyframes flow { to { stroke-dashoffset: -28; } }
+
+  .node { position: absolute; width: 176px; height: 64px; border-radius: 12px; padding: 8px 10px; display: flex; gap: 8px; align-items: center; cursor: pointer; z-index: 2; background: #1a2d41; border: 2px solid #34506b; transition: transform .12s, box-shadow .12s, opacity .12s; user-select: none; }
+  .node:hover { transform: translateY(-2px); }
+  .node .em { font-size: 24px; width: 30px; text-align: center; }
+  .node .nm { font-weight: 650; font-size: 13.5px; line-height: 1.15; }
+  .node .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .node .tag { position: absolute; top: -9px; right: 8px; font-size: 10px; padding: 1px 6px; border-radius: 999px; font-weight: 700; }
+  .tag.new { background: var(--gold); color: #3a2a00; }
+  .tag.star { background: #fff; color: #222; right: auto; left: 8px; }
+  .tag.gf { background: #ff7ab6; color: #3d0020; top: auto; bottom: -9px; }
+  .node.built { background: color-mix(in srgb, var(--c) 30%, #12263a); border-color: var(--c); }
+  .node.built .meta::before { content: "✓ Built  "; color: #fff; font-weight: 700; }
+  .node.building { border-color: var(--amber); background: #2d2618; }
+  .node.available { border-color: var(--gold); box-shadow: 0 0 0 0 #f2c14e88; animation: pulse 1.8s infinite; }
+  .node.locked { filter: grayscale(.85); opacity: .55; }
+  .node.sel { outline: 3px solid #fff; outline-offset: 2px; opacity: 1; filter: none; }
+  .node.onpath { opacity: 1; filter: none; box-shadow: 0 0 0 3px #ffffff55; }
+  .node.faded { opacity: .25; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 #f2c14e88; } 70% { box-shadow: 0 0 0 10px #f2c14e00; } 100% { box-shadow: 0 0 0 0 #f2c14e00; } }
+  .ring { width: 30px; height: 30px; }
+
+  /* Detail panel */
+  .detail { position: sticky; top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; min-height: 300px; }
+  .detail h3 { margin: 0 0 4px; font-size: 20px; display: flex; gap: 10px; align-items: center; }
+  .detail .em { font-size: 34px; }
+  .detail p { color: #c9d6e2; line-height: 1.45; font-size: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: #0f2236; border: 1px solid var(--line); cursor: pointer; }
+  .chip.ok { border-color: #4caf50; }
+  .chip.no { border-color: #c2554a; }
+  .gives { list-style: none; padding: 0; margin: 6px 0 10px; }
+  .gives li { display: flex; gap: 8px; padding: 7px 9px; margin-bottom: 6px; border-radius: 10px; background: #0f2236; font-size: 13px; line-height: 1.35; }
+  .gives li b { white-space: nowrap; }
+  .kind { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 1px 6px; border-radius: 6px; height: fit-content; margin-top: 2px; }
+  .k-chore { background: #2f6b3a; } .k-social { background: #2b5f8f; } .k-prank { background: #8f2b6b; } .k-perk { background: #7a5b16; } .k-cosmetic { background: #4a4a5a; }
+  .label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-top: 12px; }
+  .pathbox { background: #2a1f0c; border: 1px solid #6b4f1a; border-radius: 10px; padding: 8px 10px; font-size: 13px; margin: 8px 0; }
+  .btn { background: var(--gold); color: #2d2000; font-weight: 700; border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; font-size: 14px; }
+  .btn[disabled] { background: #4a5a6a; color: #9aa; cursor: not-allowed; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* Cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .card h4 { margin: 6px 0 4px; font-size: 16px; }
+  .card p { margin: 4px 0; color: #c9d6e2; font-size: 13.5px; line-height: 1.45; }
+  .dogsvg { width: 100%; height: 150px; background: linear-gradient(#a9d7f5, #d8f0ff 60%, #7fbf5a 60%, #6aa94a); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .bar { height: 10px; border-radius: 5px; background: var(--gold); display: inline-block; vertical-align: middle; margin-right: 8px; }
+  .phase { display: grid; grid-template-columns: 42px 1fr 60px; gap: 12px; align-items: start; padding: 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); margin-bottom: 8px; }
+  .phase .n { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: #2d2000; font-weight: 800; display: grid; place-items: center; }
+  .phase .sz { font-weight: 700; color: var(--muted); text-align: right; }
+  .q { padding: 10px 14px; border-left: 3px solid var(--gold); background: var(--panel); border-radius: 0 10px 10px 0; margin-bottom: 8px; font-size: 14px; }
+  .rules { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .rule { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 13.5px; line-height: 1.45; }
+  .rule b { display: block; margin-bottom: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌳 Mökki Rakennuspuu <small>Tech-tree plan · draft 2026-10-15</small></h1>
+  <p class="sub">The flat Mökki build list becomes a Civilization-style tree. There are 24 builds in 5 branches and 4 eras: the 10 you can build today, plus 14 new ones. Bigger builds unlock daily chores, things to do on neighbors' islands, and perks. Click any node for details. On a locked node, the whole route to it lights up, with its total cost.</p>
+</header>
+<main>
+
+<h2>Design rules</h2>
+<div class="rules">
+  <div class="rule"><b>🏃 Grandfathering</b>Anything you already own stays, even if the new tree says it came too early. The rules only apply when you buy something. Missing earlier builds can still be bought to fill the gap. Nothing is given away for free.</div>
+  <div class="rule"><b>🔨 Finish before you advance</b>An earlier build has to be finished, not just bought. No starting the Palju while the sauna is still scaffolding.</div>
+  <div class="rule"><b>📅 Eras gate by days played</b>I: 0 · II: 10 · III: 30 · IV: 60. The existing day requirements stay the same. Only Rantasauna changes: it moves from 0 to 10 days.</div>
+  <div class="rule"><b>🎲 Dice stay random</b>No perk ever changes the dice or the bet odds. The rewards are small daily chore credits and social fun.</div>
+  <div class="rule"><b>💰 Slow economy</b>A mökki built through phase 4 earns about 20–25 credits a day, plus bonuses from visits. The whole tree costs about 17,000 credits. Every reward is one value in the shared rules file, so it's easy to tune.</div>
+  <div class="rule"><b>♨️ Play first</b>Chores open once you've played today (the sauna is warm). The mökki stays a reward for playing, never a replacement.</div>
+</div>
+
+<h2>The tree</h2>
+<div class="toolbar">
+  <span class="pill">Player state:</span>
+  <button data-preset="sample" class="active">Sample player (34 days)</button>
+  <button data-preset="empty">New mökki (0 days)</button>
+  <button data-preset="veteran">Veteran (90 days)</button>
+  <button data-preset="all">Everything built</button>
+  <span style="flex:1"></span>
+  <div class="legend">
+    <span><i class="sw" style="background:#3fa7e0"></i>Built</span>
+    <span><i class="sw" style="background:#f0973c"></i>Building</span>
+    <span><i class="sw" style="border:2px solid #f2c14e"></i>Available</span>
+    <span><i class="sw" style="background:#3a4a5a"></i>Locked</span>
+    <span><i class="sw" style="background:#f2c14e"></i>NEW</span>
+    <span><i class="sw" style="background:#ff7ab6"></i>🏃 Grandfathered</span>
+  </div>
+</div>
+<div class="tree-wrap">
+  <div class="tree-scroll"><div class="tree" id="tree"></div></div>
+  <aside class="detail" id="detail"></aside>
+</div>
+
+<h2>🐕 The dog — pick one of three</h2>
+<p class="sub">The Koira costs 700 cr and needs the Riukuaita fence. You choose the breed and give it a name of up to 16 characters. All dogs walk around the island, nap on the porch at night, swim off the laituri in summer and greet visitors. Petting the dog (Rapsuta) gives +1 a day. Each breed also has its own trick.</p>
+<div class="grid" id="dogs"></div>
+
+<h2>😈 Neighbor interactions</h2>
+<div class="grid" id="pranks"></div>
+<div class="rules" style="margin-top:12px">
+  <div class="rule"><b>Limits</b>Each prank can hit the same mökki once a day. Only one of each kind can be up at a time ("Aino already TP'd this mökki — look!").</div>
+  <div class="rule"><b>Never costs the target</b>A prank stays until the owner taps to clean it, or for 24 hours. Cleaning up pays the owner +1. Everyone who visits can see it.</div>
+  <div class="rule"><b>Dog defense</b>The target's dog may foil the prank: 20% of the time, or 50% for the Aussie. The server rolls the dice.</div>
+  <div class="rule"><b>Mailbox inbox</b>The porch mailbox finally gets used. It lists what happened to your mökki since your last visit.</div>
+  <div class="rule"><b>"Rauhallinen mökki"</b>An opt-out switch in Customization. It blocks pranks on your mökki, and you can't prank anyone else either. Test users are excluded from pranks.</div>
+</div>
+
+<h2>💰 Daily chore yield (fully built)</h2>
+<div class="card"><table id="econ"></table></div>
+
+<h2>🛠️ Phases</h2>
+<div id="phases"></div>
+
+<h2>❓ Open questions</h2>
+<div id="questions"></div>
+</main>
+
+<script>
+const LANES = [
+  { id: "tuli", name: "🔥 Tuli & löyly", color: "var(--tuli)", rows: 2 },
+  { id: "jarvi", name: "🌊 Järvi", color: "var(--jarvi)", rows: 3 },
+  { id: "piha", name: "🌿 Piha", color: "var(--piha)", rows: 1 },
+  { id: "pihapiiri", name: "🐕 Pihapiiri", color: "var(--pihapiiri)", rows: 2 },
+  { id: "elama", name: "☀️ Mökkielämä", color: "var(--elama)", rows: 3 },
+];
+const ERAS = [
+  { n: "I", name: "Kesämökki", days: 0, cols: [0] },
+  { n: "II", name: "Vapaa-ajan asunto", days: 10, cols: [1, 2] },
+  { n: "III", name: "Huvila", days: 30, cols: [3] },
+  { n: "IV", name: "Legenda", days: 60, cols: [4] },
+];
+// gives: [kind, icon, title, text]
+const N = [
+  // Tuli
+  { id: "puuvaja", em: "🪵", name: "Puuvaja", lane: "tuli", row: 0, col: 0, era: 0, price: 300, days: 2, req: [], d: "A woodshed stacked full of birch logs for the stoves.", gives: [["cosmetic", "🪵", "Klapipino", "The log pile grows with your daily streak."]] },
+  { id: "nuotio", em: "🌭", name: "Nuotiopaikka", lane: "tuli", row: 1, col: 0, era: 0, price: 100, days: 1, req: [], isNew: true, d: "A stone fire ring with log benches. Where every mökki evening starts.", gives: [["chore", "🌭", "Makkaranpaisto", "Grill a sausage after your game: +1/day."]] },
+  { id: "sauna", em: "🧖", name: "Rantasauna", lane: "tuli", row: 0, col: 1, era: 1, price: 700, days: 3, req: ["puuvaja"], d: "A log sauna on the shore with a wood-burning kiuas.", gives: [["chore", "♨️", "Saunavuoro", "+2/day on days you've played."], ["social", "💨", "Kunnon löyly", "Löyly you send makes a bigger puff."]] },
+  { id: "kota", em: "🔥", name: "Grillikota", lane: "tuli", row: 1, col: 3, era: 2, price: 800, days: 4, req: ["nuotio", "puuvaja"], d: "An eight-sided Lappish grill hut with a fire pit in the middle.", gives: [["chore", "🌭", "Makkaranpaisto+", "Grilling becomes +3/day."], ["social", "🎉", "Grillibileet", "Visitors grab a makkara: +1 for them and +1 for you (max 5/day)."]] },
+  { id: "palju", em: "♨️", name: "Palju", lane: "tuli", row: 0, col: 3, era: 2, price: 900, days: 4, req: ["sauna"], d: "A wood-fired hot tub next to the sauna.", gives: [["social", "🛁", "Paljubileet", "Visitors hop in: +2 each (max 5/day). Their heads stay in the tub for the rest of the day."]] },
+  { id: "savu", em: "💨", name: "Savusauna", lane: "tuli", row: 0, col: 4, era: 3, price: 1800, days: 5, req: ["palju", "silta"], isNew: true, star: true, d: "A smoke sauna out on the luoto. The real thing.", gives: [["social", "🌫️", "Savusaunan löyly", "Once a week, a steam puff over every mökki on the lake: +2 to each neighbor."], ["chore", "♨️", "Saunavuoro+", "Saunavuoro becomes +4/day."]] },
+  // Järvi
+  { id: "onki", em: "🎣", name: "Onkipaikka", lane: "jarvi", row: 0, col: 0, era: 0, price: 100, days: 1, req: [], isNew: true, d: "A flat shore rock, a bamboo rod and a bucket.", gives: [["chore", "🎣", "Onki", "Daily catch 0–2 cr. Joke catches include a rubber boot and a Nokia 3310."]] },
+  { id: "laituri", em: "🛶", name: "Laituri", lane: "jarvi", row: 0, col: 1, era: 1, price: 500, days: 2, req: ["onki"], d: "A wooden dock reaching out into the lake.", gives: [["chore", "🎣", "Fishing tier 2", "Catch 1–3 cr."]] },
+  { id: "vene", em: "🚣", name: "Soutuvene", lane: "jarvi", row: 0, col: 2, era: 1, price: 450, days: 2, req: ["laituri"], d: "A white wooden rowing boat tied to your laituri.", gives: [["chore", "🎣", "Fishing tier 3", "Catch 1–5 cr, with a chance of a hauki."], ["social", "🐟", "Kalalahja", "Row today's catch over to a neighbor: +2 for them."]] },
+  { id: "silta", em: "🌉", name: "Silta", lane: "jarvi", row: 1, col: 3, era: 2, price: 800, days: 3, req: ["laituri"], isNew: true, d: "A wooden bridge out to the little islet.", gives: [["perk", "🏝️", "Luoto opens", "The islet becomes buildable land and grows. The Savusauna goes here."]] },
+  { id: "avanto", em: "🧊", name: "Avanto", lane: "jarvi", row: 2, col: 3, era: 2, price: 600, days: 2, req: ["laituri", "sauna"], isNew: true, d: "An ice hole at the end of the laituri. A diving ladder in summer.", gives: [["chore", "🥶", "Avantouinti", "Dec–Mar: +3/day."], ["perk", "🐻‍❄️", "Jääkarhu badge", "Awarded after 10 dips."]] },
+  { id: "moottori", em: "🚤", name: "Perämoottori", lane: "jarvi", row: 0, col: 3, era: 2, price: 1200, days: 3, req: ["vene"], isNew: true, d: "An outboard motor bolted to the rowing boat. Vroom.", gives: [["prank", "🌊", "Peräaalto", "Roar past a neighbor's laituri and swamp their soutuvene. They bail it out for +1."]] },
+  { id: "lautta", em: "🛟", name: "Saunalautta", lane: "jarvi", row: 0, col: 4, era: 3, price: 2500, days: 5, req: ["moottori", "sauna"], isNew: true, star: true, d: "A floating sauna raft with a little deck and string lights.", gives: [["social", "⚓", "Lautta kylässä", "Once a week, moor at a neighbor's island for a day. Their visitors can hop aboard: +2 for them and +2 for you (max 10)."]] },
+  // Piha
+  { id: "marja", em: "🫐", name: "Marjapensaat", lane: "piha", row: 0, col: 0, era: 0, price: 250, days: 1, req: [], d: "Berry bushes and a little flower bed.", gives: [["chore", "🫐", "Marjastus", "Jun–Sep: +1/day."], ["prank", "🫐", "Marjavarkaus", "Raid a neighbor's bushes. They find a note."]] },
+  { id: "mehi", em: "🐝", name: "Mehiläispesät", lane: "piha", row: 0, col: 1, era: 1, price: 500, days: 2, req: ["marja"], isNew: true, d: "Two painted beehives behind the berry bushes.", gives: [["chore", "🍯", "Hunaja", "+5 once a week."], ["perk", "🌸", "Pollination", "Berry picking (Marjastus) gives double."], ["prank", "🐝", "Mehiläisparvi", "Send a swarm to a neighbor's hammock."]] },
+  // Pihapiiri
+  { id: "aita", em: "🪵", name: "Riukuaita", lane: "pihapiiri", row: 0, col: 0, era: 0, price: 150, days: 1, req: [], isNew: true, d: "A traditional roundpole fence along the back of the island.", gives: [["cosmetic", "🌾", "Pihapiiri", "Looks great. Keeps the dog in."]] },
+  { id: "koira", em: "🐕", name: "Koira", lane: "pihapiiri", row: 0, col: 1, era: 1, price: 700, days: 2, req: ["aita"], isNew: true, d: "A dog and a doghouse. Pick a mini poodle, an Aussie or a Lagotto, and name it.", gives: [["chore", "🐾", "Rapsuta", "Pet your dog: +1/day."], ["perk", "🛡️", "Guard dog", "Foils pranks against your mökki."], ["perk", "✨", "Breed trick", "Makkaravaras, Vahtikoira or Tryffelikoira (see below)."]] },
+  { id: "huussi", em: "🚽", name: "Huussi", lane: "pihapiiri", row: 1, col: 0, era: 0, price: 150, days: 1, req: [], d: "The classic outhouse, heart cut into the door.", gives: [["prank", "🧻", "Vessapaperi-isku", "Toilet-paper a neighbor's birches."]] },
+  { id: "aitta", em: "📖", name: "Aitta", lane: "pihapiiri", row: 1, col: 3, era: 2, price: 900, days: 3, req: ["puuvaja", "huussi"], isNew: true, d: "An old red storehouse, now the guest room.", gives: [["social", "📖", "Vieraskirja", "Visitors sign your guestbook with a preset line. It's shown on the notice board."]] },
+  { id: "lasi", em: "🪟", name: "Lasikuisti", lane: "pihapiiri", row: 1, col: 4, era: 3, price: 2000, days: 5, req: ["aitta", "aurinko"], isNew: true, star: true, d: "The cabin gets a glazed veranda. Peak mökki.", gives: [["perk", "🏆", "Pokaalihylly", "Your 3 rarest badges on display to visitors."], ["cosmetic", "👑", "Mökkimestari", "A tag in the neighbors list, plus warm veranda lights at night."]] },
+  // Elämä
+  { id: "aurinko", em: "☀️", name: "Aurinkopaneeli", lane: "elama", row: 0, col: 1, era: 1, price: 500, days: 2, req: ["huussi"], isNew: true, d: "A solar panel on the huussi roof. Finland's first solar-powered huussi.", gives: [["cosmetic", "✨", "Valosarjat", "String lights on the porch at night."], ["perk", "⚡", "Sähköt", "Starts the tech branch."]] },
+  { id: "radio", em: "📻", name: "Mökkiradio", lane: "elama", row: 0, col: 3, era: 2, price: 600, days: 2, req: ["aurinko"], isNew: true, d: "A transistor radio on the porch table.", gives: [["prank", "🎺", "Humppapommi", "The neighbor's island blasts humppa, with floating notes and a short jingle, the next time they open it."]] },
+  { id: "lippu", em: "🇫🇮", name: "Lipputanko", lane: "elama", row: 1, col: 0, era: 0, price: 200, days: 1, req: [], d: "A tall white flagpole.", gives: [["perk", "🏳️", "Flag picker", "Siniristi, Åland, Pride, pirate or Muumi. Liputuspäivät are raised automatically."], ["prank", "🇸🇪", "Ruotsin lippu", "Hoist a Swedish flag on a neighbor's pole."]] },
+  { id: "matto", em: "🌿", name: "Riippumatto", lane: "elama", row: 2, col: 0, era: 0, price: 250, days: 1, req: [], d: "A striped hammock between two birches.", gives: [["perk", "😴", "Päiväunet", "Once every 7 days, a single missed day doesn't break your streak."]] },
+];
+const byId = Object.fromEntries(N.map((n) => [n.id, n]));
+const children = (id) => N.filter((n) => n.req.includes(id));
+
+const PRESETS = {
+  sample: { days: 34, built: ["puuvaja", "huussi", "lippu", "marja", "sauna", "kota", "laituri"], building: { vene: 1 } },
+  empty: { days: 0, built: [], building: {} },
+  veteran: { days: 90, built: ["puuvaja", "huussi", "lippu", "marja", "matto", "sauna", "laituri", "vene", "palju", "kota", "onki", "nuotio", "aita", "koira"], building: { silta: 2 } },
+  all: { days: 120, built: N.map((n) => n.id), building: {} },
+};
+let state = structuredClone(PRESETS.sample);
+let selected = "palju";
+
+const COL_W = 220, ROW_H = 84, TOP = 64, LEFT = 130, NODE_W = 176, NODE_H = 64;
+const laneTop = {};
+let y = TOP;
+for (const l of LANES) { laneTop[l.id] = y; y += l.rows * ROW_H + 10; }
+const TREE_H = y + 10, TREE_W = LEFT + 5 * COL_W + 20;
+const pos = (n) => ({ x: LEFT + n.col * COL_W + 12, y: laneTop[n.lane] + n.row * ROW_H + 10 });
+const laneColor = (id) => LANES.find((l) => l.id === id).color;
+
+// Edges that skip columns turn in the empty gap between columns, so they never run under another card
+const rowFree = (lane, row, fromCol, toCol) => !N.some((m) => m.lane === lane && m.row === row && m.col > fromCol && m.col < toCol);
+function edgePath(p, c) {
+  const a = pos(p), b = pos(c);
+  const x1 = a.x + NODE_W, y1 = a.y + NODE_H / 2, x2 = b.x, y2 = b.y + NODE_H / 2;
+  const gap = COL_W - NODE_W;
+  let gx = null;
+  if (c.col - p.col > 1) {
+    if (rowFree(c.lane, c.row, p.col, c.col)) gx = x1 + gap / 2;
+    else if (rowFree(p.lane, p.row, p.col, c.col)) gx = x2 - gap / 2;
+  }
+  if (gx === null || y1 === y2) {
+    const dx = Math.max(40, (x2 - x1) / 2);
+    return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+  }
+  const r = 10, s = y2 > y1 ? 1 : -1;
+  return `M${x1},${y1} H${gx - r} Q${gx},${y1} ${gx},${y1 + s * r} V${y2 - s * r} Q${gx},${y2} ${gx + r},${y2} H${x2}`;
+}
+
+function status(n) {
+  if (state.built.includes(n.id)) return { kind: "built", gf: n.req.some((r) => !state.built.includes(r)) };
+  if (state.building[n.id] != null) return { kind: "building", left: state.building[n.id] };
+  const missing = n.req.filter((r) => !state.built.includes(r));
+  const eraDays = ERAS[n.era].days;
+  if (missing.length) return { kind: "locked", reason: "Requires " + missing.map((m) => byId[m].name).join(", ") + (missing.some((m) => state.building[m] != null) ? " to finish" : "") };
+  if (state.days < eraDays) return { kind: "locked", reason: `Era ${ERAS[n.era].n} opens at ${eraDays} days played` };
+  return { kind: "available" };
+}
+function ancestorsToBuild(id, acc = new Set()) {
+  const n = byId[id];
+  if (state.built.includes(id)) return acc;
+  acc.add(id);
+  n.req.forEach((r) => ancestorsToBuild(r, acc));
+  return acc;
+}
+
+function render() {
+  const tree = document.getElementById("tree");
+  tree.style.width = TREE_W + "px";
+  tree.style.height = TREE_H + "px";
+  let html = "";
+  ERAS.forEach((e) => {
+    const x = LEFT + e.cols[0] * COL_W;
+    const w = e.cols.length * COL_W;
+    html += `<div class="era-head ${state.days < e.days ? "locked" : ""}" style="left:${x}px;width:${w}px"><b>${e.n} · ${e.name}</b><span>${e.days} days played${state.days < e.days ? ` · you: ${state.days}` : ""}</span></div>`;
+  });
+  LANES.forEach((l) => {
+    html += `<div class="lane" style="top:${laneTop[l.id] - 4}px;height:${l.rows * ROW_H + 10}px"><div class="lane-label"><i style="background:${l.color}"></i>${l.name}</div></div>`;
+  });
+
+  const path = selected && status(byId[selected]).kind !== "built" ? ancestorsToBuild(selected) : null;
+  const showPath = path && path.size > 1;
+  let svg = `<svg class="edges" width="${TREE_W}" height="${TREE_H}">`;
+  N.forEach((c) => c.req.forEach((pid) => {
+    const p = byId[pid];
+    const d = edgePath(p, c);
+    const pb = state.built.includes(pid), cs = status(c).kind;
+    let cls = "locked", stroke = "";
+    if (pb && (cs === "built" || cs === "building")) { cls = "done"; stroke = `stroke:${laneColor(c.lane)}`; }
+    else if (pb && cs === "available") cls = "ready";
+    if (showPath) cls += path.has(c.id) && (path.has(pid) || state.built.includes(pid)) ? " path" : " dim";
+    svg += `<path class="edge ${cls}" style="${stroke}" d="${d}"/>`;
+  }));
+  svg += "</svg>";
+  html += svg;
+
+  N.forEach((n) => {
+    const p = pos(n), s = status(n);
+    let meta = s.kind === "building" ? `🔨 ${s.left} day${s.left === 1 ? "" : "s"} left` : s.kind === "built" ? "" : `${n.price} cr · ${n.days}d`;
+    const ring = s.kind === "building" ? (() => { const f = 1 - s.left / n.days; const C = 2 * Math.PI * 12; return `<svg class="ring" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" stroke="#4a3a20" stroke-width="4" fill="none"/><circle cx="15" cy="15" r="12" stroke="#f0973c" stroke-width="4" fill="none" stroke-dasharray="${C * f} ${C}" transform="rotate(-90 15 15)"/><text x="15" y="19" font-size="12" text-anchor="middle">${n.em}</text></svg>`; })() : `<div class="em">${n.em}</div>`;
+    let cls = `node ${s.kind}`;
+    if (n.id === selected) cls += " sel";
+    else if (showPath) cls += path.has(n.id) ? " onpath" : " faded";
+    html += `<div class="${cls}" data-id="${n.id}" style="left:${p.x}px;top:${p.y}px;--c:${laneColor(n.lane)}">
+      ${n.isNew ? '<span class="tag new">NEW</span>' : ""}${n.star ? '<span class="tag star">★ Wonder</span>' : ""}${s.kind === "built" && s.gf ? '<span class="tag gf">🏃 ahead of its time</span>' : ""}
+      ${ring}<div><div class="nm">${n.name}</div><div class="meta">${meta}</div></div></div>`;
+  });
+  tree.innerHTML = html;
+  tree.querySelectorAll(".node").forEach((el) => el.addEventListener("click", () => { selected = el.dataset.id; render(); }));
+  renderDetail();
+}
+
+function renderDetail() {
+  const el = document.getElementById("detail");
+  if (!selected) { el.innerHTML = "<p>Click a node.</p>"; return; }
+  const n = byId[selected], s = status(n);
+  const kids = children(n.id);
+  const statusLine = {
+    built: s.gf ? "✓ Built — 🏃 grandfathered: owned from before the tree, without its earlier builds. It still counts as unlocked." : "✓ Built",
+    building: `🔨 Building — ${s.left} played day(s) left`,
+    available: "Available to build",
+    locked: "🔒 " + s.reason,
+  }[s.kind];
+  let pathHtml = "";
+  if (s.kind === "locked") {
+    const p = [...ancestorsToBuild(n.id)].filter((id) => state.building[id] == null);
+    const cost = p.reduce((a, id) => a + byId[id].price, 0);
+    pathHtml = `<div class="pathbox">🧭 <b>Path:</b> ${p.length} build${p.length === 1 ? "" : "s"} · ${cost.toLocaleString("fi")} cr<br><span style="color:var(--muted)">${p.map((id) => byId[id].name).reverse().join(" → ")}</span></div>`;
+  }
+  el.innerHTML = `
+    <h3><span class="em">${n.em}</span>${n.name}</h3>
+    <div class="stats"><span class="pill">Era ${ERAS[n.era].n}</span><span class="pill">${LANES.find((l) => l.id === n.lane).name}</span><span class="pill">🪙 ${n.price}</span><span class="pill">🔨 ${n.days} day${n.days > 1 ? "s" : ""}</span>${n.isNew ? '<span class="pill" style="color:var(--gold)">NEW</span>' : '<span class="pill">Existing</span>'}</div>
+    <p>${n.d}</p>
+    <div style="font-size:13px;font-weight:600">${statusLine}</div>
+    ${pathHtml}
+    <div class="label">Gives</div>
+    <ul class="gives">${n.gives.map(([k, i, t, x]) => `<li><span class="kind k-${k}">${k}</span><div><b>${i} ${t}</b> — ${x}</div></li>`).join("")}</ul>
+    <div class="label">Requires</div>
+    <div class="chips">${n.req.length ? n.req.map((r) => `<span class="chip ${state.built.includes(r) ? "ok" : "no"}" data-go="${r}">${byId[r].em} ${byId[r].name}</span>`).join("") : '<span style="color:var(--muted);font-size:13px">Nothing — a root</span>'}</div>
+    <div class="label">Leads to</div>
+    <div class="chips">${kids.length ? kids.map((k) => `<span class="chip" data-go="${k.id}">${k.em} ${k.name}</span>`).join("") : '<span style="color:var(--muted);font-size:13px">End of the branch</span>'}</div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" id="buildBtn" ${s.kind !== "available" ? "disabled" : ""}>Rakennetaan! 🔨</button>
+      ${s.kind === "building" ? '<button class="btn ghost" id="finishBtn">Play a day ▶</button>' : ""}
+    </div>
+    <p style="font-size:12px;color:var(--muted)">This is a demo: building finishes straight away, and "Play a day" moves construction one day forward.</p>`;
+  el.querySelectorAll("[data-go]").forEach((c) => c.addEventListener("click", () => { selected = c.dataset.go; render(); }));
+  el.querySelector("#buildBtn")?.addEventListener("click", () => { state.building[n.id] = n.days; render(); });
+  el.querySelector("#finishBtn")?.addEventListener("click", () => {
+    state.days++;
+    for (const id of Object.keys(state.building)) {
+      state.building[id]--;
+      if (state.building[id] <= 0) { delete state.building[id]; state.built.push(id); }
+    }
+    render();
+  });
+}
+
+document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("[data-preset]").forEach((x) => x.classList.remove("active"));
+  b.classList.add("active");
+  state = structuredClone(PRESETS[b.dataset.preset]);
+  render();
+}));
+
+// Dogs (simple illustrative SVGs)
+const dogSvg = (kind) => {
+  const curly = (cx, cy, r, n, col) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return `<circle cx="${cx + Math.cos(a) * r}" cy="${cy + Math.sin(a) * r * 0.7}" r="${r * 0.42}" fill="${col}"/>`; }).join("");
+  if (kind === "poodle") {
+    const c = "#7b4a2d", d = "#5e3720";
+    return `<svg class="dogsvg" viewBox="0 0 300 150">
+      <ellipse cx="150" cy="128" rx="70" ry="6" fill="#0002"/>
+      <rect x="118" y="95" width="6" height="32" fill="${c}"/><rect x="170" y="95" width="6" height="32" fill="${c}"/>
+      <rect x="128" y="95" width="6" height="32" fill="${d}"/><rect x="180" y="95" width="6" height="32" fill="${d}"/>
+      ${curly(121, 124, 7, 6, c)}${curly(183, 124, 7, 6, c)}
+      <ellipse cx="150" cy="88" rx="42" ry="16" fill="${c}"/>
+      ${curly(188, 78, 12, 8, c)}
+      <line x1="192" y1="80" x2="205" y2="52" stroke="${c}" stroke-width="5"/>${curly(206, 48, 8, 7, c)}
+      <rect x="106" y="58" width="12" height="30" fill="${c}"/>
+      <ellipse cx="104" cy="52" rx="15" ry="13" fill="${c}"/>${curly(104, 38, 10, 8, c)}
+      <ellipse cx="88" cy="56" rx="11" ry="6" fill="${c}"/><circle cx="79" cy="55" r="3.5" fill="#222"/>
+      ${curly(114, 62, 7, 6, d)}
+      <circle cx="98" cy="48" r="2.4" fill="#111"/>
+    </svg>`;
+  }
+  if (kind === "aussie") {
+    const k = "#1d1d22", w = "#f4f1ea";
+    const dots = [[78, 58], [83, 63], [88, 57], [74, 64], [90, 64], [80, 52], [95, 60]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8" fill="${w}"/>`).join("");
+    return `<svg class="dogsvg" viewBox="0 0 300 150">
+      <ellipse cx="150" cy="128" rx="80" ry="6" fill="#0002"/>
+      <rect x="112" y="92" width="10" height="35" rx="4" fill="${k}"/><rect x="180" y="92" width="10" height="35" rx="4" fill="${k}"/>
+      <rect x="124" y="92" width="10" height="35" rx="4" fill="#2b2b30"/><rect x="192" y="92" width="10" height="35" rx="4" fill="#2b2b30"/>
+      <rect x="112" y="118" width="10" height="9" fill="${w}"/><rect x="124" y="118" width="10" height="9" fill="${w}"/>
+      <ellipse cx="158" cy="84" rx="54" ry="22" fill="${k}"/>
+      <ellipse cx="212" cy="76" rx="9" ry="7" fill="${k}"/>
+      <ellipse cx="118" cy="88" rx="16" ry="14" fill="${w}"/>
+      <path d="M100 82 Q96 60 104 44 L122 70 Z" fill="${k}"/>
+      <ellipse cx="96" cy="50" rx="21" ry="18" fill="${k}"/>
+      <path d="M90 34 L100 30 L104 56 L94 56 Z" fill="${w}"/>
+      <ellipse cx="80" cy="60" rx="14" ry="8" fill="${k}"/>
+      <ellipse cx="82" cy="60" rx="11" ry="6" fill="${w}"/>
+      ${dots}
+      <circle cx="68" cy="58" r="4" fill="#111"/>
+      <path d="M104 34 L114 22 L116 40 Z" fill="${k}"/>
+      <circle cx="94" cy="46" r="2.6" fill="#7a4a12"/>
+      <circle cx="94" cy="46" r="1.2" fill="#111"/>
+    </svg>`;
+  }
+  const c = "#8a5a3b", d = "#6f4529";
+  const coat = Array.from({ length: 34 }, (_, i) => { const x = 110 + (i % 11) * 9 + (Math.floor(i / 11) % 2) * 4; const y = 72 + Math.floor(i / 11) * 9; return `<circle cx="${x}" cy="${y}" r="7" fill="${i % 3 ? c : d}"/>`; }).join("");
+  return `<svg class="dogsvg" viewBox="0 0 300 150">
+    <ellipse cx="160" cy="128" rx="80" ry="6" fill="#0002"/>
+    ${[118, 130, 188, 200].map((x, i) => `<rect x="${x}" y="90" width="11" height="37" rx="5" fill="${i % 2 ? d : c}"/>`).join("")}
+    ${curly(124, 122, 7, 6, c)}${curly(194, 122, 7, 6, c)}
+    <ellipse cx="160" cy="84" rx="52" ry="20" fill="${c}"/>${coat}
+    ${curly(213, 68, 10, 7, c)}
+    ${curly(100, 50, 16, 10, c)}<circle cx="100" cy="50" r="15" fill="${c}"/>
+    ${curly(84, 64, 9, 7, d)}
+    <ellipse cx="80" cy="56" rx="11" ry="8" fill="${c}"/><circle cx="71" cy="54" r="4" fill="#2a1a10"/>
+    ${curly(112, 54, 9, 7, d)}
+    <circle cx="94" cy="46" r="2.6" fill="#2a1a10"/>
+  </svg>`;
+};
+const DOGS = [
+  { k: "poodle", name: "Ruskea pikkupuudeli", en: "Brown mini poodle", look: "Small and chocolate brown, with pom-poms on its head, ears, tail and paws. It prances.", trick: "🌭 <b>Makkaravaras</b> — sneaks over to a neighbor's Grillikota and steals a makkara (+2 for you). The neighbor gets a note: <i>\"Pörrö söi sun makkaran.\"</i>" },
+  { k: "aussie", name: "Musta aussi", en: "Black Australian shepherd", look: "A black coat, white blaze and chest, little white dots across the muzzle, and a bobtail.", trick: "🛡️ <b>Vahtikoira</b> — foils 50% of pranks (other breeds manage 20%). It drags the foiled prank's loot back home (+2 for you)." },
+  { k: "lagotto", name: "Ruskea lagotto romagnolo", en: "Brown Lagotto Romagnolo", look: "A curly, woolly brown coat, a beard and a round teddy head.", trick: "🍄 <b>Tryffelikoira</b> — digs every day for 1–3 cr. Finds are doubled in mushroom season (autumn). 2% chance of a <b>tryffeli</b> (+25)." },
+];
+document.getElementById("dogs").innerHTML = DOGS.map((d) => `<div class="card">${dogSvg(d.k)}<h4>${d.name}</h4><p style="color:var(--muted)">${d.en}</p><p>${d.look}</p><p>${d.trick}</p></div>`).join("");
+
+const PRANKS = [
+  ["🧻", "Vessapaperi-isku", "Huussi", "Toilet-paper streamers draped over the neighbor's birches.", "prank"],
+  ["🇸🇪", "Ruotsin lippu", "Lipputanko", "A Swedish flag flying on the neighbor's flagpole. Needs a flagpole on their island.", "prank"],
+  ["🫐", "Marjavarkaus", "Marjapensaat", "Their bushes are picked bare, and a note says who did it.", "prank"],
+  ["🐝", "Mehiläisparvi", "Mehiläispesät", "A buzzing swarm sits over their hammock for the day.", "prank"],
+  ["🌊", "Peräaalto", "Perämoottori", "Their soutuvene sits swamped and low in the water until they bail it out.", "prank"],
+  ["📻", "Humppapommi", "Mökkiradio", "Floating notes and a short humppa jingle the next time they open their mökki.", "prank"],
+  ["🌭", "Makkaravaras", "Koira (poodle)", "Your poodle trots over and steals a makkara from their Grillikota.", "prank"],
+  ["🐟", "Kalalahja", "Soutuvene", "Row today's catch over to a friend: +2 for them.", "social"],
+  ["🛁", "Paljubileet", "Palju (theirs)", "Hop into a neighbor's palju: +2 for each of you.", "social"],
+  ["🎉", "Grillibileet", "Grillikota (theirs)", "Grab a makkara at their kota: +1 for each of you.", "social"],
+  ["📖", "Vieraskirja", "Aitta (theirs)", "Sign their guestbook with a preset line.", "social"],
+  ["🌫️", "Savusaunan löyly", "Savusauna", "Once a week, steam over every mökki on the lake.", "social"],
+  ["⚓", "Lautta kylässä", "Saunalautta", "Your sauna raft moors at a friend's island for a day.", "social"],
+];
+document.getElementById("pranks").innerHTML = PRANKS.map(([i, t, r, x, k]) => `<div class="card"><span class="kind k-${k}">${k === "prank" ? "cheeky" : "friendly"}</span><h4>${i} ${t}</h4><p style="color:var(--muted);font-size:12px">Needs: ${r}</p><p>${x}</p></div>`).join("");
+
+const ECON = [["🌭 Makkaranpaisto (with Grillikota)", 4], ["♨️ Saunavuoro", 4], ["🎣 Onki (avg, with Soutuvene)", 5.3], ["🐾 Rapsuta", 2], ["🐕 Dog trick (avg)", 3], ["🫐 Marjastus (Jun–Sep)", 3]];
+document.getElementById("econ").innerHTML = `<tr><th>Chore</th><th>cr / day</th></tr>` + ECON.map(([n, v]) => `<tr><td>${n}</td><td><span class="bar" style="width:${v * 22}px"></span>${v}</td></tr>`).join("") +
+  `<tr><td><b>Total, fully built</b></td><td><b>≈ 20–25 cr/day</b> <span style="color:var(--muted)">(daily streak prize: 5)</span></td></tr>
+   <tr><td><b>Whole tree cost</b></td><td><b>${N.reduce((a, n) => a + n.price, 0).toLocaleString("fi")} cr</b> <span style="color:var(--muted)">(today: 4 500)</span></td></tr>`;
+
+const PHASES = [
+  ["Tree foundation", "New catalog and build-order rules, with tests: grandfathering, and a build in progress blocking its next step. Server-side purchase update. The full tech-tree UI. The 3 cheap new starters: Nuotiopaikka, Onkipaikka, Riukuaita. Every other new node shows as a <b>Tulossa</b> (coming soon) silhouette.", "L"],
+  ["Daily chores", "Chores backend and the Askareet tray. The mailbox inbox. Onki, Makkaranpaisto, Marjastus and Saunavuoro. The Päiväunet streak saver. The flag picker.", "L"],
+  ["Koira 🐕", "3 breed models, walking around the island, naming, the breed picker, Rapsuta and Tryffelikoira.", "M–L"],
+  ["Neighbors 😈", "Pranks with their island overlays, the prank picker, cleanup, guard dogs (Vahtikoira and Makkaravaras), and the Rauhallinen mökki opt-out. Kalalahja, Paljubileet and Grillibileet.", "L"],
+  ["Era II–III builds", "Mehiläispesät, Aurinkopaneeli, Mökkiradio, Avanto (target: by December ❄️), Silta + the luoto, Aitta + Vieraskirja, and Perämoottori.", "L"],
+  ["Era IV wonders", "Savusauna, Saunalautta and Lasikuisti. New badges: Jääkarhu, Vahtikoira, Pihapiirin kauhu and Rakennusmestari.", "M–L"],
+];
+document.getElementById("phases").innerHTML = PHASES.map(([t, x, s], i) => `<div class="phase"><div class="n">${i + 1}</div><div><b>${t}</b><div style="color:#c9d6e2;font-size:13.5px;margin-top:3px">${x}</div></div><div class="sz">${s}</div></div>`).join("");
+
+const QS = [
+  "Should an earlier build have to be <b>finished</b>, not just bought, before you can start the next one? Proposed: yes.",
+  "Rantasauna moves to era II (10 days played). OK?",
+  "Dog breed: choose once and allow free switching in Customization (proposed)? Or fixed, with a later \"Toinen koira\" node for a second dog?",
+  "Pranks on by default, with a \"Rauhallinen mökki\" opt-out?",
+  "✅ Decided: rewards raised to ~20–25 cr/day.",
+];
+document.getElementById("questions").innerHTML = QS.map((q, i) => `<div class="q">${i + 1}. ${q}</div>`).join("");
+
+render();
+</script>
+</body>
+</html>
