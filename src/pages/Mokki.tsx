@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Footprints, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,9 +26,11 @@ import { NeighborActions } from "@/components/mokki/NeighborActions";
 import { InboxSheet } from "@/components/mokki/InboxSheet";
 import { DogSheet } from "@/components/mokki/DogSheet";
 import { DoorNoteSheet } from "@/components/mokki/DoorNoteSheet";
+import { WalkButton } from "@/components/mokki/WalkButton";
+import { walkActivities } from "@/components/mokki/walkActivities";
 import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
-import { paljuGuestNames, sceneDog, sceneFlag } from "@/components/mokki/mokkiActions";
-import { getPieceDef, REWARDS } from "@/lib/mokki";
+import { choreCheck, neighborCheck, paljuGuestNames, sceneDog, sceneFlag } from "@/components/mokki/mokkiActions";
+import { getActionDef, getPieceDef, REWARDS } from "@/lib/mokki";
 
 const MokkiScene = lazy(() => import("@/components/mokki/scene/MokkiScene"));
 
@@ -162,6 +164,30 @@ const Mokki = () => {
     else if (dog) toast(`🐕 Hau! ${dog.name} says hi`);
   };
 
+  // Walk mode: the same chores / visits / pranks as the bottom bars, done by tapping markers in the world
+  const runWalkActivity = async (id: string): Promise<string> => {
+    if (id === "loyly") {
+      const res = await sendLoyly();
+      if (!res.success) throw new Error(res.error ?? "Couldn't send löyly");
+      if (res.error) return "💨 You already sent löyly today";
+      setLoylyKey((k) => k + 1);
+      playLoyly();
+      return `💨 Löyly sent to ${data.ownerName ?? "your friend"}!`;
+    }
+    const def = getActionDef(id);
+    if (!def) throw new Error("Unknown activity");
+    const check = isOwn ? choreCheck(def, data) : neighborCheck(def, data);
+    if (check.ok === false) return `🔒 ${check.reason}`;
+    const res = await doAction(id);
+    if (!res.success || !res.outcome) throw new Error(res.error ?? "Something went wrong");
+    const { reward, label, foiled } = res.outcome;
+    if (reward > 0) refetchBadges();
+    if (foiled) return `🐕 ${dog?.name ?? "Their dog"} caught you! Busted.`;
+    if (isOwn) return reward > 0 ? `+${reward} cr · ${label}` : label;
+    return `${def.emoji} ${def.name}!${reward > 0 ? ` +${reward} cr` : ""}`;
+  };
+  const walkActs = useMemo(() => ({ activities: walkActivities(data, isOwn), onRun: runWalkActivity }), [data, isOwn]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSendLoyly = async () => {
     const res = await sendLoyly();
     if (!res.success) {
@@ -253,6 +279,7 @@ const Mokki = () => {
               firstPerson={walking}
               visit={isOwn ? undefined : { onNotepad: () => setNoteOpen(true), notes: data.myNotes.length }}
               porchGame={porchGame}
+              walkActivities={walkActs}
               onExitFirstPerson={() => setWalking(false)}
             />
           </Suspense>
@@ -288,31 +315,14 @@ const Mokki = () => {
               <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
               {isOwn ? "Back to Game" : "Back"}
             </Button>
-            <div className="flex gap-2">
-              {webgl && (
-                <Button
-                  size="sm"
-                  className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
-                  onClick={() => {
-                    setPanelOpen(false);
-                    setWalking(true);
-                    if (porchGame) toast("🎲 Today's Kymppijape is waiting on the porch table");
-                  }}
-                  aria-label="Walk around the island"
-                >
-                  <Footprints className="h-4 w-4 sm:mr-1" aria-hidden="true" />
-                  <span className="hidden sm:inline">Walk</span>
-                </Button>
-              )}
-              <Button
-                size="sm"
-                className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
-                onClick={() => setNeighborsOpen(true)}
-              >
-                <span aria-hidden="true" className="mr-1">🏘️</span>
-                Visit neighbors
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+              onClick={() => setNeighborsOpen(true)}
+            >
+              <span aria-hidden="true" className="mr-1">🏘️</span>
+              Visit neighbors
+            </Button>
           </header>
 
           {/* Floating title above the island */}
@@ -324,6 +334,19 @@ const Mokki = () => {
               </p>
             </div>
           </div>
+
+          {/* Walk mode: the main call to action, right under the title */}
+          {webgl && (
+            <div className="pointer-events-none absolute inset-x-0 top-[7.5rem] z-10 flex justify-center px-4">
+              <WalkButton
+                onClick={() => {
+                  setPanelOpen(false);
+                  setWalking(true);
+                  if (porchGame) toast("🎲 Today's Kymppijape is waiting on the porch table");
+                }}
+              />
+            </div>
+          )}
         </>
       )}
 

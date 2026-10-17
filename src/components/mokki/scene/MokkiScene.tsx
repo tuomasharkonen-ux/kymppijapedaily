@@ -31,7 +31,7 @@ import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
 import { Dog } from "./Dog";
 import { Marjavarkaus, Vessapaperi } from "./Effects";
 import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon, useWalkTouchLock, WALK_SCALE } from "./FirstPerson";
-import type { CabinVisit, DetailKit, PorchDailyGame } from "./detail/types";
+import type { CabinVisit, DetailKit, PorchDailyGame, RunWalkActivity, WalkActivity } from "./detail/types";
 
 type Vec3 = [number, number, number];
 
@@ -89,6 +89,8 @@ export interface MokkiSceneProps {
   visit?: CabinVisit;
   /** Walk mode: today's game can be played on the porch table (own island, not played yet). */
   porchGame?: PorchDailyGame;
+  /** Walk mode: chores / löyly / visits / pranks, as markers over their spots. */
+  walkActivities?: { activities: WalkActivity[]; onRun: RunWalkActivity };
   /** Dev preview only: look at a point, zoomed in (full mode). */
   debugFocus?: { target: Vec3; zoom: number };
 }
@@ -314,6 +316,7 @@ const Diorama = (props: MokkiSceneProps & { detail?: DetailKit | null }) => {
       {detail ? <detail.Cabin lightsOn={lightsOn} snow={snow} fire={showSmoke} visit={props.visit} /> : <Cabin lightsOn={lightsOn} snow={snow} />}
       {detail && <detail.Ground palette={palette} season={env.season} pieces={pieces} />}
       {detail && <detail.Wildlife frozen={palette.frozen} pieces={pieces} />}
+      {detail && props.walkActivities && <detail.Activities activities={props.walkActivities.activities} onRun={props.walkActivities.onRun} pieces={pieces} />}
       {showSmoke && <Smoke position={CABIN_CHIMNEY_TOP} />}
       {!isComplete("sauna") && <Burst position={CABIN_CHIMNEY_TOP} trigger={loylyKey} color="#ffffff" count={22} radius={1.3} rise={1.8} duration={2.6} size={0.5} />}
 
