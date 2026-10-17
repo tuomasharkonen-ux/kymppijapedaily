@@ -571,6 +571,7 @@ export type Database = {
           active_skin: string | null
           active_throw_animation: string | null
           hidden_features: string[]
+          mokki_promo_seen_at: string | null
           peaceful_mokki: boolean
           updated_at: string | null
           user_id: string
@@ -581,6 +582,7 @@ export type Database = {
           active_skin?: string | null
           active_throw_animation?: string | null
           hidden_features?: string[]
+          mokki_promo_seen_at?: string | null
           peaceful_mokki?: boolean
           updated_at?: string | null
           user_id: string
@@ -591,6 +593,7 @@ export type Database = {
           active_skin?: string | null
           active_throw_animation?: string | null
           hidden_features?: string[]
+          mokki_promo_seen_at?: string | null
           peaceful_mokki?: boolean
           updated_at?: string | null
           user_id?: string

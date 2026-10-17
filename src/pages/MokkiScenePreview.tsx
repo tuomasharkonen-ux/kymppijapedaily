@@ -6,9 +6,10 @@ import { MokkiHeroView } from "@/components/mokki/MokkiHeroView";
 import { MokkiPreview } from "@/components/mokki/MokkiPreview";
 import type { MokkiSceneProps, ScenePiece } from "@/components/mokki/scene/MokkiScene";
 import { BuildPanel } from "@/components/mokki/BuildPanel";
+import { ChoresTray } from "@/components/mokki/ChoresTray";
 import { DoorNoteSheet } from "@/components/mokki/DoorNoteSheet";
 import { WalkButton } from "@/components/mokki/WalkButton";
-import type { MokkiNote } from "@/hooks/useMokki";
+import type { MokkiData, MokkiNote } from "@/hooks/useMokki";
 
 const MokkiScene = lazy(() => import("@/components/mokki/scene/MokkiScene"));
 
@@ -30,6 +31,7 @@ const FOCUS: Record<string, [number, number, number]> = {
  * First-person walk (full view): &walk=1, as a visitor (closed door + notepad): &visit=1,
  * with today's game on the porch table (nothing is saved to the server): &daily=1,
  * sample chore markers: &acts=1
+ * Fullscreen frame (scene only, optional chores tray): &view=frame&chores=1
  */
 const MokkiScenePreview = () => {
   const [params] = useSearchParams();
@@ -117,6 +119,71 @@ const MokkiScenePreview = () => {
           }}
           initialOpen={params.get("open") === "1"}
         />
+      </div>
+    );
+  }
+
+  if (view === "frame") {
+    const owned = pieces.map((p) => ({
+      piece_id: p.id,
+      build_days: 1,
+      played_days_at_purchase: 0,
+      purchased_at: "2026-06-01T10:00:00Z",
+      variant: p.id === "koira" ? breed : p.id === "lipputanko" ? (params.get("flag") ?? "siniristi") : null,
+      nickname: p.id === "koira" ? (params.get("dogname") ?? "Pörrö") : null,
+    }));
+    const played = params.get("played") !== "0";
+    const choreData: MokkiData = {
+      ownerName: "Pelaaja",
+      ownsPlot: true,
+      gamesPlayed: 80,
+      playedToday: played,
+      pieces: owned,
+      loylyFrom: [],
+      loylySentToday: false,
+      peaceful: false,
+      effects: [],
+      guests: [],
+      inbox: [],
+      myNotes: [],
+      doorNotes: [],
+      doneToday: ["saunavuoro"],
+      doneCountToday: { saunavuoro: 1 },
+      viewer: { pieces: owned, gamesPlayed: 80, playedToday: played, peaceful: false },
+    };
+    return (
+      <div className="relative h-[100dvh] w-full overflow-hidden">
+        <Suspense fallback={null}>
+          <MokkiScene
+            {...common}
+            loylyKey={0}
+            mode="full"
+            debugFocus={debugFocus}
+            firstPerson={walking}
+            onExitFirstPerson={() => setWalking(false)}
+            walkActivities={
+              params.get("acts") === "1"
+                ? {
+                    activities: [
+                      { id: "onki", emoji: "🎣", name: "Onki", spot: "onkipaikka", state: "ready" },
+                      { id: "makkara", emoji: "🌭", name: "Makkaranpaisto", spot: "nuotiopaikka", state: "ready" },
+                      { id: "saunavuoro", emoji: "♨️", name: "Saunavuoro", spot: "sauna", state: "ready" },
+                      { id: "marjastus", emoji: "🫐", name: "Marjastus", spot: "marjapensaat", state: "done" },
+                    ],
+                    onRun: async () => "Nice.",
+                  }
+                : undefined
+            }
+          />
+        </Suspense>
+        {!walking && params.get("walkbtn") !== "0" && (
+          <div className="pointer-events-none absolute inset-x-0 top-6 z-20 flex justify-center px-4">
+            <WalkButton onClick={() => setWalking(true)} />
+          </div>
+        )}
+        {params.get("chores") === "1" && !walking && (
+          <ChoresTray data={choreData} onDo={async () => ({ success: true })} className="absolute inset-x-0 bottom-4 z-10" />
+        )}
       </div>
     );
   }

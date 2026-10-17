@@ -18,6 +18,8 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { useProfile } from "@/hooks/useProfile";
 import { UsernamePromptModal } from "@/components/UsernamePromptModal";
 import { SaunaDicePromoModal, getSaunaDicePromoShouldShow, markSaunaDicePromoShown } from "@/components/SaunaDicePromoModal";
+import { MokkiPromoModal } from "@/components/mokki/MokkiPromoModal";
+import { useMokkiPromo } from "@/hooks/useMokkiPromo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -162,6 +164,17 @@ const Index = () => {
 
   // Show username prompt for logged-in users without a profile
   const showUsernamePrompt = !!user && !profileLoading && !profile;
+
+  // Mökki promo — once per player, after they're logged in with a username
+  const { open: mokkiPromoPending, dismiss: dismissMokkiPromo } = useMokkiPromo(
+    user?.id ?? null,
+    !!user && !profileLoading && !!profile,
+  );
+
+  // Dev-only: /?mokkiPromo=1 forces the carousel so it can be screenshotted without a session
+  const [forceMokkiPromo, setForceMokkiPromo] = useState(
+    () => import.meta.env.DEV && new URLSearchParams(window.location.search).get("mokkiPromo") === "1",
+  );
 
   // Sauna Dice promo — shown once to logged-in users on/after 2026-03-30
   const [showSaunaPromo, setShowSaunaPromo] = useState(false);
@@ -475,6 +488,25 @@ ${diceEmojis}
 
         {/* Sauna Dice promotional popup */}
         <SaunaDicePromoModal open={showSaunaPromo} onClose={() => setShowSaunaPromo(false)} />
+
+        {/* Mökki promo — once per player. Waits out other modals so they don't stack. */}
+        <MokkiPromoModal
+          open={
+            (forceMokkiPromo || mokkiPromoPending) &&
+            !showUsernamePrompt &&
+            !showSaunaPromo &&
+            !bettingOpen &&
+            !showStamp &&
+            !showSettlement &&
+            !revealOpen &&
+            pendingBadges.length === 0
+          }
+          ownsPlot={hasMokki}
+          onDismiss={() => {
+            setForceMokkiPromo(false);
+            dismissMokkiPromo();
+          }}
+        />
 
         {/* Username prompt for new users */}
         <UsernamePromptModal
