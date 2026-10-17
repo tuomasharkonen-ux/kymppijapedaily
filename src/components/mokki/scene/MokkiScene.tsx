@@ -30,7 +30,7 @@ import { BIRCHES, birchScale, PINES } from "./layout";
 import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
 import { Dog } from "./Dog";
 import { Marjavarkaus, Vessapaperi } from "./Effects";
-import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon, WALK_SCALE } from "./FirstPerson";
+import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon, useWalkTouchLock, WALK_SCALE } from "./FirstPerson";
 import type { DetailKit } from "./detail/types";
 
 type Vec3 = [number, number, number];
@@ -397,6 +397,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
   const firstPerson = mode === "full" && !!props.firstPerson;
   const fpInput = useRef(createFirstPersonInput());
   const detail = useDetailKit(firstPerson);
+  useWalkTouchLock(container, firstPerson);
   const [walkReady, setWalkReady] = useState(false);
   useEffect(() => {
     if (!firstPerson) setWalkReady(false);
@@ -410,7 +411,10 @@ const MokkiScene = (props: MokkiSceneProps) => {
   const initialPosition = useMemo(() => cameraPosition(ISO_AZIMUTH, ISO_POLAR, target), [target]);
 
   return (
-    <div ref={container} className={`relative h-full w-full overflow-hidden ${className ?? ""}`}>
+    <div
+      ref={container}
+      className={`relative h-full w-full overflow-hidden ${firstPerson ? "touch-none select-none [-webkit-touch-callout:none]" : ""} ${className ?? ""}`}
+    >
       {sky && <SkyBackdrop env={env} />}
       <Canvas
         orthographic

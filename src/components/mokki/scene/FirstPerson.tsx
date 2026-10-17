@@ -387,6 +387,36 @@ export const Horizon = ({ env, palette }: { env: MokkiEnvironment; palette: Seas
 };
 
 // ---------------------------------------------------------------------------
+// Touch: dragging to look must never scroll, bounce or zoom the page
+// ---------------------------------------------------------------------------
+
+/**
+ * While walking: cancels touch scrolling on the scene (iOS Safari ignores touch-action in places),
+ * locks page scroll + pull-to-refresh, and blocks iOS pinch-zoom. Taps still click (touchstart is untouched).
+ */
+export function useWalkTouchLock(ref: React.RefObject<HTMLElement>, enabled: boolean) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!enabled || !el) return;
+    const stop = (e: Event) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove", stop, { passive: false });
+    document.addEventListener("gesturestart", stop, { passive: false });
+    const html = document.documentElement.style;
+    const body = document.body.style;
+    const saved = [html.overflow, html.overscrollBehavior, body.overflow, body.overscrollBehavior];
+    html.overflow = body.overflow = "hidden";
+    html.overscrollBehavior = body.overscrollBehavior = "none";
+    return () => {
+      el.removeEventListener("touchmove", stop);
+      document.removeEventListener("gesturestart", stop);
+      [html.overflow, html.overscrollBehavior, body.overflow, body.overscrollBehavior] = saved;
+    };
+  }, [ref, enabled]);
+}
+
+// ---------------------------------------------------------------------------
 // On-screen controls
 // ---------------------------------------------------------------------------
 
