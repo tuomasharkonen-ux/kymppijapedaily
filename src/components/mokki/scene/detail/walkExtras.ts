@@ -2,7 +2,7 @@ import { CABIN } from "../Cabin";
 import { PIECE_LAYOUT } from "../Pieces";
 import { box, circle, seg, type Collider, type WalkExtras } from "../walk";
 import { CABIN_DOOR, CABIN_FLOOR } from "./DetailedCabin";
-import { SAUNA_DIMS, SAUNA_DOOR } from "./DetailedSauna";
+import { SAUNA_DIMS, SAUNA_DOOR, SAUNA_OUTSIDE } from "./DetailedSauna";
 
 // Walls, doorways and furniture of the detailed models, in world x/z.
 const [CX, CY, CZ] = CABIN.position;
@@ -47,12 +47,12 @@ const SAUNA_COLLIDERS: Collider[] = [
   sSeg(-SW / 2, -SD / 2 - 0.05, -SW / 2, SD / 2 + 0.05, SR + 0.01),
   sSeg(SW / 2, -SD / 2 - 0.05, SW / 2, SAUNA_DOOR.z0 - 0.02, SR),
   sSeg(SW / 2, SAUNA_DOOR.z1 + 0.02, SW / 2, SD / 2 + 0.05, SR),
-  // Door leaf (open towards the lake), lauteet, kiuas, outside bench and barrel
-  sSeg(SW / 2 + SR + 0.02, SAUNA_DOOR.z1 + 0.05, SW / 2 + SR + 0.52, SAUNA_DOOR.z1 + 0.05, 0.03),
+  // Door leaf (open flat against the wall), lauteet, kiuas, outside bench and barrel
+  sSeg(SW / 2 + SR + 0.035, SAUNA_DOOR.z1 + 0.05, SW / 2 + SR + 0.035, SAUNA_DOOR.z1 + 0.55, 0.03),
   box(SX - 0.35, SZ + 0.19, 0.62, 0.84),
   box(SX - 0.45, SZ - 0.45, 0.4, 0.4),
-  sSeg(SW / 2 + 0.3, -0.68, SW / 2 + 0.3, -0.02, 0.06),
-  circle(SX + SW / 2 + 0.25, SZ - SD / 2 - 0.05, 0.13),
+  sSeg(SAUNA_OUTSIDE.benchX, -0.68, SAUNA_OUTSIDE.benchX, -0.02, 0.06),
+  circle(SX + SAUNA_OUTSIDE.barrel[0], SZ + SAUNA_OUTSIDE.barrel[1], 0.13),
 ];
 
 export const WALK_EXTRAS: WalkExtras = {

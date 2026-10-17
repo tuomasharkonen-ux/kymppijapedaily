@@ -14,6 +14,8 @@ type Vec3 = [number, number, number];
 // Same log sauna as the overview model, with a doorway on the lake side and a proper löylyhuone inside.
 export const SAUNA_DIMS = { w: 1.45, d: 1.35, h: 1.05, base: 0.12, log: 0.075 };
 const { w: SW, d: SD, h: SH, base: B, log: R } = SAUNA_DIMS;
+/** Outside props, kept off the narrow lakeside strip so you can walk round to the door (sauna-local). */
+export const SAUNA_OUTSIDE = { benchX: SAUNA_DIMS.w / 2 + 0.17, barrel: [0.35, -SAUNA_DIMS.d / 2 - SAUNA_DIMS.log - 0.17] as [number, number] };
 /** Doorway in the east wall, along z (sauna-local). */
 export const SAUNA_DOOR = { z0: -0.08, z1: 0.48 };
 const DOOR_TOP = B + 0.975;
@@ -44,15 +46,15 @@ function buildSauna(kit: Kit, snow: boolean) {
       kit.cyl(R, R, lz, 7, [SW / 2, y + R, 0], col, [Math.PI / 2, 0, 0]);
     }
   }
-  // Door frame and the door, swung open towards the lake
+  // Door frame and the door, swung all the way open flat against the wall (keeps the lakeside path clear)
   const ox = SW / 2 + R + 0.01;
   kit.span([SW / 2 - R, B, SAUNA_DOOR.z0 - 0.04], [ox, DOOR_TOP, SAUNA_DOOR.z0], C.logEnd);
   kit.span([SW / 2 - R, B, SAUNA_DOOR.z1], [ox, DOOR_TOP, SAUNA_DOOR.z1 + 0.04], C.logEnd);
   kit.span([SW / 2 - R, DOOR_TOP - 0.04, SAUNA_DOOR.z0 - 0.04], [ox, DOOR_TOP, SAUNA_DOOR.z1 + 0.04], C.logEnd);
-  kit.at([ox + 0.26, B, SAUNA_DOOR.z1 + 0.04], undefined, () => {
-    kit.box([0.5, 0.86, 0.04], [0, 0.45, 0], "#6e4826");
-    for (const y of [0.2, 0.7]) kit.box([0.46, 0.06, 0.05], [0, y, 0], "#5a3a1e");
-    kit.box([0.05, 0.04, 0.06], [-0.2, 0.47, 0.03], C.metal);
+  kit.at([ox + 0.025, B, SAUNA_DOOR.z1 + 0.3], undefined, () => {
+    kit.box([0.04, 0.86, 0.5], [0, 0.45, 0], "#6e4826");
+    for (const y of [0.2, 0.7]) kit.box([0.05, 0.06, 0.46], [0, y, 0], "#5a3a1e");
+    kit.box([0.06, 0.04, 0.05], [0.03, 0.47, 0.2], C.metal);
   });
 
   // Gable roof (ridge along z), with a board ceiling under it
@@ -122,15 +124,17 @@ function buildSauna(kit: Kit, snow: boolean) {
   // Wall lamp with a wooden shade by the door
   kit.span([SW / 2 - R - 0.045, B + 0.74, -0.42], [SW / 2 - R - 0.015, B + 0.86, -0.26], BENCH_DARK);
 
-  // Outside: the bench with a towel, a water barrel
-  kit.box([0.12, 0.05, 0.7], [SW / 2 + 0.3, B + 0.3, -0.35], C.logEnd);
-  kit.box([0.05, 0.28, 0.05], [SW / 2 + 0.3, B + 0.15, -0.65], C.logDark);
-  kit.box([0.05, 0.28, 0.05], [SW / 2 + 0.3, B + 0.15, -0.05], C.logDark);
-  kit.box([0.13, 0.015, 0.26], [SW / 2 + 0.3, B + 0.335, -0.45], "#5b8fd1");
-  kit.cyl(0.13, 0.12, 0.3, 10, [SW / 2 + 0.25, 0.15, -SD / 2 - 0.05], C.logDark);
-  kit.cyl(0.132, 0.132, 0.02, 10, [SW / 2 + 0.25, 0.09, -SD / 2 - 0.05], C.metal);
-  kit.cyl(0.132, 0.132, 0.02, 10, [SW / 2 + 0.25, 0.24, -SD / 2 - 0.05], C.metal);
-  if (snow) kit.box([0.12, 0.03, 0.66], [SW / 2 + 0.3, B + 0.34, -0.35], C.snow);
+  // Outside: the bench with a towel against the wall, a water barrel round the back
+  const bx = SAUNA_OUTSIDE.benchX;
+  const [barrelX, barrelZ] = SAUNA_OUTSIDE.barrel;
+  kit.box([0.12, 0.05, 0.7], [bx, B + 0.3, -0.35], C.logEnd);
+  kit.box([0.05, 0.28, 0.05], [bx, B + 0.15, -0.65], C.logDark);
+  kit.box([0.05, 0.28, 0.05], [bx, B + 0.15, -0.05], C.logDark);
+  kit.box([0.13, 0.015, 0.26], [bx, B + 0.335, -0.45], "#5b8fd1");
+  kit.cyl(0.13, 0.12, 0.3, 10, [barrelX, 0.15, barrelZ], C.logDark);
+  kit.cyl(0.132, 0.132, 0.02, 10, [barrelX, 0.09, barrelZ], C.metal);
+  kit.cyl(0.132, 0.132, 0.02, 10, [barrelX, 0.24, barrelZ], C.metal);
+  if (snow) kit.box([0.12, 0.03, 0.66], [bx, B + 0.34, -0.35], C.snow);
 }
 
 const KiuasFire = ({ on, lightsOn, flare }: { on: boolean; lightsOn: boolean; flare: number }) => {

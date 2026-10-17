@@ -20,9 +20,9 @@ const WALK_SPEED = 1.5;
 const RUN_SPEED = 2.9;
 const TURN_SPEED = 1.9;
 const MAX_PITCH = 1.25;
-/** Walkable grass on the island (the shore is a little further out, but rocky). */
-const ISLAND_WALK_RADIUS = 4.55;
-const ISLAND_EDGE_RADIUS = 4.9;
+/** How far out you can walk: the grass and the rocky rim (the rock edge is at ~5.1 and beyond). */
+const ISLAND_WALK_RADIUS = 4.95;
+const ISLAND_EDGE_RADIUS = 5.0;
 /** On winter ice you can wander out on the lake, up to the far shore. */
 const ICE_WALK_RADIUS = 7.0;
 const DOCK = { x0: 4.0, x1: 7.3, z: PIECE_LAYOUT.laituri.center[2], halfWidth: 0.4, top: 0.525 };
