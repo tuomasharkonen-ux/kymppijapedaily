@@ -11,10 +11,11 @@ import { PIECE_LAYOUT } from "./Pieces";
 import { PORCH_POSITIONS } from "./Porch";
 import { BIRCHES, FENCE_POSTS, PINES } from "./layout";
 import { rand } from "./primitives";
+import { box, circle, seg, type Collider, type WalkExtras } from "./walk";
 
 // Walking around the island at eye level. Scene units: the cabin walls are 1.15 tall.
 const EYE_HEIGHT = 0.68;
-const BODY_RADIUS = 0.16;
+const BODY_RADIUS = 0.13;
 const WALK_SPEED = 1.5;
 const RUN_SPEED = 2.9;
 const TURN_SPEED = 1.9;
@@ -26,6 +27,22 @@ const ISLAND_EDGE_RADIUS = 4.9;
 const ICE_WALK_RADIUS = 7.0;
 const DOCK = { x0: 4.0, x1: 7.3, z: PIECE_LAYOUT.laituri.center[2], halfWidth: 0.4, top: 0.525 };
 
+/**
+ * Overview props are drawn big so they read from far away; next to a person they'd be giants.
+ * Walk mode shrinks them to real-world size (1 scene unit ≈ 2.3 m at this eye height).
+ */
+export const WALK_SCALE = {
+  /** ~1.2 m post (overview draws it at 1.3×). */
+  mailbox: 0.42,
+  /** ~30 cm bucket (the model itself is drawn at 1.6×). */
+  kiulu: 0.3,
+  /** ~1.8 m board. */
+  noticeBoard: 0.6,
+  /** ~1.7 m wide, ~1.1 m tall tub. */
+  palju: 0.75,
+  koppi: 0.85,
+};
+
 /** Front lawn, looking at the cabin. */
 const START = { x: 1.8, z: 4.1, yaw: Math.atan2(1.3, 5.3) };
 
@@ -36,18 +53,6 @@ export interface FirstPersonInput {
 
 export const createFirstPersonInput = (): FirstPersonInput => ({ joy: { x: 0, y: 0 } });
 
-// ---------------------------------------------------------------------------
-// Collision: capsules (segments with a radius; circles when a == b) and boxes on the ground plane
-// ---------------------------------------------------------------------------
-
-type Collider =
-  | { kind: "seg"; ax: number; az: number; bx: number; bz: number; r: number }
-  | { kind: "box"; cx: number; cz: number; hx: number; hz: number };
-
-const circle = (x: number, z: number, r: number): Collider => ({ kind: "seg", ax: x, az: z, bx: x, bz: z, r });
-const seg = (ax: number, az: number, bx: number, bz: number, r: number): Collider => ({ kind: "seg", ax, az, bx, bz, r });
-const box = (cx: number, cz: number, w: number, d: number): Collider => ({ kind: "box", cx, cz, hx: w / 2, hz: d / 2 });
-
 const [CABIN_X, , CABIN_Z] = CABIN.position;
 const PORCH = {
   x0: CABIN_X - CABIN.width / 2 - 0.05,
@@ -56,16 +61,17 @@ const PORCH = {
   z1: CABIN_Z + CABIN.depth / 2 + CABIN.porchDepth,
 };
 
-/** The cabin, its porch railings and porch furniture, trees and the yard props that are always there. */
+const CABIN_BLOCK = box(CABIN_X, CABIN_Z, CABIN.width + 0.1, CABIN.depth);
+
+/** The porch railings and porch furniture, trees and the yard props that are always there. */
 const STATIC_COLLIDERS: Collider[] = [
-  box(CABIN_X, CABIN_Z, CABIN.width + 0.1, CABIN.depth),
   // Front railing (left of the steps) and the side railings
   seg(PORCH.x0 + 0.02, PORCH.z1 - 0.03, CABIN_X - 0.27, PORCH.z1 - 0.03, 0.04),
   seg(PORCH.x0 + 0.03, PORCH.z0, PORCH.x0 + 0.03, PORCH.z1, 0.04),
   seg(PORCH.x1 - 0.03, PORCH.z0, PORCH.x1 - 0.03, PORCH.z1, 0.04),
   circle(PORCH_POSITIONS.table[0], PORCH_POSITIONS.table[2], 0.22),
-  circle(PORCH_POSITIONS.noticeBoard[0], PORCH_POSITIONS.noticeBoard[2], 0.3),
-  circle(PORCH_POSITIONS.mailbox[0], PORCH_POSITIONS.mailbox[2], 0.14),
+  circle(PORCH_POSITIONS.noticeBoard[0], PORCH_POSITIONS.noticeBoard[2], 0.3 * WALK_SCALE.noticeBoard),
+  circle(PORCH_POSITIONS.mailbox[0], PORCH_POSITIONS.mailbox[2], 0.07),
   ...BIRCHES.map(([x, , z]) => circle(x, z, 0.12)),
   ...PINES.map(([x, , z]) => circle(x, z, 0.16)),
 ];
@@ -81,11 +87,13 @@ function pieceColliders(id: MokkiPieceId): Collider[] {
     case "lipputanko":
       return [circle(x, z, 0.1)];
     case "palju":
-      return [circle(x, z, 0.62)];
+      return [circle(x, z, 0.62 * WALK_SCALE.palju)];
     case "onkipaikka":
       return [circle(x, z, 0.3)];
     case "nuotiopaikka":
       return [circle(x, z, 0.45)];
+    case "koira":
+      return [circle(x, z, 0.3 * WALK_SCALE.koppi)];
     case "riukuaita":
       return FENCE_POSTS.slice(1).map(([bx, , bz], i) => seg(FENCE_POSTS[i][0], FENCE_POSTS[i][2], bx, bz, 0.06));
     default:
@@ -132,10 +140,14 @@ const onSteps = (x: number, z: number) => x > CABIN_X - 0.27 && x < PORCH.x1 && 
 interface Walkway {
   colliders: Collider[];
   hasDock: boolean;
+  hasSauna: boolean;
   frozen: boolean;
+  extras?: WalkExtras | null;
 }
 
 function groundHeight(w: Walkway, x: number, z: number) {
+  const inside = w.extras?.floor(x, z, w.hasSauna);
+  if (inside != null) return inside;
   if (w.hasDock && onDock(x, z)) return DOCK.top;
   if (onPorch(x, z)) return PORCH_TOP_Y;
   if (onSteps(x, z)) return (PORCH_TOP_Y + GROUND_Y) / 2;
@@ -172,27 +184,40 @@ export const FirstPersonRig = ({
   pieces,
   frozen,
   input,
+  extras,
   onExit,
 }: {
   pieces: { id: MokkiPieceId; status: string }[];
   frozen: boolean;
   input: React.MutableRefObject<FirstPersonInput>;
+  /** Detailed models: open doorways and furnished interiors. */
+  extras?: WalkExtras | null;
   onExit?: () => void;
 }) => {
   const camera = useRef<THREE.PerspectiveCamera>(null);
-  const { gl, size } = useThree();
+  const { gl, size, scene } = useThree();
 
   const walkway = useMemo<Walkway>(() => {
-    const colliders = [...STATIC_COLLIDERS, ...pieces.flatMap((p) => pieceColliders(p.id))];
+    const hasSauna = pieces.some((p) => p.id === "sauna" && p.status === "complete");
+    const colliders = [
+      ...STATIC_COLLIDERS,
+      ...(extras ? extras.cabin : [CABIN_BLOCK]),
+      ...pieces.flatMap((p) => (p.id === "sauna" && hasSauna && extras ? extras.sauna : pieceColliders(p.id))),
+    ];
     if (frozen) colliders.push(...SHORE_ROCKS.map((r) => circle(r.pos[0], r.pos[2], r.s * 1.1)), circle(-1.7, 6.5, 0.95));
-    return { colliders, hasDock: pieces.some((p) => p.id === "laituri" && p.status === "complete"), frozen };
-  }, [pieces, frozen]);
+    return { colliders, hasDock: pieces.some((p) => p.id === "laituri" && p.status === "complete"), hasSauna, frozen, extras };
+  }, [pieces, frozen, extras]);
 
   const state = useRef<{ x: number; z: number; y: number; yaw: number; pitch: number; vx: number; vz: number; bob: number } | null>(null);
   if (!state.current) {
     state.current = { x: START.x, z: START.z, y: GROUND_Y + EYE_HEIGHT, yaw: START.yaw, pitch: -0.04, vx: 0, vz: 0, bob: 0 };
   }
   const keys = useRef(new Set<string>());
+  // Dev only: lets the preview page (and tests) read or place the walker
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    Object.assign(window, { __mokkiWalker: state.current, __mokkiScene: scene });
+  }, [scene]);
 
   // A piece can land on top of you: step out of it
   useEffect(() => {

@@ -268,13 +268,13 @@ export const Riukuaita = ({ snow }: { snow: boolean }) => {
 // Koirankoppi: red doghouse with white trim
 // ---------------------------------------------------------------------------
 
-export const Koirankoppi = ({ snow }: { snow: boolean }) => {
+export const Koirankoppi = ({ snow, scale = 1 }: { snow: boolean; scale?: number }) => {
   const w = 0.42;
   const d = 0.5;
   const h = 0.3;
   return (
     // Door faces the camera side of the island
-    <group position={KOPPI_POSITION} rotation={[0, Math.PI / 4, 0]}>
+    <group position={KOPPI_POSITION} rotation={[0, Math.PI / 4, 0]} scale={scale}>
       <Block size={[w + 0.06, 0.04, d + 0.06]} position={[0, 0.02, 0]} color={C.plankDark} />
       <Block size={[w, h, d]} position={[0, 0.04 + h / 2, 0]} color={C.punamulta} />
       {[

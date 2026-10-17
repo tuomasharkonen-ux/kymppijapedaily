@@ -334,10 +334,23 @@ const PaljuGuests = ({ guests, showLabels }: { guests: string[]; showLabels: boo
   );
 };
 
-export const Palju = ({ frozen, snow, guests = [], showLabels = false }: { frozen: boolean; snow: boolean; guests?: string[]; showLabels?: boolean }) => {
+export const Palju = ({
+  frozen,
+  snow,
+  guests = [],
+  showLabels = false,
+  scale = 1,
+}: {
+  frozen: boolean;
+  snow: boolean;
+  guests?: string[];
+  showLabels?: boolean;
+  /** Walk mode shrinks the tub to a realistic size next to a person. */
+  scale?: number;
+}) => {
   const [cx, , cz] = PIECE_LAYOUT.palju.center;
   return (
-    <group position={[cx, G, cz]}>
+    <group position={[cx, G, cz]} scale={scale}>
       {guests.length > 0 && <PaljuGuests guests={guests} showLabels={showLabels} />}
       {/* Wooden deck */}
       <Block size={[1.2, 0.08, 1.2]} position={[0, 0.04, 0]} color={C.plankDark} />

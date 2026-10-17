@@ -30,7 +30,8 @@ import { BIRCHES, birchScale, PINES } from "./layout";
 import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
 import { Dog } from "./Dog";
 import { Marjavarkaus, Vessapaperi } from "./Effects";
-import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon } from "./FirstPerson";
+import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon, WALK_SCALE } from "./FirstPerson";
+import type { DetailKit } from "./detail/types";
 
 type Vec3 = [number, number, number];
 
@@ -168,9 +169,74 @@ const ShadowSetup = ({ deps }: { deps: unknown[] }) => {
   return null;
 };
 
-const Diorama = (props: MokkiSceneProps) => {
+// Walk mode's high-detail models live in their own chunk: fetched the first time someone starts walking
+let detailKitPromise: Promise<DetailKit> | null = null;
+const loadDetailKit = () => (detailKitPromise ??= import("./detail").then((m) => m.default));
+
+function useDetailKit(enabled: boolean) {
+  const [kit, setKit] = useState<DetailKit | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    if (!enabled || kit) return;
+    let live = true;
+    loadDetailKit().then(
+      (k) => live && setKit(k),
+      () => {
+        detailKitPromise = null;
+        if (live) setFailed(true);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [enabled, kit]);
+  return { kit: enabled ? kit : null, failed: enabled && failed };
+}
+
+/** Compiles every shader in the scene (in parallel where supported), then waits a couple of frames. */
+const CompileGate = ({ onReady }: { onReady: () => void }) => {
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    let live = true;
+    const done = () => {
+      let frames = 0;
+      const tick = () => {
+        if (!live) return;
+        if (++frames < 3) requestAnimationFrame(tick);
+        else onReady();
+      };
+      requestAnimationFrame(tick);
+    };
+    const compile = gl.compileAsync ? gl.compileAsync(scene, camera) : Promise.resolve(gl.compile(scene, camera));
+    compile.then(done, done);
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+};
+
+const WalkLoading = ({ env, ready, failed }: { env: MokkiEnvironment; ready: boolean; failed: boolean }) => (
+  <div
+    className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 text-white transition-opacity duration-500 ${ready ? "pointer-events-none opacity-0" : "opacity-100"}`}
+    style={{ background: `linear-gradient(to bottom, ${env.skyTop}, ${env.skyBottom})` }}
+    role="status"
+    aria-hidden={ready}
+  >
+    <style>{`@keyframes mokki-walk { 0%, 100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-6px) rotate(4deg) } }`}</style>
+    <div className="text-5xl drop-shadow" style={{ animation: "mokki-walk 0.7s ease-in-out infinite" }} aria-hidden="true">
+      🚶
+    </div>
+    <p className="rounded-full bg-black/40 px-4 py-1.5 text-sm font-semibold backdrop-blur-sm">
+      {failed ? "Couldn't load the detailed mökki, walking anyway…" : "Walking over to the mökki…"}
+    </p>
+  </div>
+);
+
+const Diorama = (props: MokkiSceneProps & { detail?: DetailKit | null }) => {
   const { env, pieces, showSmoke, loylyKey = 0, mushrooms, skin, mode, porch, onPieceLanded } = props;
-  const { dog, flag, effects = [], paljuGuests = [], onDogClick, onEffectClick, firstPerson } = props;
+  const { dog, flag, effects = [], paljuGuests = [], onDogClick, onEffectClick, firstPerson, detail } = props;
   const full = mode === "full";
   const effectOf = (actionId: string) => effects.find((e) => e.actionId === actionId);
   const cleanUp = (actionId: string) => {
@@ -241,7 +307,8 @@ const Diorama = (props: MokkiSceneProps) => {
       ))}
       {mushrooms && env.season === "autumn" && <Mushrooms />}
 
-      <Cabin lightsOn={lightsOn} snow={snow} />
+      {detail ? <detail.Cabin lightsOn={lightsOn} snow={snow} fire={showSmoke} /> : <Cabin lightsOn={lightsOn} snow={snow} />}
+      {detail && <detail.Ground palette={palette} season={env.season} pieces={pieces} />}
       {showSmoke && <Smoke position={CABIN_CHIMNEY_TOP} />}
       {!isComplete("sauna") && <Burst position={CABIN_CHIMNEY_TOP} trigger={loylyKey} color="#ffffff" count={22} radius={1.3} rise={1.8} duration={2.6} size={0.5} />}
 
@@ -250,24 +317,31 @@ const Diorama = (props: MokkiSceneProps) => {
         <PorchTable skin={skin} />
       </group>
       <Interactive position={PORCH_POSITIONS.mailbox} onClick={porch?.onMailboxClick} label="mailbox" hint={mode === "hero" && !!porch?.hasMail} ringRadius={0.4}>
-        <group scale={1.3}>
+        <group scale={firstPerson ? WALK_SCALE.mailbox : 1.3}>
           <Mailbox hasMail={!!porch?.hasMail} snow={snow} />
         </group>
       </Interactive>
       {porch && porch.potTotal !== null && (
-        <group position={PORCH_POSITIONS.kiulu}>
+        <group position={PORCH_POSITIONS.kiulu} scale={firstPerson ? WALK_SCALE.kiulu : 1}>
           <Kiulu potTotal={porch.potTotal} />
         </group>
       )}
-      <group position={PORCH_POSITIONS.noticeBoard}>
+      <group position={PORCH_POSITIONS.noticeBoard} scale={firstPerson ? WALK_SCALE.noticeBoard : 1}>
         <NoticeBoard snow={snow} />
       </group>
 
       {/* Buildable pieces */}
-      {slot("sauna", <Sauna lightsOn={lightsOn} snow={snow} smoke={showSmoke} loylyKey={loylyKey} />)}
+      {slot(
+        "sauna",
+        detail ? (
+          <detail.Sauna lightsOn={lightsOn} snow={snow} smoke={showSmoke} loylyKey={loylyKey} />
+        ) : (
+          <Sauna lightsOn={lightsOn} snow={snow} smoke={showSmoke} loylyKey={loylyKey} />
+        ),
+      )}
       {slot("laituri", <Laituri snow={snow} />)}
       {slot("soutuvene", <Soutuvene frozen={palette.frozen} />)}
-      {slot("palju", <Palju frozen={palette.frozen} snow={snow} guests={paljuGuests} showLabels={full} />)}
+      {slot("palju", <Palju frozen={palette.frozen} snow={snow} guests={paljuGuests} showLabels={full} scale={firstPerson ? WALK_SCALE.palju : 1} />)}
       {slot("huussi", <Huussi snow={snow} />)}
       {slot("puuvaja", <Puuvaja snow={snow} />)}
       {slot("grillikota", <Grillikota snow={snow} smoke={showSmoke} lightsOn={lightsOn} />)}
@@ -277,7 +351,7 @@ const Diorama = (props: MokkiSceneProps) => {
       {slot("nuotiopaikka", <Nuotiopaikka fire={showSmoke} snow={snow} lightsOn={lightsOn} />)}
       {slot("onkipaikka", <Onkipaikka frozen={palette.frozen} snow={snow} />)}
       {slot("riukuaita", <Riukuaita snow={snow} />)}
-      {slot("koira", <Koirankoppi snow={snow} />)}
+      {slot("koira", <Koirankoppi snow={snow} scale={firstPerson ? WALK_SCALE.koppi : 1} />)}
 
       {/* The dog moves in once the doghouse is finished */}
       {isComplete("koira") && !byId.get("koira")?.justCompleted && dog && <Dog breed={dog.breed} name={dog.name} night={env.timeOfDay === "night"} showLabels={full} onClick={onDogClick} />}
@@ -289,7 +363,7 @@ const Diorama = (props: MokkiSceneProps) => {
       {snow && <Snowfall />}
 
       <ShadowSetup
-        deps={[pieces, env.season, env.juhannus, porch?.potTotal, porch?.hasMail, mushrooms, dog?.breed, flag, effects.map((e) => e.actionId).join(), paljuGuests.join()]}
+        deps={[pieces, !!detail, env.season, env.juhannus, porch?.potTotal, porch?.hasMail, mushrooms, dog?.breed, flag, effects.map((e) => e.actionId).join(), paljuGuests.join()]}
       />
     </>
   );
@@ -322,6 +396,12 @@ const MokkiScene = (props: MokkiSceneProps) => {
   const { debugFocus, onExitFirstPerson } = props;
   const firstPerson = mode === "full" && !!props.firstPerson;
   const fpInput = useRef(createFirstPersonInput());
+  const detail = useDetailKit(firstPerson);
+  const [walkReady, setWalkReady] = useState(false);
+  useEffect(() => {
+    if (!firstPerson) setWalkReady(false);
+    else if (detail.failed) setWalkReady(true);
+  }, [firstPerson, detail.failed]);
   const target = useMemo(
     () => (debugFocus ? new THREE.Vector3(...debugFocus.target) : mode === "full" ? TARGET_FULL : TARGET),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -344,7 +424,13 @@ const MokkiScene = (props: MokkiSceneProps) => {
         style={{ position: "absolute", inset: 0, touchAction: mode === "full" ? "none" : "pan-y" }}
       >
         {firstPerson ? (
-          <FirstPersonRig pieces={props.pieces} frozen={SEASON_PALETTES[env.season].frozen} input={fpInput} onExit={onExitFirstPerson} />
+          <FirstPersonRig
+            pieces={props.pieces}
+            frozen={SEASON_PALETTES[env.season].frozen}
+            input={fpInput}
+            extras={detail.kit?.walk}
+            onExit={onExitFirstPerson}
+          />
         ) : (
           <CameraRig mode={mode} framing={framing} onFit={setFitZoom} zoomFactor={debugFocus?.zoom} />
         )}
@@ -355,7 +441,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
             onBackgroundClick?.();
           }}
         >
-          <Diorama {...props} firstPerson={firstPerson} />
+          <Diorama {...props} firstPerson={firstPerson} detail={detail.kit} />
         </group>
         {mode === "full" && !firstPerson && (
           <OrbitControls
@@ -372,8 +458,10 @@ const MokkiScene = (props: MokkiSceneProps) => {
             rotateSpeed={0.6}
           />
         )}
+        {firstPerson && detail.kit && !walkReady && <CompileGate onReady={() => setWalkReady(true)} />}
       </Canvas>
-      {firstPerson && <FirstPersonOverlay input={fpInput} />}
+      {firstPerson && <WalkLoading env={env} ready={walkReady} failed={detail.failed} />}
+      {firstPerson && walkReady && <FirstPersonOverlay input={fpInput} />}
     </div>
   );
 };
