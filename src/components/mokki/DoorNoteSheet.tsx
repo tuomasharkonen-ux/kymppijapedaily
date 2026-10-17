@@ -3,10 +3,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { MAX_NOTES_PER_DOOR, type MokkiActionResult, type MokkiNote } from "@/hooks/useMokki";
+import { MAX_NOTES_PER_DOOR, type MokkiActionResult, type MokkiDoorNote, type MokkiNote } from "@/hooks/useMokki";
 
 const MAX_LENGTH = 140;
-const QUICK_HELLOS = ["Moi! 👋", "Kävin kylässä 🛶", "Hyvää saunailtaa ♨️", "Onnea huomiseen heittoon 🎲", "Kahvit ois valmiina ☕", "Mahtava mökki! 🏡"];
 const NOTE_COLORS = ["bg-amber-100", "bg-rose-100", "bg-emerald-100"];
 
 interface DoorNoteSheetProps {
@@ -14,20 +13,22 @@ interface DoorNoteSheetProps {
   onOpenChange: (open: boolean) => void;
   ownerName: string | null;
   myNotes: MokkiNote[];
+  /** Notes other visitors pinned here that the owner hasn't read yet. */
+  doorNotes: MokkiDoorNote[];
   onLeave: (body: string) => Promise<MokkiActionResult>;
 }
 
 /** The notepad on a neighbor's door: pin a short hello they'll find in their mailbox. */
-export const DoorNoteSheet = ({ open, onOpenChange, ownerName, myNotes, onLeave }: DoorNoteSheetProps) => {
+export const DoorNoteSheet = ({ open, onOpenChange, ownerName, myNotes, doorNotes, onLeave }: DoorNoteSheetProps) => {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const full = myNotes.length >= MAX_NOTES_PER_DOOR;
   const body = text.trim();
 
-  const send = async (note: string) => {
-    if (!note || sending || full) return;
+  const send = async () => {
+    if (!body || sending || full) return;
     setSending(true);
-    const res = await onLeave(note);
+    const res = await onLeave(body);
     setSending(false);
     if (!res.success) {
       toast.error(res.error ?? "Couldn't pin the note");
@@ -47,14 +48,31 @@ export const DoorNoteSheet = ({ open, onOpenChange, ownerName, myNotes, onLeave 
           </SheetDescription>
         </SheetHeader>
 
+        {doorNotes.length > 0 && (
+          <section className="mt-4">
+            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Already on the door</h3>
+            <ul className="mt-2 flex flex-wrap gap-2" aria-label="Notes other players left">
+              {doorNotes.map((n, i) => (
+                <li key={n.id} className={`max-w-full rounded-md px-3 py-2 text-sm text-slate-800 shadow-sm ${NOTE_COLORS[(i + 1) % NOTE_COLORS.length]}`} style={{ transform: `rotate(${i % 2 ? -1.5 : 1.5}deg)` }}>
+                  {n.body}
+                  <span className="mt-0.5 block text-right text-xs text-slate-500">– {n.fromName}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {myNotes.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Notes you left today">
-            {myNotes.map((n, i) => (
-              <li key={n.id} className={`max-w-full rounded-md px-3 py-2 text-sm text-slate-800 shadow-sm ${NOTE_COLORS[i % NOTE_COLORS.length]}`} style={{ transform: `rotate(${i % 2 ? 1.5 : -1.5}deg)` }}>
-                {n.body}
-              </li>
-            ))}
-          </ul>
+          <section className="mt-4">
+            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Yours today</h3>
+            <ul className="mt-2 flex flex-wrap gap-2" aria-label="Notes you left today">
+              {myNotes.map((n, i) => (
+                <li key={n.id} className={`max-w-full rounded-md px-3 py-2 text-sm text-slate-800 shadow-sm ${NOTE_COLORS[i % NOTE_COLORS.length]}`} style={{ transform: `rotate(${i % 2 ? 1.5 : -1.5}deg)` }}>
+                  {n.body}
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {full ? (
@@ -64,16 +82,9 @@ export const DoorNoteSheet = ({ open, onOpenChange, ownerName, myNotes, onLeave 
             className="mt-4 space-y-3"
             onSubmit={(e) => {
               e.preventDefault();
-              void send(body);
+              void send();
             }}
           >
-            <div className="flex flex-wrap gap-2">
-              {QUICK_HELLOS.map((h) => (
-                <Button key={h} type="button" size="sm" variant="secondary" className="rounded-full" disabled={sending} onClick={() => void send(h)}>
-                  {h}
-                </Button>
-              ))}
-            </div>
             <div>
               <label htmlFor="door-note" className="sr-only">
                 Your note
@@ -83,7 +94,7 @@ export const DoorNoteSheet = ({ open, onOpenChange, ownerName, myNotes, onLeave 
                 value={text}
                 maxLength={MAX_LENGTH}
                 rows={3}
-                placeholder="Write your own…"
+                placeholder="Write a note…"
                 onChange={(e) => setText(e.target.value)}
                 className="resize-none"
               />

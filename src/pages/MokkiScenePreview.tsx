@@ -35,7 +35,7 @@ const MokkiScenePreview = () => {
   const [params] = useSearchParams();
   const [log, setLog] = useState<string[]>([]);
   const [walking, setWalking] = useState(() => params.get("walk") === "1");
-  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(params.get("note") === "1");
   const [notes, setNotes] = useState<MokkiNote[]>([]);
   const visiting = params.get("visit") === "1";
 
@@ -178,6 +178,10 @@ const MokkiScenePreview = () => {
           onOpenChange={setNoteOpen}
           ownerName="Aino"
           myNotes={notes}
+          doorNotes={[
+            { id: "d1", fromName: "Pekka", body: "Kävin kylässä, sauna näytti lämpimältä ♨️", createdAt: new Date().toISOString() },
+            { id: "d2", fromName: "Liisa", body: "Moi! 👋", createdAt: new Date().toISOString() },
+          ]}
           onLeave={async (body) => {
             setNotes((n) => [...n, { id: String(n.length), body, createdAt: new Date().toISOString() }]);
             return { success: true };

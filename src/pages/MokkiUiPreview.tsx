@@ -62,6 +62,7 @@ const MokkiUiPreview = () => {
       { actionId: "paljubileet", userId: "u3", username: "Matti" },
     ],
     myNotes: [],
+    doorNotes: [],
     inbox: [],
     doneToday: ["grillibileet"],
     doneCountToday: { grillibileet: 1 },

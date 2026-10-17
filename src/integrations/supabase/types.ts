@@ -622,6 +622,15 @@ export type Database = {
           username: string
         }[]
       }
+      get_mokki_door_notes: {
+        Args: { p_user_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          username: string
+        }[]
+      }
       get_mokki_island: { Args: { p_user_id: string }; Returns: Json }
       get_mokki_owner: {
         Args: { p_user_id: string }

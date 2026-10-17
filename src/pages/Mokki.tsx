@@ -369,7 +369,7 @@ const Mokki = () => {
       ) : (
         <>
           {!walking && <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />}
-          <DoorNoteSheet open={noteOpen} onOpenChange={setNoteOpen} ownerName={data.ownerName} myNotes={data.myNotes} onLeave={leaveNote} />
+          <DoorNoteSheet open={noteOpen} onOpenChange={setNoteOpen} ownerName={data.ownerName} myNotes={data.myNotes} doorNotes={data.doorNotes} onLeave={leaveNote} />
         </>
       )}
     </div>

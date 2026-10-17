@@ -37,6 +37,11 @@ export interface MokkiNote {
   createdAt: string;
 }
 
+/** A note another player pinned on this island's door, still unread by the owner (visits only). */
+export interface MokkiDoorNote extends MokkiNote {
+  fromName: string;
+}
+
 /** Most notes one visitor can leave on one door per day (enforced by leave_mokki_note). */
 export const MAX_NOTES_PER_DOOR = 3;
 
@@ -74,6 +79,8 @@ export interface MokkiData {
   inbox: MokkiInboxItem[];
   /** Notes the viewer left on this door today (visits only). */
   myNotes: MokkiNote[];
+  /** Notes other players left on this door that the owner hasn't read yet (visits only). */
+  doorNotes: MokkiDoorNote[];
   /** Action ids the viewer already did today: chores on their own island, visits/pranks on this one. */
   doneToday: string[];
   /** Times the viewer did each action today across all islands (for daily caps). */
@@ -104,6 +111,7 @@ const EMPTY: MokkiData = {
   guests: [],
   inbox: [],
   myNotes: [],
+  doorNotes: [],
   doneToday: [],
   doneCountToday: {},
   viewer: EMPTY_VIEWER,
@@ -183,6 +191,7 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
       let loylySentToday = false;
       let inbox: MokkiInboxItem[] = [];
       let myNotes: MokkiNote[] = [];
+      let doorNotes: MokkiDoorNote[] = [];
       let viewer: MokkiViewer = EMPTY_VIEWER;
       let names = new Map<string, string>();
       const effectRows = effectsRes.data ?? [];
@@ -238,7 +247,7 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
           peaceful: !!island.peaceful,
         };
       } else if (viewerId) {
-        const [{ data: sent }, viewerOwner, viewerPieces, viewerIsland, notesRes] = await Promise.all([
+        const [{ data: sent }, viewerOwner, viewerPieces, viewerIsland, notesRes, doorNotesRes] = await Promise.all([
           supabase
             .from("mokki_loylyt")
             .select("id")
@@ -256,12 +265,15 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
             .eq("to_user_id", ownerId)
             .gte("created_at", new Date(Date.now() - 36 * 3600 * 1000).toISOString())
             .order("created_at", { ascending: true }),
+          supabase.rpc("get_mokki_door_notes", { p_user_id: ownerId }),
         ]);
         loylySentToday = !!sent;
         if (notesRes.error) console.warn("mokki_notes unavailable:", notesRes.error.message);
         myNotes = (notesRes.data ?? [])
           .filter((n) => helsinkiDay(n.created_at) === today)
           .map((n) => ({ id: n.id, body: n.body, createdAt: n.created_at }));
+        if (doorNotesRes.error) console.warn("get_mokki_door_notes unavailable:", doorNotesRes.error.message);
+        doorNotes = (doorNotesRes.data ?? []).map((n) => ({ id: n.id, fromName: n.username ?? "Someone", body: n.body, createdAt: n.created_at }));
         const v = viewerOwner.data?.[0];
         viewer = {
           pieces: viewerPieces.data ?? [],
@@ -291,6 +303,7 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
         guests: (island.guests ?? []).map((g) => ({ actionId: g.action_id, userId: g.user_id, username: g.username })),
         inbox,
         myNotes,
+        doorNotes,
         doneToday,
         doneCountToday,
         viewer,
