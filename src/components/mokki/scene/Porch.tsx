@@ -230,7 +230,7 @@ export const NoticeBoard = ({ snow }: { snow: boolean }) => (
 // Porch table with today's die (coloured after the active dice skin)
 // ---------------------------------------------------------------------------
 
-const SKIN_DIE: Record<string, { body: string; pip: string; metal?: number }> = {
+export const SKIN_DIE: Record<string, { body: string; pip: string; metal?: number }> = {
   default: { body: "#fbfaf6", pip: "#1f1f1f" },
   golden_dice: { body: "#e6b422", pip: "#5a3d00", metal: 0.8 },
   diamond_dice: { body: "#bfeaf5", pip: "#2a6f8a", metal: 0.4 },

@@ -246,7 +246,8 @@ export const Smoke = ({
   return (
     <group position={position}>
       {Array.from({ length: count }, (_, i) => (
-        <mesh key={i} ref={(el) => (refs.current[i] = el)} userData={{ noShadow: true }}>
+        // Pure decoration: never catch taps (idle puffs sit invisible at full size)
+        <mesh key={i} ref={(el) => (refs.current[i] = el)} userData={{ noShadow: true }} raycast={() => null}>
           <icosahedronGeometry args={[1, 0]} />
           <meshStandardMaterial color={color} transparent opacity={0} depthWrite={false} flatShading roughness={1} />
         </mesh>
@@ -298,7 +299,8 @@ export const Burst = ({
   return (
     <group position={position}>
       {Array.from({ length: count }, (_, i) => (
-        <mesh key={i} ref={(el) => (refs.current[i] = el)} userData={{ noShadow: true }}>
+        // Pure decoration: never catch taps (idle puffs sit invisible at full size)
+        <mesh key={i} ref={(el) => (refs.current[i] = el)} userData={{ noShadow: true }} raycast={() => null}>
           <icosahedronGeometry args={[1, 0]} />
           <meshStandardMaterial color={color} transparent opacity={0} depthWrite={false} flatShading roughness={1} />
         </mesh>

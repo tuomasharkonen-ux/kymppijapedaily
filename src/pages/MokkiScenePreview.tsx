@@ -6,6 +6,8 @@ import { MokkiHeroView } from "@/components/mokki/MokkiHeroView";
 import { MokkiPreview } from "@/components/mokki/MokkiPreview";
 import type { MokkiSceneProps, ScenePiece } from "@/components/mokki/scene/MokkiScene";
 import { BuildPanel } from "@/components/mokki/BuildPanel";
+import { DoorNoteSheet } from "@/components/mokki/DoorNoteSheet";
+import type { MokkiNote } from "@/hooks/useMokki";
 
 const MokkiScene = lazy(() => import("@/components/mokki/scene/MokkiScene"));
 
@@ -24,12 +26,16 @@ const FOCUS: Record<string, [number, number, number]> = {
  * Tech tree extras: &dog=puudeli|aussi|lagotto&dogname=Musti&flag=saame
  * &effects=vessapaperi,ruotsin_lippu,marjavarkaus&guests=Aino,Juha
  * Close-ups (full view): &focus=dog|porch|nuotio|onki|fence|palju|x,y,z&zoom=3
- * First-person walk (full view): &walk=1
+ * First-person walk (full view): &walk=1, as a visitor (closed door + notepad): &visit=1,
+ * with today's game on the porch table (nothing is saved to the server): &daily=1
  */
 const MokkiScenePreview = () => {
   const [params] = useSearchParams();
   const [log, setLog] = useState<string[]>([]);
   const [walking, setWalking] = useState(() => params.get("walk") === "1");
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [notes, setNotes] = useState<MokkiNote[]>([]);
+  const visiting = params.get("visit") === "1";
 
   const season = (params.get("season") as MokkiSeason | null) ?? undefined;
   const elev = params.get("elev");
@@ -164,6 +170,18 @@ const MokkiScenePreview = () => {
         {view === "shop" && <MokkiPreview />}
         {log.length > 0 && <p className="text-xs text-muted-foreground">Clicked: {log.join(", ")}</p>}
       </div>
+      {visiting && (
+        <DoorNoteSheet
+          open={noteOpen}
+          onOpenChange={setNoteOpen}
+          ownerName="Aino"
+          myNotes={notes}
+          onLeave={async (body) => {
+            setNotes((n) => [...n, { id: String(n.length), body, createdAt: new Date().toISOString() }]);
+            return { success: true };
+          }}
+        />
+      )}
       {(view === "full" || view === "both") && (
         <div className="relative mx-auto mt-4 h-[80vh] max-w-5xl overflow-hidden rounded-2xl">
           <button
@@ -184,6 +202,17 @@ const MokkiScenePreview = () => {
               onEffectClick={(id) => note(`clean ${id}`)}
               firstPerson={walking}
               onExitFirstPerson={() => setWalking(false)}
+              visit={visiting ? { onNotepad: () => setNoteOpen(true), notes: notes.length } : undefined}
+              porchGame={
+                params.get("daily") === "1"
+                  ? {
+                      userId: "preview-player",
+                      onComplete: async (throws, winningNumber, extras) => {
+                        note(`daily done: ${throws} throws, ${winningNumber}s, log ${extras.throwLog.length}`);
+                      },
+                    }
+                  : undefined
+              }
             />
           </Suspense>
         </div>

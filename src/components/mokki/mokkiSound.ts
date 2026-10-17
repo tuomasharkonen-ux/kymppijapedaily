@@ -3,6 +3,11 @@ import { isSoundEnabled } from "@/lib/sound";
 
 let ctx: AudioContext | null = null;
 
+/** Shared audio context (null when sound is muted or unsupported). */
+export function mokkiAudio(): AudioContext | null {
+  return audio();
+}
+
 function audio(): AudioContext | null {
   if (typeof window === "undefined" || !isSoundEnabled()) return null;
   const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

@@ -73,7 +73,7 @@ const Instances = ({
     mesh.computeBoundingSphere();
   }, [items]);
   return (
-    <instancedMesh ref={ref} args={[geometry, undefined, Math.max(1, items.length)]} userData={{ noCast: true }}>
+    <instancedMesh ref={ref} args={[geometry, undefined, Math.max(1, items.length)]} userData={{ noCast: true }} raycast={() => null}>
       {material}
     </instancedMesh>
   );

@@ -16,6 +16,8 @@ export const box = (cx: number, cz: number, w: number, d: number): Collider => (
 export interface WalkExtras {
   /** Replaces the solid cabin block: walls with a doorway, plus the furniture inside. */
   cabin: Collider[];
+  /** The closed front door (visiting someone else's cabin). */
+  cabinDoor: Collider[];
   /** Replaces the solid sauna block once the sauna is built. */
   sauna: Collider[];
   /** Floor height inside the interiors, or null when (x, z) isn't inside one. */

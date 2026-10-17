@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { C } from "../../palette";
 import { CABIN } from "../Cabin";
 import { Block, GableRoof } from "../primitives";
+import { CoffeePot, CuckooClock, DoorNotepad, LampSwitch, LostDie, OvenDoor, Radio, RockingChair } from "./CabinToys";
+import type { CabinVisit } from "./types";
 import { Kit, wallWithOpenings } from "./kit";
 
 type Vec3 = [number, number, number];
@@ -103,7 +105,7 @@ function wall(
   glass.pop();
 }
 
-function buildShell(kit: Kit, glass: Kit, snow: boolean) {
+function buildShell(kit: Kit, glass: Kit, snow: boolean, doorClosed: boolean) {
   // Stone foundation and floor
   kit.box([W + 0.08, F, D + 0.08], [0, F / 2, 0], C.rockDark);
   kit.span([-W / 2 + 0.05, F, -FRONT + 0.05], [W / 2 - 0.05, FL, FRONT - 0.05], FLOOR);
@@ -133,13 +135,24 @@ function buildShell(kit: Kit, glass: Kit, snow: boolean) {
   kit.span([dx0 - 0.04, FL, FRONT - T - 0.015], [dx0, F + 0.94, FRONT - T + 0.001], PANEL_DARK);
   kit.span([dx1, FL, FRONT - T - 0.015], [dx1 + 0.04, F + 0.94, FRONT - T + 0.001], PANEL_DARK);
   kit.span([dx0 - 0.04, F + 0.94, FRONT - T - 0.015], [dx1 + 0.04, F + 0.98, FRONT - T + 0.001], PANEL_DARK);
-  // The door itself, swung open against the inside wall
-  kit.at([dx1 - 0.03, FL, FRONT - T - 0.27], undefined, () => {
-    kit.box([0.04, 0.86, 0.5], [0, 0.44, 0], "#3d5a45");
-    kit.box([0.05, 0.2, 0.28], [0, 0.62, 0], "#2f4636");
-    kit.box([0.055, 0.14, 0.2], [0, 0.62, 0], C.glass);
-    kit.box([0.08, 0.025, 0.025], [0, 0.44, -0.2], C.coin);
-  });
+  if (doorClosed) {
+    // Visitors find the door shut (with a notepad on it, see DoorNotepad)
+    kit.at([CABIN_DOOR.x, FL, FRONT - T / 2], undefined, () => {
+      kit.box([CABIN_DOOR.width - 0.01, 0.86, 0.05], [0, 0.43, 0], "#3d5a45");
+      for (const y of [0.18, 0.62]) kit.box([CABIN_DOOR.width - 0.12, 0.22, 0.06], [0, y, 0], "#2f4636");
+      kit.box([0.28, 0.16, 0.065], [0, 0.62, 0], C.glass);
+      kit.box([0.025, 0.08, 0.03], [-0.2, 0.44, 0.04], C.coin);
+      kit.box([0.06, 0.02, 0.02], [-0.2, 0.47, 0.055], C.coin);
+    });
+  } else {
+    // The door itself, swung open against the inside wall
+    kit.at([dx1 - 0.03, FL, FRONT - T - 0.27], undefined, () => {
+      kit.box([0.04, 0.86, 0.5], [0, 0.44, 0], "#3d5a45");
+      kit.box([0.05, 0.2, 0.28], [0, 0.62, 0], "#2f4636");
+      kit.box([0.055, 0.14, 0.2], [0, 0.62, 0], C.glass);
+      kit.box([0.08, 0.025, 0.025], [0, 0.44, -0.2], C.coin);
+    });
+  }
 
   // Ceiling and beams
   kit.span([-W / 2 + 0.05, TOP - 0.03, -FRONT + 0.05], [W / 2 - 0.05, TOP, FRONT - 0.05], "#dcbb86");
@@ -325,19 +338,7 @@ function buildInterior(kit: Kit) {
   const books = ["#8e2a1e", "#3b5468", "#5e9a48", "#d9a441", "#4a6fa5", "#6b4a2c", "#c75b4a"];
   books.forEach((col, i) => kit.box([0.08, 0.09 + (i % 3) * 0.012, 0.03], [-1.27, FL + 1.02 + (i % 3) * 0.006, -0.75 + i * 0.045], col));
 
-  // --- Rocking chair, rug and the mökkiradio
-  kit.at([-0.05, FL, -0.6], [0, 0.25, 0], () => {
-    for (const x of [-0.14, 0.14]) {
-      kit.box([0.025, 0.025, 0.42], [x, 0.02, 0], "#7a4e2a", [-0.08, 0, 0]);
-      kit.box([0.03, 0.2, 0.03], [x, 0.12, 0.12], "#7a4e2a");
-      kit.box([0.03, 0.5, 0.03], [x, 0.26, -0.12], "#7a4e2a", [-0.15, 0, 0]);
-      kit.box([0.03, 0.025, 0.24], [x, 0.29, 0.0], "#7a4e2a");
-    }
-    kit.box([0.3, 0.03, 0.26], [0, 0.2, 0], "#7a4e2a");
-    for (let i = 0; i < 4; i++) kit.box([0.03, 0.3, 0.015], [-0.09 + i * 0.06, 0.38, -0.155], "#7a4e2a", [-0.15, 0, 0]);
-    kit.box([0.27, 0.025, 0.22], [0, 0.228, 0.01], "#c75b4a");
-    kit.box([0.22, 0.2, 0.02], [0.02, 0.3, -0.12], "#5b7fa6", [-0.15, 0, 0.1]);
-  });
+  // --- Radio table and rugs (the rocking chair and the radio's dial are interactive, see CabinToys)
   kit.cyl(0.09, 0.09, 0.02, 10, [0.3, FL + 0.3, -0.75], C.plank);
   kit.cyl(0.015, 0.03, 0.29, 6, [0.3, FL + 0.145, -0.75], C.plankDark);
   kit.box([0.12, 0.08, 0.06], [0.3, FL + 0.35, -0.75], "#6b4a2c");
@@ -359,10 +360,6 @@ function buildInterior(kit: Kit) {
   ] as [number, number, string][])
     kit.span([-0.34, FL + y, BACK + 0.01], [0.2, FL + y + h, BACK + 0.02], col);
   for (let x = -0.36; x < 0.24; x += 0.04) kit.span([x, FL + 0.37, BACK], [x + 0.015, FL + 0.42, BACK + 0.012], "#7a3b2e");
-  kit.span([-0.62, FL + 0.6, BACK], [-0.5, FL + 0.8, BACK + 0.04], "#6b4a2c");
-  kit.cyl(0.04, 0.04, 0.01, 12, [-0.56, FL + 0.74, BACK + 0.045], "#f4efe3", [Math.PI / 2, 0, 0]);
-  kit.box([0.008, 0.11, 0.006], [-0.56, FL + 0.6, BACK + 0.045], C.coin);
-  kit.cyl(0.018, 0.018, 0.006, 8, [-0.56, FL + 0.54, BACK + 0.045], C.coin, [Math.PI / 2, 0, 0]);
   // Lake painting and a family photo on the west wall
   const WEST = -W / 2 + T;
   kit.span([WEST, FL + 0.55, 0.36], [WEST + 0.02, FL + 0.8, 0.72], "#8a5a2e");
@@ -387,12 +384,15 @@ function buildInterior(kit: Kit) {
 }
 
 /** Fire glow through the oven door, flickering. */
-const OvenFire = ({ on }: { on: boolean }) => {
+const OvenFire = ({ on, flare }: { on: boolean; flare: number }) => {
   const light = useRef<THREE.PointLight>(null);
+  const flareAt = useRef<{ key: number; t: number }>({ key: 0, t: -100 });
   useFrame(({ clock }) => {
     if (!light.current) return;
     const t = clock.getElapsedTime();
-    light.current.intensity = on ? 0.9 + Math.sin(t * 9) * 0.15 + Math.sin(t * 23) * 0.1 : 0;
+    if (flareAt.current.key !== flare) flareAt.current = { key: flare, t };
+    const boost = Math.max(0, 1 - (t - flareAt.current.t) / 2.5) * 2.2;
+    light.current.intensity = on ? 0.9 + boost + Math.sin(t * 9) * 0.15 + Math.sin(t * 23) * 0.1 : 0;
   });
   return (
     <>
@@ -402,15 +402,17 @@ const OvenFire = ({ on }: { on: boolean }) => {
   );
 };
 
-export const DetailedCabin = ({ lightsOn, snow, fire }: { lightsOn: boolean; snow: boolean; fire: boolean }) => {
+export const DetailedCabin = ({ lightsOn, snow, fire, visit }: { lightsOn: boolean; snow: boolean; fire: boolean; visit?: CabinVisit }) => {
+  const [lampOn, setLampOn] = useState(true);
+  const [flare, setFlare] = useState(0);
   const { solid, glass } = useMemo(() => {
     const kit = new Kit();
     const glassKit = new Kit();
-    buildShell(kit, glassKit, snow);
+    buildShell(kit, glassKit, snow, !!visit);
     buildPorch(kit, snow);
     buildInterior(kit);
     return { solid: kit.build(), glass: glassKit.build() };
-  }, [snow]);
+  }, [snow, !!visit]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(
     () => () => {
       solid.dispose();
@@ -444,16 +446,26 @@ export const DetailedCabin = ({ lightsOn, snow, fire }: { lightsOn: boolean; sno
       {/* Lamp bulb, candle flame and the lights that make the room cosy */}
       <mesh position={[-0.85, FL + 0.71, 0.55]} userData={{ noShadow: true }}>
         <sphereGeometry args={[0.03, 8, 6]} />
-        <meshStandardMaterial color="#fff4d6" emissive="#ffd27a" emissiveIntensity={lightsOn ? 2.2 : 0.6} />
+        <meshStandardMaterial color="#fff4d6" emissive="#ffd27a" emissiveIntensity={lampOn ? (lightsOn ? 2.2 : 0.6) : 0} />
       </mesh>
-      <pointLight position={[-0.85, FL + 0.62, 0.55]} color="#ffd59a" intensity={lightsOn ? 2.4 : 0.8} distance={3.4} decay={2} />
+      <pointLight position={[-0.85, FL + 0.62, 0.55]} color="#ffd59a" intensity={lampOn ? (lightsOn ? 2.4 : 0.8) : 0} distance={3.4} decay={2} />
       {lightsOn && (
         <mesh position={[-0.85, FL + 0.455, 0.66]} userData={{ noShadow: true }}>
           <coneGeometry args={[0.012, 0.035, 6]} />
           <meshStandardMaterial color="#ffd27a" emissive="#ffb347" emissiveIntensity={2.5} />
         </mesh>
       )}
-      <OvenFire on={fire} />
+      <OvenFire on={fire} flare={flare} />
+
+      {/* Things to poke at */}
+      <LampSwitch fl={FL} on={lampOn} onToggle={() => setLampOn((on) => !on)} />
+      <OvenDoor fl={FL} fire={fire} onFlare={() => setFlare((f) => f + 1)} />
+      <RockingChair fl={FL} />
+      <CuckooClock fl={FL} back={-FRONT + T} />
+      <Radio fl={FL} />
+      <CoffeePot fl={FL} />
+      <LostDie fl={FL} />
+      {visit && <DoorNotepad fl={FL} front={FRONT} visit={visit} />}
 
       {/* Porch lantern */}
       <group position={[0.0, F + 0.95, FRONT + 0.08]}>

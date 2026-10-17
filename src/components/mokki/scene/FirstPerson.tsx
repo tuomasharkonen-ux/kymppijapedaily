@@ -185,6 +185,7 @@ export const FirstPersonRig = ({
   frozen,
   input,
   extras,
+  doorClosed = false,
   onExit,
 }: {
   pieces: { id: MokkiPieceId; status: string }[];
@@ -192,6 +193,8 @@ export const FirstPersonRig = ({
   input: React.MutableRefObject<FirstPersonInput>;
   /** Detailed models: open doorways and furnished interiors. */
   extras?: WalkExtras | null;
+  /** Visiting: the cabin door is shut. */
+  doorClosed?: boolean;
   onExit?: () => void;
 }) => {
   const camera = useRef<THREE.PerspectiveCamera>(null);
@@ -201,12 +204,12 @@ export const FirstPersonRig = ({
     const hasSauna = pieces.some((p) => p.id === "sauna" && p.status === "complete");
     const colliders = [
       ...STATIC_COLLIDERS,
-      ...(extras ? extras.cabin : [CABIN_BLOCK]),
+      ...(extras ? [...extras.cabin, ...(doorClosed ? extras.cabinDoor : [])] : [CABIN_BLOCK]),
       ...pieces.flatMap((p) => (p.id === "sauna" && hasSauna && extras ? extras.sauna : pieceColliders(p.id))),
     ];
     if (frozen) colliders.push(...SHORE_ROCKS.map((r) => circle(r.pos[0], r.pos[2], r.s * 1.1)), circle(-1.7, 6.5, 0.95));
     return { colliders, hasDock: pieces.some((p) => p.id === "laituri" && p.status === "complete"), hasSauna, frozen, extras };
-  }, [pieces, frozen, extras]);
+  }, [pieces, frozen, extras, doorClosed]);
 
   const state = useRef<{ x: number; z: number; y: number; yaw: number; pitch: number; vx: number; vz: number; bob: number } | null>(null);
   if (!state.current) {
@@ -234,7 +237,8 @@ export const FirstPersonRig = ({
       return !!el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
     };
     const down = (e: KeyboardEvent) => {
-      if (typing(e)) return;
+      // Typing in a field, or a sheet/dialog is open on top of the scene
+      if (typing(e) || document.querySelector('[role="dialog"]')) return;
       if (e.code === "Escape") {
         onExit?.();
         return;
@@ -369,16 +373,16 @@ export const Horizon = ({ env, palette }: { env: MokkiEnvironment; palette: Seas
     <group>
       <fog attach="fog" args={[env.skyBottom, 14, 75]} />
       {/* Open lake beyond the diorama edge */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} userData={{ noShadow: true }}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} userData={{ noShadow: true }} raycast={() => null}>
         <ringGeometry args={[LAKE_RADIUS, 33.5, 64, 1]} />
         <meshPhongMaterial color={palette.water} specular={palette.frozen ? "#ffffff" : "#cfe9f5"} shininess={palette.frozen ? 40 : 70} flatShading />
       </mesh>
       {/* Distant shoreline: a low band of land with a spruce treeline */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} userData={{ noShadow: true }}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]} userData={{ noShadow: true }} raycast={() => null}>
         <ringGeometry args={[33, HORIZON_RADIUS, 64, 1]} />
         <meshLambertMaterial color={palette.snow ? palette.grass : palette.pine} />
       </mesh>
-      <instancedMesh ref={forest} args={[undefined, undefined, trees.length]} userData={{ noShadow: true }}>
+      <instancedMesh ref={forest} args={[undefined, undefined, trees.length]} userData={{ noShadow: true }} raycast={() => null}>
         <coneGeometry args={[1, 1, 6]} />
         <meshLambertMaterial color={palette.pine} flatShading />
       </instancedMesh>
@@ -507,7 +511,7 @@ export const FirstPersonOverlay = ({ input }: { input: React.MutableRefObject<Fi
         aria-live="polite"
       >
         <p className="rounded-full bg-black/55 px-4 py-1.5 text-center text-xs text-white backdrop-blur-sm">
-          {coarse ? "Use the stick to walk · drag to look around" : "WASD or arrows to walk · drag to look · Shift to run · Esc to leave"}
+          {coarse ? "Stick to walk · drag to look · tap things!" : "WASD to walk · drag to look · Shift runs · click things! · Esc leaves"}
         </p>
       </div>
     </>

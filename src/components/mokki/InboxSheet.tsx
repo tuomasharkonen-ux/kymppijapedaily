@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getActionDef } from "@/lib/mokki";
-import type { MokkiInboxItem } from "@/hooks/useMokki";
+import { DOOR_NOTE, type MokkiInboxItem } from "@/hooks/useMokki";
 
 interface InboxSheetProps {
   open: boolean;
@@ -39,7 +39,7 @@ export const InboxSheet = ({ open, onOpenChange, items, onMarkRead }: InboxSheet
               return (
                 <li key={item.id} className="flex items-start gap-3 rounded-xl border p-3">
                   <span className="text-xl" aria-hidden="true">
-                    {def?.emoji ?? "✉️"}
+                    {item.actionId === DOOR_NOTE ? "📝" : def?.emoji ?? "✉️"}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground">{item.text}</p>

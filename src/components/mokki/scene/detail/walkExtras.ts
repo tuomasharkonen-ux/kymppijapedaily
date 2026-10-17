@@ -57,6 +57,7 @@ const SAUNA_COLLIDERS: Collider[] = [
 
 export const WALK_EXTRAS: WalkExtras = {
   cabin: CABIN_COLLIDERS,
+  cabinDoor: [cSeg(DOOR0, HD - 0.04, DOOR1, HD - 0.04, 0.045)],
   sauna: SAUNA_COLLIDERS,
   floor: (x, z, sauna) => {
     if (Math.abs(x - CX) < HW && Math.abs(z - CZ) < HD) return CY + CABIN_FLOOR;

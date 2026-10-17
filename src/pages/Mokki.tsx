@@ -25,6 +25,8 @@ import { ChoresTray } from "@/components/mokki/ChoresTray";
 import { NeighborActions } from "@/components/mokki/NeighborActions";
 import { InboxSheet } from "@/components/mokki/InboxSheet";
 import { DogSheet } from "@/components/mokki/DogSheet";
+import { DoorNoteSheet } from "@/components/mokki/DoorNoteSheet";
+import { BadgeUnlockModal } from "@/components/BadgeUnlockModal";
 import { paljuGuestNames, sceneDog, sceneFlag } from "@/components/mokki/mokkiActions";
 import { getPieceDef, REWARDS } from "@/lib/mokki";
 
@@ -61,12 +63,12 @@ const Mokki = () => {
   const ownerId = visitId ?? user?.id ?? null;
   const isOwn = !!user && ownerId === user.id;
   const env = useLiveEnvironment();
-  const { data, isLoading, buyPiece, doAction, sendLoyly, markLoylySeen, markInboxSeen } = useMokki(ownerId, user?.id ?? null);
-  const { userCredits, refetchBadges } = useBadges(isOwn ? user?.id ?? null : null);
+  const { data, isLoading, refetch, buyPiece, doAction, sendLoyly, markLoylySeen, markInboxSeen, leaveNote } = useMokki(ownerId, user?.id ?? null);
+  const { userCredits, refetchBadges, checkAndAwardBadges, pendingBadges, dismissBadge } = useBadges(isOwn ? user?.id ?? null : null);
   const { purchasedItems } = useUserPurchases(isOwn ? user?.id ?? null : null);
   const { settings } = useUserSettings(isOwn ? user?.id ?? null : null);
   // Streaks are private (own game records only), so friends' islands keep the plain line
-  const { currentStreak, streakNapped } = useGameRecords(isOwn ? user?.id ?? null : null);
+  const { currentStreak, streakNapped, hasPlayedToday, isLoading: recordsLoading, saveGameResult } = useGameRecords(isOwn ? user?.id ?? null : null);
   const { pieces, onPieceLanded } = useScenePieces(ownerId, data.pieces, data.gamesPlayed, isOwn);
   const [loylyKey, setLoylyKey] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -74,6 +76,7 @@ const Mokki = () => {
   const [dogOpen, setDogOpen] = useState(false);
   // First-person walk around the island (own or a neighbor's)
   const [walking, setWalking] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [inboxOpen, setInboxOpen] = useState(() => searchParams.get("mail") === "1");
   const webgl = useMemo(() => hasWebGL(), []);
@@ -82,6 +85,27 @@ const Mokki = () => {
   const paljuGuests = useMemo(() => paljuGuestNames(data), [data]);
 
   useEffect(() => setWalking(false), [ownerId]);
+
+  // Today's Kymppijape on the porch table (walk mode): same saved game and same save as the main board
+  const activeSkin = settings.activeSkin ?? "default";
+  const porchGame = useMemo(
+    () =>
+      isOwn && user && !recordsLoading && !hasPlayedToday
+        ? {
+            userId: user.id,
+            onComplete: async (throws: number, winningNumber: number, extras: { throwLog: number[][]; unlockedAny: boolean }) => {
+              const saved = await saveGameResult(throws, winningNumber, extras);
+              toast.success(`🎲 Today's Kymppijape done in ${throws} ${throws === 1 ? "throw" : "throws"}!`);
+              if (saved?.settlement) toast("🎰 Your bets were settled, see the main board for details");
+              refetchBadges();
+              checkAndAwardBadges(false, activeSkin);
+              refetch();
+            },
+          }
+        : undefined,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isOwn, user?.id, recordsLoading, hasPlayedToday, activeSkin],
+  );
 
   // Received löyly: puff on arrival, then mark seen
   useEffect(() => {
@@ -227,6 +251,8 @@ const Mokki = () => {
               onDogClick={dog ? handleDogClick : undefined}
               onEffectClick={handleEffectClick}
               firstPerson={walking}
+              visit={isOwn ? undefined : { onNotepad: () => setNoteOpen(true), notes: data.myNotes.length }}
+              porchGame={porchGame}
               onExitFirstPerson={() => setWalking(false)}
             />
           </Suspense>
@@ -270,6 +296,7 @@ const Mokki = () => {
                   onClick={() => {
                     setPanelOpen(false);
                     setWalking(true);
+                    if (porchGame) toast("🎲 Today's Kymppijape is waiting on the porch table");
                   }}
                   aria-label="Walk around the island"
                 >
@@ -313,10 +340,14 @@ const Mokki = () => {
           {!panelOpen && !walking && <ChoresTray data={data} onDo={doAction} onRewarded={refetchBadges} className="absolute inset-x-0 bottom-[5.25rem] z-10" />}
           {!walking && <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />}
           <InboxSheet open={inboxOpen} onOpenChange={setInbox} items={data.inbox} onMarkRead={() => setInbox(false)} />
+          <BadgeUnlockModal pendingBadges={pendingBadges} onDismiss={dismissBadge} />
           {dog && <DogSheet open={dogOpen} onOpenChange={setDogOpen} data={data} onDo={doAction} onRewarded={refetchBadges} />}
         </>
       ) : (
-        !walking && <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />
+        <>
+          {!walking && <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />}
+          <DoorNoteSheet open={noteOpen} onOpenChange={setNoteOpen} ownerName={data.ownerName} myNotes={data.myNotes} onLeave={leaveNote} />
+        </>
       )}
     </div>
   );

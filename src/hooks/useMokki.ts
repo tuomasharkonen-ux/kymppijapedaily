@@ -30,6 +30,16 @@ export interface MokkiInboxItem {
   createdAt: string;
 }
 
+/** A note the viewer left on this island's door today (visits only). */
+export interface MokkiNote {
+  id: string;
+  body: string;
+  createdAt: string;
+}
+
+/** Most notes one visitor can leave on one door per day (enforced by leave_mokki_note). */
+export const MAX_NOTES_PER_DOOR = 3;
+
 export interface MokkiGuest {
   actionId: "paljubileet" | "grillibileet";
   userId: string;
@@ -60,8 +70,10 @@ export interface MokkiData {
   effects: MokkiEffect[];
   /** Today's palju and grill guests. */
   guests: MokkiGuest[];
-  /** Unseen mailbox lines (own island only). */
+  /** Unseen mailbox lines (own island only): neighbors' actions and door notes. */
   inbox: MokkiInboxItem[];
+  /** Notes the viewer left on this door today (visits only). */
+  myNotes: MokkiNote[];
   /** Action ids the viewer already did today: chores on their own island, visits/pranks on this one. */
   doneToday: string[];
   /** Times the viewer did each action today across all islands (for daily caps). */
@@ -91,6 +103,7 @@ const EMPTY: MokkiData = {
   effects: [],
   guests: [],
   inbox: [],
+  myNotes: [],
   doneToday: [],
   doneCountToday: {},
   viewer: EMPTY_VIEWER,
@@ -99,8 +112,15 @@ const EMPTY: MokkiData = {
 const PIECE_COLUMNS = "piece_id, build_days, played_days_at_purchase, purchased_at, variant, nickname";
 
 function helsinkiToday(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki" }).format(new Date());
+  return helsinkiDay(new Date().toISOString());
 }
+
+function helsinkiDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki" }).format(new Date(iso));
+}
+
+/** Inbox `actionId` for door notes (not a MOKKI_ACTIONS id). */
+export const DOOR_NOTE = "door_note";
 
 async function usernames(ids: string[]): Promise<Map<string, string>> {
   const unique = [...new Set(ids)];
@@ -162,12 +182,13 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
       let loylyFrom: string[] = [];
       let loylySentToday = false;
       let inbox: MokkiInboxItem[] = [];
+      let myNotes: MokkiNote[] = [];
       let viewer: MokkiViewer = EMPTY_VIEWER;
       let names = new Map<string, string>();
       const effectRows = effectsRes.data ?? [];
 
       if (isOwn) {
-        const [{ data: unseen }, { data: unseenEffects }] = await Promise.all([
+        const [{ data: unseen }, { data: unseenEffects }, notesRes] = await Promise.all([
           supabase.from("mokki_loylyt").select("from_user_id").eq("to_user_id", ownerId).is("seen_at", null),
           supabase
             .from("mokki_effects")
@@ -176,9 +197,23 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
             .is("seen_at", null)
             .order("created_at", { ascending: false })
             .limit(30),
+          supabase
+            .from("mokki_notes")
+            .select("id, from_user_id, body, created_at")
+            .eq("to_user_id", ownerId)
+            .is("seen_at", null)
+            .order("created_at", { ascending: false })
+            .limit(30),
         ]);
+        if (notesRes.error) console.warn("mokki_notes unavailable:", notesRes.error.message);
+        const notes = notesRes.data ?? [];
         const senders = [...new Set((unseen ?? []).map((l) => l.from_user_id))];
-        names = await usernames([...senders, ...(unseenEffects ?? []).map((e) => e.from_user_id), ...effectRows.map((e) => e.from_user_id)]);
+        names = await usernames([
+          ...senders,
+          ...(unseenEffects ?? []).map((e) => e.from_user_id),
+          ...effectRows.map((e) => e.from_user_id),
+          ...notes.map((n) => n.from_user_id),
+        ]);
         loylyFrom = senders.map((id) => names.get(id) ?? "A friend");
         const dogName = (piecesRes.data ?? []).find((p) => p.piece_id === "koira")?.nickname;
         inbox = (unseenEffects ?? []).flatMap((e) => {
@@ -186,6 +221,16 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
           if (!def) return [];
           return [{ id: e.id, actionId: e.action_id, text: inboxLine(def, names.get(e.from_user_id) ?? "Someone", e.foiled, dogName), reward: e.target_reward, createdAt: e.created_at }];
         });
+        inbox = [
+          ...inbox,
+          ...notes.map((n) => ({
+            id: n.id,
+            actionId: DOOR_NOTE,
+            text: `${names.get(n.from_user_id) ?? "Someone"} left a note on your door: “${n.body}”`,
+            reward: 0,
+            createdAt: n.created_at,
+          })),
+        ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
         viewer = {
           pieces: piecesRes.data ?? [],
           gamesPlayed: owner?.games_played ?? 0,
@@ -193,7 +238,7 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
           peaceful: !!island.peaceful,
         };
       } else if (viewerId) {
-        const [{ data: sent }, viewerOwner, viewerPieces, viewerIsland] = await Promise.all([
+        const [{ data: sent }, viewerOwner, viewerPieces, viewerIsland, notesRes] = await Promise.all([
           supabase
             .from("mokki_loylyt")
             .select("id")
@@ -204,8 +249,19 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
           supabase.rpc("get_mokki_owner", { p_user_id: viewerId }),
           supabase.from("mokki_pieces").select(PIECE_COLUMNS).eq("user_id", viewerId),
           supabase.rpc("get_mokki_island", { p_user_id: viewerId }),
+          supabase
+            .from("mokki_notes")
+            .select("id, body, created_at")
+            .eq("from_user_id", viewerId)
+            .eq("to_user_id", ownerId)
+            .gte("created_at", new Date(Date.now() - 36 * 3600 * 1000).toISOString())
+            .order("created_at", { ascending: true }),
         ]);
         loylySentToday = !!sent;
+        if (notesRes.error) console.warn("mokki_notes unavailable:", notesRes.error.message);
+        myNotes = (notesRes.data ?? [])
+          .filter((n) => helsinkiDay(n.created_at) === today)
+          .map((n) => ({ id: n.id, body: n.body, createdAt: n.created_at }));
         const v = viewerOwner.data?.[0];
         viewer = {
           pieces: viewerPieces.data ?? [],
@@ -234,6 +290,7 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
         effects: effectRows.map((e) => ({ id: e.id, actionId: e.action_id, fromName: names.get(e.from_user_id) ?? "Someone", visibleUntil: e.visible_until ?? nowIso })),
         guests: (island.guests ?? []).map((g) => ({ actionId: g.action_id, userId: g.user_id, username: g.username })),
         inbox,
+        myNotes,
         doneToday,
         doneCountToday,
         viewer,
@@ -307,12 +364,25 @@ export const useMokki = (ownerId: string | null, viewerId?: string | null) => {
 
   const markInboxSeen = useCallback(async () => {
     if (!isOwn) return;
-    const { error: rpcError } = await supabase.rpc("mark_mokki_effects_seen");
-    if (rpcError) console.error("mark_mokki_effects_seen failed:", rpcError);
-    else setData((d) => ({ ...d, inbox: [] }));
+    const [effects, notes] = await Promise.all([supabase.rpc("mark_mokki_effects_seen"), supabase.rpc("mark_mokki_notes_seen")]);
+    if (effects.error) console.error("mark_mokki_effects_seen failed:", effects.error);
+    if (notes.error) console.warn("mark_mokki_notes_seen failed:", notes.error.message);
+    if (!effects.error) setData((d) => ({ ...d, inbox: [] }));
   }, [isOwn]);
 
-  return { data, isLoading, error, refetch: fetchMokki, buyPiece, doAction, sendLoyly, markLoylySeen, markInboxSeen };
+  /** Pin a note on this island's door (visits only). */
+  const leaveNote = useCallback(
+    async (body: string): Promise<MokkiActionResult> => {
+      if (!ownerId || isOwn) return { success: false };
+      const { data: id, error: rpcError } = await supabase.rpc("leave_mokki_note", { p_to_user_id: ownerId, p_body: body });
+      if (rpcError) return { success: false, error: rpcError.message };
+      setData((d) => ({ ...d, myNotes: [...d.myNotes, { id: id ?? crypto.randomUUID(), body: body.trim(), createdAt: new Date().toISOString() }] }));
+      return { success: true };
+    },
+    [ownerId, isOwn],
+  );
+
+  return { data, isLoading, error, refetch: fetchMokki, buyPiece, doAction, sendLoyly, markLoylySeen, markInboxSeen, leaveNote };
 };
 
 /** Edge functions answer 400 with { error }; supabase-js hides it inside the response context. */

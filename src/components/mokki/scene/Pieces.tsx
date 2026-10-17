@@ -884,7 +884,7 @@ export const Snowfall = ({ count = 500 }: { count?: number }) => {
   });
 
   return (
-    <points ref={ref} geometry={geometry} userData={{ noShadow: true }}>
+    <points ref={ref} geometry={geometry} raycast={() => null} userData={{ noShadow: true }}>
       <pointsMaterial color="#ffffff" size={2.2} sizeAttenuation={false} transparent opacity={0.85} depthWrite={false} />
     </points>
   );

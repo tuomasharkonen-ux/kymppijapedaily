@@ -31,7 +31,7 @@ import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
 import { Dog } from "./Dog";
 import { Marjavarkaus, Vessapaperi } from "./Effects";
 import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon, useWalkTouchLock, WALK_SCALE } from "./FirstPerson";
-import type { DetailKit } from "./detail/types";
+import type { CabinVisit, DetailKit, PorchDailyGame } from "./detail/types";
 
 type Vec3 = [number, number, number];
 
@@ -85,6 +85,10 @@ export interface MokkiSceneProps {
   firstPerson?: boolean;
   /** Esc pressed while walking. */
   onExitFirstPerson?: () => void;
+  /** Visiting someone else's mökki: walk mode shows their door shut, with a notepad. */
+  visit?: CabinVisit;
+  /** Walk mode: today's game can be played on the porch table (own island, not played yet). */
+  porchGame?: PorchDailyGame;
   /** Dev preview only: look at a point, zoomed in (full mode). */
   debugFocus?: { target: Vec3; zoom: number };
 }
@@ -307,14 +311,15 @@ const Diorama = (props: MokkiSceneProps & { detail?: DetailKit | null }) => {
       ))}
       {mushrooms && env.season === "autumn" && <Mushrooms />}
 
-      {detail ? <detail.Cabin lightsOn={lightsOn} snow={snow} fire={showSmoke} /> : <Cabin lightsOn={lightsOn} snow={snow} />}
+      {detail ? <detail.Cabin lightsOn={lightsOn} snow={snow} fire={showSmoke} visit={props.visit} /> : <Cabin lightsOn={lightsOn} snow={snow} />}
       {detail && <detail.Ground palette={palette} season={env.season} pieces={pieces} />}
+      {detail && <detail.Wildlife frozen={palette.frozen} pieces={pieces} />}
       {showSmoke && <Smoke position={CABIN_CHIMNEY_TOP} />}
       {!isComplete("sauna") && <Burst position={CABIN_CHIMNEY_TOP} trigger={loylyKey} color="#ffffff" count={22} radius={1.3} rise={1.8} duration={2.6} size={0.5} />}
 
       {/* Porch objects */}
       <group position={PORCH_POSITIONS.table}>
-        <PorchTable skin={skin} />
+        {detail ? <detail.PorchDice skin={skin} daily={props.porchGame} /> : <PorchTable skin={skin} />}
       </group>
       <Interactive position={PORCH_POSITIONS.mailbox} onClick={porch?.onMailboxClick} label="mailbox" hint={mode === "hero" && !!porch?.hasMail} ringRadius={0.4}>
         <group scale={firstPerson ? WALK_SCALE.mailbox : 1.3}>
@@ -433,6 +438,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
             frozen={SEASON_PALETTES[env.season].frozen}
             input={fpInput}
             extras={detail.kit?.walk}
+            doorClosed={!!props.visit}
             onExit={onExitFirstPerson}
           />
         ) : (

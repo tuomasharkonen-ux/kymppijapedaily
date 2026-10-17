@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { playLoyly } from "../../mokkiSound";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { C } from "../../palette";
 import { PIECE_LAYOUT, SAUNA_CHIMNEY_TOP } from "../Pieces";
 import { Block, Burst, GableFill, GableRoof, Smoke } from "../primitives";
+import { Bubble, HitBox, Tappable, useSay } from "./interact";
 import { Kit } from "./kit";
+import { playSwish } from "./sounds";
 
 type Vec3 = [number, number, number];
 
@@ -130,12 +133,15 @@ function buildSauna(kit: Kit, snow: boolean) {
   if (snow) kit.box([0.12, 0.03, 0.66], [SW / 2 + 0.3, B + 0.34, -0.35], C.snow);
 }
 
-const KiuasFire = ({ on, lightsOn }: { on: boolean; lightsOn: boolean }) => {
+const KiuasFire = ({ on, lightsOn, flare }: { on: boolean; lightsOn: boolean; flare: number }) => {
   const light = useRef<THREE.PointLight>(null);
+  const flareAt = useRef({ key: 0, t: -100 });
   useFrame(({ clock }) => {
     if (!light.current) return;
     const t = clock.getElapsedTime();
-    light.current.intensity = (lightsOn ? 1.3 : 0.7) + (on ? 0.35 + Math.sin(t * 8) * 0.12 + Math.sin(t * 19) * 0.08 : 0);
+    if (flareAt.current.key !== flare) flareAt.current = { key: flare, t };
+    const boost = Math.max(0, 1 - (t - flareAt.current.t) / 2) * 1.5;
+    light.current.intensity = (lightsOn ? 1.3 : 0.7) + boost + (on ? 0.35 + Math.sin(t * 8) * 0.12 + Math.sin(t * 19) * 0.08 : 0);
   });
   return (
     <>
@@ -154,6 +160,15 @@ export const DetailedSauna = ({ lightsOn, snow, smoke, loylyKey }: { lightsOn: b
   useEffect(() => () => geometry.dispose(), [geometry]);
   const warm = lightsOn || smoke;
   const [cx, cy, cz] = PIECE_LAYOUT.sauna.center;
+  // Walk-mode play: throw löyly, swish the vihta, read the thermometer
+  const [steam, setSteam] = useState(0);
+  const [leaves, setLeaves] = useState(0);
+  const [msg, say] = useSay();
+  const loyly = () => {
+    setSteam((n) => n + 1);
+    playLoyly();
+    say(warm ? "♨️ Löylyä! Ssssss…" : "♨️ Löylyä… the stones are lukewarm today");
+  };
 
   return (
     <group>
@@ -177,9 +192,28 @@ export const DetailedSauna = ({ lightsOn, snow, smoke, loylyKey }: { lightsOn: b
           />
         ))}
         <Block size={[0.025, 0.08, 0.12]} position={[SW / 2 - R - 0.06, B + 0.78, -0.34]} color="#fff1d0" emissive="#ffc070" emissiveIntensity={warm ? 1.4 : 0.5} />
-        <KiuasFire on={smoke} lightsOn={lightsOn} />
-        {/* Löyly thrown on the stones */}
+        <KiuasFire on={smoke} lightsOn={lightsOn} flare={steam} />
+        {/* Löyly thrown on the stones: by a friend (loylyKey) or by you */}
         <Burst position={[KIUAS[0], B + 0.5, KIUAS[2]]} trigger={loylyKey} color="#ffffff" count={14} radius={0.35} rise={0.5} duration={2.2} size={0.25} />
+        <Burst position={[KIUAS[0], B + 0.5, KIUAS[2]]} trigger={steam} color="#ffffff" count={16} radius={0.4} rise={0.55} duration={2.4} size={0.22} />
+        <Tappable onTap={loyly}>
+          <HitBox size={[0.4, 0.62, 0.4]} position={[KIUAS[0], B + 0.32, KIUAS[2]]} />
+          <HitBox size={[0.16, 0.16, 0.16]} position={[-0.15, B + 0.3, 0.38]} />
+        </Tappable>
+        <Tappable
+          onTap={() => {
+            setLeaves((n) => n + 1);
+            playSwish();
+            say("🌿 Vihta swish!");
+          }}
+        >
+          <HitBox size={[0.2, 0.36, 0.1]} position={[0.3, B + 0.66, -SD / 2 + R + 0.05]} />
+        </Tappable>
+        <Burst position={[0.3, B + 0.62, -SD / 2 + R + 0.1]} trigger={leaves} color="#5f8c43" count={12} radius={0.2} rise={0.15} duration={1.2} size={0.03} />
+        <Tappable onTap={() => say(warm ? `🌡️ ${78 + Math.floor(Math.random() * 18)} °C` : "🌡️ 18 °C, nobody has heated the sauna today")}>
+          <HitBox size={[0.06, 0.18, 0.1]} position={[-0.62, B + 0.9, 0]} />
+        </Tappable>
+        <Bubble position={[0, B + 1.0, 0.1]} msg={msg} />
         {lightsOn && <pointLight color="#ff9a3c" intensity={1.5} distance={2.5} decay={2} position={[0.1, B + 0.7, SD / 2 + 0.5]} />}
       </group>
       {smoke && <Smoke position={SAUNA_CHIMNEY_TOP} count={11} rise={2.2} />}

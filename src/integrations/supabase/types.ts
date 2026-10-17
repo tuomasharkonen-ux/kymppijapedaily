@@ -335,6 +335,33 @@ export type Database = {
         }
         Relationships: []
       }
+      mokki_notes: {
+        Row: {
+          body: string
+          created_at: string
+          from_user_id: string
+          id: string
+          seen_at: string | null
+          to_user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          from_user_id: string
+          id?: string
+          seen_at?: string | null
+          to_user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          seen_at?: string | null
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       mokki_pieces: {
         Row: {
           build_days: number
@@ -624,8 +651,10 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      leave_mokki_note: { Args: { p_body: string; p_to_user_id: string }; Returns: string }
       mark_mokki_effects_seen: { Args: never; Returns: undefined }
       mark_mokki_loylyt_seen: { Args: never; Returns: undefined }
+      mark_mokki_notes_seen: { Args: never; Returns: undefined }
       mark_pot_reveal_seen: {
         Args: { p_game_date: string }
         Returns: undefined
