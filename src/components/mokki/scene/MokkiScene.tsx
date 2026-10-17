@@ -30,6 +30,7 @@ import { BIRCHES, birchScale, PINES } from "./layout";
 import { Koirankoppi, Nuotiopaikka, Onkipaikka, Riukuaita } from "./Pihapiiri";
 import { Dog } from "./Dog";
 import { Marjavarkaus, Vessapaperi } from "./Effects";
+import { createFirstPersonInput, FirstPersonOverlay, FirstPersonRig, Horizon } from "./FirstPerson";
 
 type Vec3 = [number, number, number];
 
@@ -79,6 +80,10 @@ export interface MokkiSceneProps {
   onDogClick?: () => void;
   /** Tapping a prank mark (own island: clean it up). */
   onEffectClick?: (effectId: string) => void;
+  /** Full mode: walk around the island at eye level instead of the overview camera. */
+  firstPerson?: boolean;
+  /** Esc pressed while walking. */
+  onExitFirstPerson?: () => void;
   /** Dev preview only: look at a point, zoomed in (full mode). */
   debugFocus?: { target: Vec3; zoom: number };
 }
@@ -165,7 +170,7 @@ const ShadowSetup = ({ deps }: { deps: unknown[] }) => {
 
 const Diorama = (props: MokkiSceneProps) => {
   const { env, pieces, showSmoke, loylyKey = 0, mushrooms, skin, mode, porch, onPieceLanded } = props;
-  const { dog, flag, effects = [], paljuGuests = [], onDogClick, onEffectClick } = props;
+  const { dog, flag, effects = [], paljuGuests = [], onDogClick, onEffectClick, firstPerson } = props;
   const full = mode === "full";
   const effectOf = (actionId: string) => effects.find((e) => e.actionId === actionId);
   const cleanUp = (actionId: string) => {
@@ -221,7 +226,7 @@ const Diorama = (props: MokkiSceneProps) => {
         shadow-camera-far={60}
       />
 
-      <DioramaBase palette={palette} />
+      {firstPerson ? <Horizon env={env} palette={palette} /> : <DioramaBase palette={palette} />}
       <Water palette={palette} animate />
       <FarShore palette={palette} />
       <Island palette={palette} />
@@ -314,7 +319,9 @@ const MokkiScene = (props: MokkiSceneProps) => {
   const container = useRef<HTMLDivElement>(null);
   const visible = useVisible(container);
   const [fitZoom, setFitZoom] = useState(30);
-  const { debugFocus } = props;
+  const { debugFocus, onExitFirstPerson } = props;
+  const firstPerson = mode === "full" && !!props.firstPerson;
+  const fpInput = useRef(createFirstPersonInput());
   const target = useMemo(
     () => (debugFocus ? new THREE.Vector3(...debugFocus.target) : mode === "full" ? TARGET_FULL : TARGET),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -336,7 +343,11 @@ const MokkiScene = (props: MokkiSceneProps) => {
         onPointerMissed={() => !islandOnly && onBackgroundClick?.()}
         style={{ position: "absolute", inset: 0, touchAction: mode === "full" ? "none" : "pan-y" }}
       >
-        <CameraRig mode={mode} framing={framing} onFit={setFitZoom} zoomFactor={debugFocus?.zoom} />
+        {firstPerson ? (
+          <FirstPersonRig pieces={props.pieces} frozen={SEASON_PALETTES[env.season].frozen} input={fpInput} onExit={onExitFirstPerson} />
+        ) : (
+          <CameraRig mode={mode} framing={framing} onFit={setFitZoom} zoomFactor={debugFocus?.zoom} />
+        )}
         <group
           onClick={(e) => {
             // One tap hits several meshes; open the mökki once
@@ -344,9 +355,9 @@ const MokkiScene = (props: MokkiSceneProps) => {
             onBackgroundClick?.();
           }}
         >
-          <Diorama {...props} />
+          <Diorama {...props} firstPerson={firstPerson} />
         </group>
-        {mode === "full" && (
+        {mode === "full" && !firstPerson && (
           <OrbitControls
             target={target}
             enablePan={false}
@@ -362,6 +373,7 @@ const MokkiScene = (props: MokkiSceneProps) => {
           />
         )}
       </Canvas>
+      {firstPerson && <FirstPersonOverlay input={fpInput} />}
     </div>
   );
 };

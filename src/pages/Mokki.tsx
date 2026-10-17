@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Footprints, X } from "lucide-react";
 import { toast } from "sonner";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,12 +72,16 @@ const Mokki = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [neighborsOpen, setNeighborsOpen] = useState(false);
   const [dogOpen, setDogOpen] = useState(false);
+  // First-person walk around the island (own or a neighbor's)
+  const [walking, setWalking] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [inboxOpen, setInboxOpen] = useState(() => searchParams.get("mail") === "1");
   const webgl = useMemo(() => hasWebGL(), []);
   const dog = useMemo(() => sceneDog(data.pieces, data.gamesPlayed), [data.pieces, data.gamesPlayed]);
   const effects = useMemo(() => data.effects.map((e) => ({ id: e.id, actionId: e.actionId })), [data.effects]);
   const paljuGuests = useMemo(() => paljuGuestNames(data), [data]);
+
+  useEffect(() => setWalking(false), [ownerId]);
 
   // Received löyly: puff on arrival, then mark seen
   useEffect(() => {
@@ -222,6 +226,8 @@ const Mokki = () => {
               paljuGuests={paljuGuests}
               onDogClick={dog ? handleDogClick : undefined}
               onEffectClick={handleEffectClick}
+              firstPerson={walking}
+              onExitFirstPerson={() => setWalking(false)}
             />
           </Suspense>
         ) : (
@@ -233,34 +239,66 @@ const Mokki = () => {
       </div>
 
       {/* Top bar */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
-        <Button
-          size="sm"
-          className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
-          onClick={() => (isOwn ? navigate("/") : navigate(-1))}
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
-          {isOwn ? "Back to Game" : "Back"}
-        </Button>
-        <Button
-          size="sm"
-          className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
-          onClick={() => setNeighborsOpen(true)}
-        >
-          <span aria-hidden="true" className="mr-1">🏘️</span>
-          Visit neighbors
-        </Button>
-      </header>
+      {walking ? (
+        <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
+          <Button
+            size="sm"
+            className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+            onClick={() => setWalking(false)}
+          >
+            <X className="mr-1 h-4 w-4" aria-hidden="true" />
+            Stop walking
+          </Button>
+          <div className="truncate rounded-full bg-black/45 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">{title}</div>
+        </header>
+      ) : (
+        <>
+          <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
+            <Button
+              size="sm"
+              className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+              onClick={() => (isOwn ? navigate("/") : navigate(-1))}
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
+              {isOwn ? "Back to Game" : "Back"}
+            </Button>
+            <div className="flex gap-2">
+              {webgl && (
+                <Button
+                  size="sm"
+                  className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+                  onClick={() => {
+                    setPanelOpen(false);
+                    setWalking(true);
+                  }}
+                  aria-label="Walk around the island"
+                >
+                  <Footprints className="h-4 w-4 sm:mr-1" aria-hidden="true" />
+                  <span className="hidden sm:inline">Walk</span>
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="pointer-events-auto bg-white text-slate-900 shadow-md ring-1 ring-black/10 hover:bg-slate-100"
+                onClick={() => setNeighborsOpen(true)}
+              >
+                <span aria-hidden="true" className="mr-1">🏘️</span>
+                Visit neighbors
+              </Button>
+            </div>
+          </header>
 
-      {/* Floating title above the island */}
-      <div className="pointer-events-none absolute inset-x-0 top-14 z-10 flex justify-center px-4">
-        <div className="max-w-full rounded-2xl bg-black/45 px-4 py-1.5 text-center text-white backdrop-blur-sm">
-          <h1 className="truncate font-display text-lg font-bold leading-tight drop-shadow">{title}</h1>
-          <p className="text-[11px] text-white/85">
-            {isOwn ? saunaStatus(data.playedToday, currentStreak, streakNapped) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
-          </p>
-        </div>
-      </div>
+          {/* Floating title above the island */}
+          <div className="pointer-events-none absolute inset-x-0 top-14 z-10 flex justify-center px-4">
+            <div className="max-w-full rounded-2xl bg-black/45 px-4 py-1.5 text-center text-white backdrop-blur-sm">
+              <h1 className="truncate font-display text-lg font-bold leading-tight drop-shadow">{title}</h1>
+              <p className="text-[11px] text-white/85">
+                {isOwn ? saunaStatus(data.playedToday, currentStreak, streakNapped) : data.playedToday ? "♨️ Sauna is warm today" : "🪵 Stove is cold today"} · {data.gamesPlayed} days played
+              </p>
+            </div>
+          </div>
+        </>
+      )}
 
       <NeighborsSheet
         open={neighborsOpen}
@@ -272,13 +310,13 @@ const Mokki = () => {
 
       {isOwn ? (
         <>
-          {!panelOpen && <ChoresTray data={data} onDo={doAction} onRewarded={refetchBadges} className="absolute inset-x-0 bottom-[5.25rem] z-10" />}
-          <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />
+          {!panelOpen && !walking && <ChoresTray data={data} onDo={doAction} onRewarded={refetchBadges} className="absolute inset-x-0 bottom-[5.25rem] z-10" />}
+          {!walking && <BuildPanel owned={data.pieces} gamesPlayed={data.gamesPlayed} credits={userCredits} onBuy={handleBuy} open={panelOpen} onOpenChange={setPanelOpen} />}
           <InboxSheet open={inboxOpen} onOpenChange={setInbox} items={data.inbox} onMarkRead={() => setInbox(false)} />
           {dog && <DogSheet open={dogOpen} onOpenChange={setDogOpen} data={data} onDo={doAction} onRewarded={refetchBadges} />}
         </>
       ) : (
-        <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />
+        !walking && <NeighborActions data={data} onDo={doAction} onSendLoyly={handleSendLoyly} onRewarded={refetchBadges} />
       )}
     </div>
   );

@@ -120,21 +120,18 @@ export const Island = ({ palette }: { palette: SeasonPalette }) => {
 };
 
 /** Smooth granite boulders (kalliot) along the shore. */
+export const SHORE_ROCKS = Array.from({ length: 16 }, (_, i) => {
+  const a = (i / 16) * Math.PI * 2 + rand(i + 40) * 0.3;
+  // Leave room for the dock on the east shore
+  const r = 5.05 + rand(i + 50) * 0.45;
+  const s = 0.22 + rand(i + 60) * 0.35;
+  return { pos: [Math.cos(a) * r, 0.05, Math.sin(a) * r] as Vec3, s, rot: rand(i + 70) * 3 };
+}).filter((r) => !(r.pos[0] > 3.5 && r.pos[2] > -2.4 && r.pos[2] < -0.9));
+
 export const ShoreRocks = ({ snow }: { snow: boolean }) => {
-  const rocks = useMemo(
-    () =>
-      Array.from({ length: 16 }, (_, i) => {
-        const a = (i / 16) * Math.PI * 2 + rand(i + 40) * 0.3;
-        // Leave room for the dock on the east shore
-        const r = 5.05 + rand(i + 50) * 0.45;
-        const s = 0.22 + rand(i + 60) * 0.35;
-        return { pos: [Math.cos(a) * r, 0.05, Math.sin(a) * r] as Vec3, s, rot: rand(i + 70) * 3 };
-      }).filter((r) => !(r.pos[0] > 3.5 && r.pos[2] > -2.4 && r.pos[2] < -0.9)),
-    [],
-  );
   return (
     <group>
-      {rocks.map((r, i) => (
+      {SHORE_ROCKS.map((r, i) => (
         <group key={i} position={r.pos} rotation={[0, r.rot, 0]}>
           <mesh scale={[r.s * 1.5, r.s * 0.75, r.s]}>
             <dodecahedronGeometry args={[1, 0]} />

@@ -24,10 +24,12 @@ const FOCUS: Record<string, [number, number, number]> = {
  * Tech tree extras: &dog=puudeli|aussi|lagotto&dogname=Musti&flag=saame
  * &effects=vessapaperi,ruotsin_lippu,marjavarkaus&guests=Aino,Juha
  * Close-ups (full view): &focus=dog|porch|nuotio|onki|fence|palju|x,y,z&zoom=3
+ * First-person walk (full view): &walk=1
  */
 const MokkiScenePreview = () => {
   const [params] = useSearchParams();
   const [log, setLog] = useState<string[]>([]);
+  const [walking, setWalking] = useState(() => params.get("walk") === "1");
 
   const season = (params.get("season") as MokkiSeason | null) ?? undefined;
   const elev = params.get("elev");
@@ -163,7 +165,14 @@ const MokkiScenePreview = () => {
         {log.length > 0 && <p className="text-xs text-muted-foreground">Clicked: {log.join(", ")}</p>}
       </div>
       {(view === "full" || view === "both") && (
-        <div className="mx-auto mt-4 h-[80vh] max-w-5xl overflow-hidden rounded-2xl">
+        <div className="relative mx-auto mt-4 h-[80vh] max-w-5xl overflow-hidden rounded-2xl">
+          <button
+            type="button"
+            className="absolute right-3 top-3 z-20 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-md"
+            onClick={() => setWalking((w) => !w)}
+          >
+            {walking ? "Stop walking" : "👣 Walk"}
+          </button>
           <Suspense fallback={null}>
             <MokkiScene
               {...common}
@@ -173,6 +182,8 @@ const MokkiScenePreview = () => {
               debugFocus={debugFocus}
               onDogClick={() => note("dog")}
               onEffectClick={(id) => note(`clean ${id}`)}
+              firstPerson={walking}
+              onExitFirstPerson={() => setWalking(false)}
             />
           </Suspense>
         </div>
