@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kymppijape — the story so far</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jersey+25&family=Work+Sans:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a1520; --bg2: #102436; --panel: #142c42; --line: #24425e;
+  --text: #eef4f8; --muted: #9db2c4; --em: #10b981; --em2: #059669; --gold: #f2c14e;
+  --tuli: #e8693c; --jarvi: #3fa7e0; --piha: #6cc04a; --pihapiiri: #c48a52; --elama: #b98be0;
+  --pixel: "Jersey 25", "Silkscreen", ui-monospace, monospace;
+  --sans: "Work Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #050b11; color: var(--text); font-family: var(--sans); }
+body { -webkit-font-smoothing: antialiased; }
+
+/* ---------- stage & slides ---------- */
+#stage { position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px; transform-origin: center; overflow: hidden;
+  background: radial-gradient(1200px 700px at 15% -10%, #1b3a57 0%, var(--bg) 60%); border-radius: 6px; }
+.slide { position: absolute; inset: 0; padding: 70px 100px; opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility 0s .6s; }
+.slide.on { opacity: 1; visibility: visible; transition: opacity .6s ease; z-index: 2; }
+.slide.light { background: linear-gradient(180deg, #f4f7f5, #e7efe9); color: #13202b; }
+.slide.light .muted { color: #5b6c78; }
+
+/* builds */
+.slide .a { opacity: 0; }
+.slide.on .a { animation: var(--anim, up) .9s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d, 0s); }
+.a.pop { --anim: pop; } .a.left { --anim: fromleft; } .a.right { --anim: fromright; } .a.fade { --anim: fade; } .a.zoom { --anim: zoom; } .a.drop { --anim: drop; }
+@keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.6); } 70% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes fromleft { from { opacity: 0; transform: translateX(-80px); } to { opacity: 1; transform: none; } }
+@keyframes fromright { from { opacity: 0; transform: translateX(80px); } to { opacity: 1; transform: none; } }
+@keyframes zoom { from { opacity: 0; transform: scale(1.15); } to { opacity: 1; transform: none; } }
+@keyframes drop { 0% { opacity: 0; transform: translateY(-60px) rotate(-8deg); } 60% { opacity: 1; transform: translateY(6px) rotate(2deg); } 100% { opacity: 1; transform: none; } }
+
+/* ---------- type ---------- */
+.kicker { font: 600 18px/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--em); display: flex; gap: 14px; align-items: center; }
+.kicker .date { color: var(--gold); letter-spacing: .08em; }
+h1, h2 { font-family: var(--pixel); font-weight: 400; letter-spacing: .01em; line-height: .95; }
+h2 { font-size: 84px; margin: 14px 0 22px; }
+h2 em { font-style: normal; color: var(--em); }
+p.lead { font-size: 27px; line-height: 1.45; color: var(--muted); max-width: 720px; }
+p.lead b { color: var(--text); font-weight: 600; }
+.light p.lead b { color: #13202b; }
+.muted { color: var(--muted); }
+.pixel { font-family: var(--pixel); }
+.gold { color: var(--gold); } .em { color: var(--em); }
+.row { display: flex; gap: 40px; } .col { display: flex; flex-direction: column; }
+.abs { position: absolute; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); font-size: 17px; font-weight: 600; }
+.light .chip { background: #fff; border-color: #d5e0d9; }
+.card { background: rgba(20,44,66,.85); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; }
+.light .card { background: #fff; border-color: #dae4dd; box-shadow: 0 10px 30px rgba(20,40,30,.08); }
+.stat { font-family: var(--pixel); font-size: 74px; line-height: .9; color: var(--gold); }
+.stat small { font-family: var(--sans); font-size: 18px; display: block; color: var(--muted); letter-spacing: .04em; margin-top: 8px; font-weight: 500; }
+.sarcasm { font-family: "Caveat", cursive; color: var(--gold); font-size: 34px; transform: rotate(-3deg); display: inline-block; }
+
+/* ---------- frames ---------- */
+.phone { width: 300px; border-radius: 38px; background: #0d0f12; padding: 10px; box-shadow: 0 30px 70px rgba(0,0,0,.55), inset 0 0 0 2px #2b3138; position: relative; }
+.phone .scr { height: var(--h, 600px); border-radius: 29px; overflow: hidden; background: var(--sbg, #f4f4f4); position: relative; padding-top: 30px; }
+.phone .scr img { display: block; width: 100%; }
+.phone::before { content: ""; position: absolute; top: 18px; left: 50%; width: 80px; height: 20px; margin-left: -40px; background: #0d0f12; border-radius: 12px; z-index: 3; }
+.browser { border-radius: 16px; overflow: hidden; background: #0d1318; box-shadow: 0 30px 80px rgba(0,0,0,.55); border: 1px solid #2a3a48; }
+.browser .bar { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 14px; background: #18232d; }
+.browser .bar i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; } .browser .bar i:nth-child(2) { background: #febc2e; } .browser .bar i:nth-child(3) { background: #28c840; }
+.browser .bar span { margin-left: 14px; font-size: 13px; color: #8aa0b3; background: #0f1820; padding: 4px 14px; border-radius: 8px; }
+.browser img { display: block; width: 100%; }
+.cap { font-size: 16px; color: var(--muted); margin-top: 12px; text-align: center; font-weight: 500; }
+.light .cap { color: #5b6c78; }
+
+/* ---------- dice ---------- */
+.die { width: 64px; height: 64px; border-radius: 13px; background: #fbfbf8; border: 3px solid #d9dcd6; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 9px; gap: 2px; position: relative;
+  box-shadow: 0 4px 0 #b9bcb4, 0 10px 18px rgba(0,0,0,.25); transition: border-color .25s, box-shadow .25s, transform .25s; }
+.die i { display: block; border-radius: 50%; margin: 1px; }
+.die i.p { background: #16191c; }
+.die.locked { border-color: var(--em); box-shadow: 0 4px 0 #0b7a57, 0 0 0 4px rgba(16,185,129,.25), 0 10px 22px rgba(16,185,129,.35); }
+.die.locked::after { content: "🔒"; position: absolute; top: -12px; right: -12px; width: 26px; height: 26px; border-radius: 50%; background: var(--em); font-size: 12px; display: grid; place-items: center; }
+.die.rolling { animation: shake .12s linear infinite; }
+@keyframes shake { 0% { transform: rotate(-9deg) translateY(-3px); } 50% { transform: rotate(8deg) translateY(2px); } 100% { transform: rotate(-9deg) translateY(-3px); } }
+.die.win { animation: winhop .7s cubic-bezier(.3,1.6,.5,1) both; animation-delay: var(--wd, 0s); }
+@keyframes winhop { 0% { transform: translateY(0); } 40% { transform: translateY(-24px) rotate(8deg); } 100% { transform: none; } }
+.board { display: grid; grid-template-columns: repeat(5, 64px); gap: 18px; }
+.board.click .die { cursor: pointer; }
+.board.click .die:hover { transform: translateY(-3px); }
+
+/* ---------- nav ---------- */
+#progress { position: fixed; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.06); z-index: 20; }
+#progress div { height: 100%; width: 0; background: linear-gradient(90deg, var(--em), var(--gold)); transition: width .5s ease; }
+#nav { position: fixed; right: 18px; bottom: 16px; display: flex; gap: 8px; align-items: center; z-index: 20; font: 600 13px var(--sans); color: #7d93a6; }
+#nav button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #2b4257; background: rgba(13,25,36,.8); color: #cfe0ec; font-size: 18px; cursor: pointer; }
+#nav button:hover { background: #17324a; }
+#chapter { position: fixed; left: 20px; bottom: 18px; z-index: 20; font: 600 13px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #6f8799; }
+#hint { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); font: 500 13px var(--sans); color: #6f8799; z-index: 20; transition: opacity 1s; }
+
+/* ---------- slide-specific ---------- */
+/* title */
+#s-title { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  background: radial-gradient(900px 500px at 50% 40%, #173d35 0%, transparent 70%), radial-gradient(1200px 700px at 15% -10%, #1b3a57 0%, var(--bg) 60%); }
+#s-title h1 { font-size: 210px; letter-spacing: .02em; text-shadow: 0 8px 0 #06352a, 0 30px 60px rgba(0,0,0,.5); }
+#s-title h1 span { display: inline-block; }
+#s-title .sub { font-size: 30px; color: var(--muted); margin-top: 10px; }
+#titleBoard { margin: 48px 0 28px; }
+.throwmeter { font: 600 20px var(--sans); color: var(--muted); letter-spacing: .1em; text-transform: uppercase; height: 30px; }
+.throwmeter b { font-family: var(--pixel); font-size: 40px; color: var(--gold); letter-spacing: 0; vertical-align: -6px; margin: 0 6px; }
+.stars { position: absolute; inset: 0; pointer-events: none; }
+.stars i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: .5; animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .1; } }
+
+/* board game night */
+#s-night { background: radial-gradient(700px 520px at 32% 58%, #4a3417 0%, #1a130b 55%, #0b0907 100%); }
+.lamp { position: absolute; left: 450px; top: -40px; width: 0; height: 0; }
+.lamp::before { content: ""; position: absolute; left: -60px; top: 0; width: 120px; height: 80px; background: #2e2416; clip-path: polygon(25% 0, 75% 0, 100% 100%, 0 100%); }
+.lamp::after { content: ""; position: absolute; left: -350px; top: 70px; width: 700px; height: 700px; background: radial-gradient(closest-side, rgba(255,200,120,.35), transparent); animation: flicker 4s infinite; }
+@keyframes flicker { 0%,100% { opacity: 1; } 47% { opacity: .92; } 50% { opacity: .8; } 53% { opacity: .95; } }
+.tabletop { position: absolute; left: 110px; top: 300px; width: 680px; height: 460px; border-radius: 50%; background: radial-gradient(closest-side, #6b4422, #3c2511 85%); box-shadow: 0 40px 80px rgba(0,0,0,.6), inset 0 0 60px rgba(0,0,0,.5); }
+.tabletop .item { position: absolute; font-size: 64px; filter: drop-shadow(0 8px 6px rgba(0,0,0,.5)); }
+.clock { position: absolute; left: 120px; top: 120px; font-family: var(--pixel); font-size: 96px; color: #ff6b4a; text-shadow: 0 0 20px rgba(255,80,50,.7); background: #0d0806; padding: 6px 26px 0; border-radius: 12px; border: 3px solid #2b1a10; }
+.clock small { font-size: 22px; font-family: var(--sans); color: #8a6a55; position: absolute; bottom: -34px; left: 0; right: 0; text-align: center; text-shadow: none; }
+.night-dice { position: absolute; left: 260px; top: 470px; display: flex; gap: 10px; flex-wrap: wrap; width: 400px; transform: rotate(-6deg) scale(.82); }
+.bubble { background: #fff; color: #16202a; border-radius: 22px; padding: 16px 22px; font-size: 24px; font-weight: 500; line-height: 1.35; max-width: 560px; position: relative; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
+.bubble.r { background: #ffe9a8; margin-left: 60px; }
+.bubble .who { display: block; font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8a6a2a; margin-bottom: 4px; }
+
+/* name */
+.eq { display: flex; align-items: center; gap: 30px; font-family: var(--pixel); font-size: 120px; margin-top: 30px; }
+.eq .term { text-align: center; }
+.eq .term small { display: block; font-family: var(--sans); font-size: 22px; color: var(--muted); margin-top: 6px; }
+.eq .op { color: var(--muted); font-size: 90px; }
+.steps { display: flex; gap: 24px; margin-top: 50px; }
+.steps .card { width: 300px; }
+.steps .n { font-family: var(--pixel); font-size: 54px; color: var(--em); line-height: 1; }
+.steps h4 { font-size: 24px; margin: 6px 0 6px; }
+.steps p { font-size: 18px; color: var(--muted); line-height: 1.4; }
+#play { position: absolute; right: 100px; top: 360px; width: 520px; text-align: center; }
+#play .board { justify-content: center; margin: 22px auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; cursor: pointer; background: var(--em2); color: #fff; font: 600 22px var(--sans); padding: 16px 30px; border-radius: 14px; box-shadow: 0 6px 0 #04573f; transition: transform .1s; }
+.btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #04573f; }
+.btn:disabled { opacity: .5; cursor: default; }
+#playMsg { font-size: 20px; color: var(--muted); height: 28px; }
+#playMsg b { color: var(--gold); }
+
+/* whatsapp */
+.wa { width: 460px; height: 740px; border-radius: 44px; background: #0d0f12; padding: 12px; box-shadow: 0 30px 70px rgba(0,0,0,.55); position: absolute; right: 120px; top: 80px; }
+.wa .scr { height: 100%; border-radius: 34px; overflow: hidden; background: #0b141a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='8' y='30' font-size='18' opacity='.05'%3E🎲%3C/text%3E%3Ctext x='46' y='70' font-size='16' opacity='.05'%3E☕%3C/text%3E%3C/svg%3E"); display: flex; flex-direction: column; }
+.wa .top { background: #1f2c34; padding: 40px 20px 14px; display: flex; gap: 12px; align-items: center; }
+.wa .top .av { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #f2c14e); display: grid; place-items: center; font-size: 22px; }
+.wa .top b { display: block; font-size: 18px; } .wa .top small { color: #8696a0; font-size: 13px; }
+.wa .msgs { flex: 1; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; justify-content: flex-end; }
+.msg { max-width: 82%; background: #202c33; border-radius: 12px; padding: 8px 12px 6px; font-size: 16px; line-height: 1.35; white-space: pre-line; position: relative; }
+.msg.me { align-self: flex-end; background: #005c4b; }
+.msg .n { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.msg .t { display: block; text-align: right; font-size: 11px; color: #8696a0; margin-top: 2px; }
+.msg .grid { font-size: 14px; line-height: 1.15; letter-spacing: 1px; }
+
+/* day one */
+.share { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 20px; line-height: 1.5; background: #0c1d16; border: 1px solid #1d4a37; color: #c9f5e2; border-radius: 16px; padding: 20px 24px; white-space: pre; }
+
+/* histogram */
+#hist { position: absolute; left: 100px; right: 100px; bottom: 90px; height: 430px; }
+#hist svg { width: 100%; height: 100%; overflow: visible; }
+.bar { transition: height 1.2s cubic-bezier(.2,.8,.2,1), y 1.2s cubic-bezier(.2,.8,.2,1); }
+.hlabel { font: 600 16px var(--sans); fill: var(--muted); }
+.anno { font: 600 19px var(--sans); fill: var(--text); }
+
+/* badges */
+.rarity { display: flex; height: 64px; border-radius: 14px; overflow: hidden; width: 760px; margin-top: 16px; }
+.rarity div { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; color: #fff; width: 0; transition: width 1.2s cubic-bezier(.2,.8,.2,1); white-space: nowrap; overflow: hidden; }
+.rlegend { display: flex; gap: 22px; margin-top: 12px; font-size: 16px; color: var(--muted); }
+.rlegend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--c); margin-right: 7px; }
+.credits { display: inline-flex; align-items: center; gap: 12px; font-family: var(--pixel); font-size: 64px; color: var(--gold); }
+.coin { width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe9a0, #f2c14e 45%, #b98516); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2); display: grid; place-items: center; font-size: 22px; color: #7a5208; font-family: var(--sans); font-weight: 800; }
+
+/* shop */
+.shopgrid { display: grid; grid-template-columns: repeat(5, 150px); gap: 16px; }
+.item { background: #fff; color: #13202b; border-radius: 16px; padding: 14px 12px; text-align: center; position: relative; border: 2px solid #dfe8e2; box-shadow: 0 8px 18px rgba(0,0,0,.18); }
+.item .e { font-size: 44px; line-height: 1.1; }
+.item .nm { font-size: 14px; font-weight: 600; margin-top: 6px; min-height: 34px; line-height: 1.2; }
+.item .pr { font-size: 15px; font-weight: 700; color: #b8860b; margin-top: 4px; }
+.item .cat { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: #7a8b96; }
+.item .owned { position: absolute; inset: 0; border-radius: 14px; background: rgba(5,150,105,.72); color: #fff; display: grid; place-items: center; font-family: var(--pixel); font-size: 30px; text-shadow: 0 2px 6px rgba(0,0,0,.35); opacity: 0; transform: scale(1.3) rotate(-8deg); transition: all .35s cubic-bezier(.3,1.6,.5,1); }
+.item.sold .owned { opacity: 1; transform: none; }
+.insult { position: absolute; background: #fff; color: #1a1a1a; border: 3px solid #1a1a1a; border-radius: 22px; padding: 14px 20px; font: 700 22px var(--sans); max-width: 380px; transition: opacity .3s, transform .3s; box-shadow: 6px 6px 0 #1a1a1a; }
+.insult::after { content: ""; position: absolute; left: 40px; bottom: -18px; border: 9px solid transparent; border-top-color: #1a1a1a; border-left-color: #1a1a1a; }
+
+/* drops */
+.drops { display: flex; gap: 34px; margin-top: 20px; }
+.dropcard { width: 440px; }
+.dropcard .tag { font: 700 15px var(--sans); letter-spacing: .14em; text-transform: uppercase; }
+.dropcard h3 { font-family: var(--pixel); font-weight: 400; font-size: 46px; margin: 4px 0 10px; }
+.dropcard .shot { border-radius: 18px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.45); background: #fff; height: 470px; }
+.dropcard .shot img { width: 100%; display: block; }
+.dropcard p { font-size: 18px; line-height: 1.4; color: var(--muted); margin-top: 14px; }
+.leaf { position: absolute; font-size: 28px; animation: leaf 6s linear infinite; opacity: 0; }
+@keyframes leaf { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 10% { opacity: .9; } 100% { opacity: 0; transform: translate(-120px, 500px) rotate(540deg); } }
+
+/* cinematics */
+.cines { display: flex; gap: 26px; justify-content: center; margin-top: 10px; }
+.cine { width: 300px; }
+.cine .phone .scr { height: 560px; padding-top: 0; }
+.cine .phone .scr img { height: 100%; object-fit: cover; object-position: center 40%; animation: kb 8s ease-in-out infinite alternate; }
+@keyframes kb { from { transform: scale(1); } to { transform: scale(1.12); } }
+.cine h4 { font-family: var(--pixel); font-weight: 400; font-size: 34px; margin-top: 14px; text-align: center; }
+.cine p { text-align: center; color: var(--muted); font-size: 16px; }
+
+/* groundbreaking */
+#s-opus { background: radial-gradient(900px 600px at 70% 50%, #3a2a17 0%, transparent 65%), radial-gradient(1200px 700px at 15% -10%, #1b3a57 0%, var(--bg) 60%); }
+.idea { position: absolute; width: 420px; padding: 28px; border-radius: 24px; background: #fffaf0; color: #1d1a14; box-shadow: 0 30px 60px rgba(0,0,0,.5); }
+.idea .e { font-size: 70px; }
+.idea h3 { font-family: var(--pixel); font-weight: 400; font-size: 56px; margin: 6px 0; }
+.idea p { font-size: 20px; line-height: 1.4; color: #5a5040; }
+.spark { position: absolute; font-size: 40px; animation: spark 2.4s ease-in-out infinite; }
+@keyframes spark { 50% { transform: scale(1.3) rotate(20deg); opacity: .6; } }
+
+/* vedot */
+#s-vedot { background: radial-gradient(900px 600px at 70% 60%, #3d2b10 0%, transparent 60%), linear-gradient(180deg, #1b130a, #0e0a06); }
+.fan { position: absolute; left: 700px; top: 70px; width: 860px; height: 780px; }
+.fan .phone { position: absolute; width: 250px; --h: 520px; }
+.odds { display: flex; gap: 14px; margin-top: 26px; }
+.odds .card { background: #2a1d0c; border-color: #5b4114; text-align: center; width: 150px; padding: 16px; }
+.odds .card b { font-family: var(--pixel); font-size: 48px; color: var(--gold); display: block; font-weight: 400; }
+.odds .card span { font-size: 15px; color: #c8b18a; }
+
+/* mökki */
+#s-mokki { padding: 0; }
+.seasons { position: absolute; inset: 0; }
+.seasons img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.4s ease; }
+.seasons img.show { opacity: 1; }
+.mokki-copy { position: absolute; left: 70px; top: 60px; width: 640px; padding: 34px 38px; border-radius: 26px; background: rgba(8,20,30,.72); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.12); }
+.seasonchip { position: absolute; right: 60px; bottom: 60px; font: 700 22px var(--sans); padding: 12px 22px; border-radius: 999px; background: rgba(8,20,30,.78); border: 1px solid rgba(255,255,255,.18); }
+.usage { position: absolute; right: 60px; top: 60px; width: 380px; padding: 24px; border-radius: 22px; background: rgba(8,20,30,.78); border: 1px solid rgba(255,255,255,.15); }
+.meter { height: 18px; border-radius: 10px; background: rgba(255,255,255,.1); overflow: hidden; margin: 14px 0 8px; }
+.meter div { height: 100%; width: 0; background: linear-gradient(90deg, var(--em), #6ee7b7); border-radius: 10px; transition: width 1.6s cubic-bezier(.2,.8,.2,1) .8s; }
+
+/* life */
+.life { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; margin-top: 18px; }
+.life .card { padding: 0; overflow: hidden; }
+.life .card .t { padding: 16px 20px 18px; }
+.life .card h4 { font-size: 23px; margin-bottom: 6px; }
+.life .card p { font-size: 16px; color: var(--muted); line-height: 1.4; }
+.life .ph { height: 330px; overflow: hidden; background: #1e2b36; }
+.life .ph img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* flow */
+#flow { position: absolute; left: 80px; right: 80px; top: 280px; height: 560px; }
+#flow svg { width: 100%; height: 100%; overflow: visible; }
+.node rect { rx: 18; }
+.node text { font-family: var(--sans); }
+.flowpath { fill: none; stroke-width: 3; stroke-dasharray: 8 10; opacity: .5; animation: dash 1.2s linear infinite; }
+@keyframes dash { to { stroke-dashoffset: -36; } }
+
+/* tech tree */
+#tree { position: absolute; left: 90px; top: 280px; width: 1060px; height: 590px; }
+#tree svg { width: 100%; height: 100%; overflow: visible; }
+.tnode { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.tree-on .tnode { animation: pop .6s cubic-bezier(.3,1.5,.5,1) both; animation-delay: var(--d); }
+.tedge { fill: none; stroke-width: 2.5; stroke-dasharray: 400; stroke-dashoffset: 400; }
+.tree-on .tedge { animation: draw 1s ease forwards; animation-delay: var(--d); }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* walk */
+#s-walk { padding: 0; background: #000; }
+#s-walk .big { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hud { position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%); font: 500 18px var(--sans); background: rgba(10,20,15,.75); color: #fff; padding: 10px 22px; border-radius: 999px; }
+.walk-copy { position: absolute; left: 60px; top: 50px; width: 600px; padding: 30px 34px; border-radius: 26px; background: rgba(8,20,30,.74); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.12); }
+.walk-list { list-style: none; margin-top: 16px; }
+.walk-list li { font-size: 21px; padding: 9px 0; display: flex; gap: 14px; align-items: center; border-top: 1px solid rgba(255,255,255,.08); }
+.walk-list li span { font-size: 28px; width: 36px; text-align: center; }
+.crosshair { position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px; border: 2px solid rgba(255,255,255,.85); border-radius: 50%; }
+.thumbs { position: absolute; right: 50px; bottom: 110px; display: flex; flex-direction: column; gap: 16px; }
+.thumbs img { width: 300px; border-radius: 14px; border: 3px solid rgba(255,255,255,.85); box-shadow: 0 20px 40px rgba(0,0,0,.5); display: block; }
+
+/* porch 3d */
+#s-porch { background: radial-gradient(900px 500px at 50% 30%, #5b8fc4 0%, #2d5a86 50%, #142b40 100%); overflow: hidden; }
+.porch-scene { position: absolute; left: 50%; top: 300px; width: 900px; height: 520px; margin-left: -450px; perspective: 1400px; perspective-origin: 50% -20%; }
+.ptable { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(58deg); border-radius: 28px;
+  background: repeating-linear-gradient(90deg, #a8743f 0 112px, #8f5f30 112px 116px); box-shadow: 0 0 0 14px #6e4520; }
+.cube { position: absolute; width: 56px; height: 56px; transform-style: preserve-3d; transition: transform 1.1s cubic-bezier(.25,.9,.3,1), left .6s ease, top .6s ease; }
+.cube .f { position: absolute; inset: 0; background: #fbfaf5; border-radius: 9px; border: 2px solid #d8d6cc; display: grid; grid-template: repeat(3,1fr)/repeat(3,1fr); padding: 7px; }
+.cube .f i { border-radius: 50%; margin: 1px; } .cube .f i.p { background: #1a1a1a; }
+.cube.locked .f { background: #e9fff5; border-color: var(--em); }
+.pbubble { position: absolute; left: 50%; top: 150px; transform: translateX(-50%); background: rgba(10,20,15,.82); color: #fff; font: 600 24px var(--sans); padding: 14px 28px; border-radius: 999px; white-space: nowrap; border: 1px solid rgba(255,255,255,.2); transition: opacity .3s; }
+
+/* door note */
+.door { position: absolute; width: 260px; height: 440px; background: linear-gradient(90deg, #2f5a3c, #3b6b4a); border: 14px solid #f1ede4; border-bottom: 0; border-radius: 4px 4px 0 0; }
+.door::after { content: ""; position: absolute; right: 22px; top: 210px; width: 18px; height: 18px; border-radius: 50%; background: #d4a83a; }
+.note { position: absolute; width: 190px; padding: 18px 16px; background: #fff27a; color: #333; font: 600 26px/1.2 "Caveat", cursive; transform: rotate(-4deg); box-shadow: 0 10px 20px rgba(0,0,0,.35); }
+
+/* outro / numbers */
+.nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 20px; }
+.nums .card { padding: 24px; }
+.timeline { position: absolute; left: 100px; right: 100px; bottom: 150px; height: 200px; }
+.timeline .axis { position: absolute; left: 0; right: 0; top: 90px; height: 4px; background: #2a4560; border-radius: 2px; }
+.timeline .fill { position: absolute; left: 0; top: 90px; height: 4px; width: 0; background: linear-gradient(90deg, var(--em), var(--gold)); transition: width 3s ease .4s; border-radius: 2px; }
+.tick { position: absolute; top: 0; height: 200px; transform: translateX(-50%); text-align: center; width: 150px; }
+.tick .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--gold); margin: 81px auto 0; box-shadow: 0 0 0 5px rgba(242,193,78,.2); }
+.tick .lbl { font-size: 18px; font-weight: 600; line-height: 1.25; position: absolute; left: 0; right: 0; }
+.tick.up .lbl { bottom: 124px; } .tick.dn .lbl { top: 112px; }
+.tick .lbl small { display: block; color: var(--gold); font-size: 15px; letter-spacing: .06em; }
+.tick .e { font-size: 30px; display: block; }
+#s-end { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  background: radial-gradient(900px 500px at 50% 45%, #145a45 0%, transparent 70%), radial-gradient(1200px 700px at 15% -10%, #1b3a57 0%, var(--bg) 60%); }
+#s-end h2 { font-size: 120px; }
+.url { font-family: var(--pixel); font-size: 96px; color: var(--gold); margin-top: 12px; text-shadow: 0 6px 0 #6b4a05; }
+#confetti { position: absolute; inset: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- 0 · TITLE -->
+<section class="slide" id="s-title" data-chapter="Prologue">
+  <div class="stars" id="stars"></div>
+  <div class="kicker a fade" style="--d:.1s">A story in ten months · Jan → Oct 2026</div>
+  <h1 class="a pop" style="--d:.2s">KYMPPIJAPE</h1>
+  <div class="sub a" style="--d:.5s">From a late-night board game joke to a walkable 3D mökki on a Finnish lake</div>
+  <div class="board" id="titleBoard"></div>
+  <div class="throwmeter" id="titleMeter"></div>
+</section>
+
+<!-- 1 · BOARD GAME NIGHT -->
+<section class="slide" id="s-night" data-chapter="Chapter 1 · The joke">
+  <div class="lamp"></div>
+  <div class="tabletop a fade" style="--d:.1s">
+    <div class="item" style="left:70px;top:90px">🍺</div>
+    <div class="item" style="left:520px;top:70px">🍺</div>
+    <div class="item" style="left:560px;top:290px">🃏</div>
+    <div class="item" style="left:90px;top:300px">🥨</div>
+    <div class="item" style="left:300px;top:20px;font-size:52px">🏆</div>
+  </div>
+  <div class="night-dice" id="nightDice"></div>
+  <div class="clock a pop" style="--d:.4s"><span id="clockTime">01:47</span><small>…still going</small></div>
+  <div class="abs" style="left:860px;top:90px;width:640px">
+    <div class="kicker a" style="--d:.2s">Chapter 1 · The joke</div>
+    <h2 class="a" style="--d:.3s;font-size:72px">It started on a<br><em>board game night</em></h2>
+    <div class="col" style="gap:16px;margin-top:26px">
+      <div class="bubble a left" style="--d:1.0s"><span class="who">Somewhere past midnight</span>OK but who here is actually the most skilled dice thrower?</div>
+      <div class="bubble r a right" style="--d:1.8s"><span class="who">The obvious test</span>Ten dice. Get all ten on the same number. Fewest throws wins.</div>
+      <div class="bubble a left" style="--d:2.6s"><span class="who">Everyone, instantly</span>…so a ten-of-a-kind Yatzy. <b>Kymppijape.</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · THE NAME + RULES + PLAYABLE -->
+<section class="slide" id="s-name" data-chapter="Chapter 1 · The joke">
+  <div class="kicker a">The name stuck</div>
+  <div class="eq">
+    <div class="term a pop" style="--d:.2s">KYMPPI<small>"a tenner": ten</small></div>
+    <div class="op a fade" style="--d:.5s">+</div>
+    <div class="term a pop" style="--d:.7s">JAPE<small>Yatzy, the Finnish way</small></div>
+    <div class="op a fade" style="--d:1.0s">=</div>
+    <div class="term a pop em" style="--d:1.3s">🎲×10<small style="color:var(--em)">ten of a kind</small></div>
+  </div>
+  <div class="steps">
+    <div class="card a" style="--d:1.6s"><div class="n">1</div><h4>Roll all ten</h4><p>Everyone gets the same dice, same rules.</p></div>
+    <div class="card a" style="--d:1.8s"><div class="n">2</div><h4>Lock what you like</h4><p>Tap dice to keep them. Pick your number. Pray.</p></div>
+  </div>
+  <div class="steps" style="margin-top:24px">
+    <div class="card a" style="--d:2.0s"><div class="n">3</div><h4>Repeat until ten match</h4><p>Count the throws. Lowest count wins bragging rights.</p></div>
+    <div class="card a" style="--d:2.2s;border-color:var(--em2)"><div class="n">?</div><h4>Your turn →</h4><p>This board is live. Click dice to lock, then roll.</p></div>
+  </div>
+  <div id="play" class="card a right" style="--d:1.4s">
+    <div class="pixel" style="font-size:44px">Try it</div>
+    <div class="board click" id="playBoard"></div>
+    <div id="playMsg">Press roll to start</div>
+    <div style="margin-top:16px"><button class="btn" id="playBtn">🎲 Roll dice</button></div>
+  </div>
+</section>
+
+<!-- 3 · WHATSAPP -->
+<section class="slide" id="s-wa" data-chapter="Chapter 2 · The daily">
+  <div class="kicker a">Chapter 2 · The daily</div>
+  <h2 class="a" style="--d:.1s">Every morning,<br>the group chat<br>posts its <em>scores</em></h2>
+  <p class="lead a" style="--d:.3s">Our friends already had the habit: daily puzzle games and their result grids, dropped into the WhatsApp group with the morning coffee.</p>
+  <p class="lead a" style="--d:.5s;margin-top:22px">Meanwhile <b>vibe coding</b> was going mainstream and I'd just found <b>Lovable</b>. The obvious first project?</p>
+  <p class="lead a" style="--d:.7s;margin-top:22px;color:var(--gold)"><b style="color:var(--gold)">A daily Kymppijape.</b> How many rolls did <i>you</i> need today?</p>
+  <div class="wa a right" style="--d:.2s">
+    <div class="scr">
+      <div class="top"><div class="av">🎲</div><div><b>Pelit ☕🎲</b><small>8 participants</small></div></div>
+      <div class="msgs">
+        <div class="msg a" style="--d:.8s"><span class="n" style="color:#f2c14e">Friend 1</span>Daily puzzle 4/6
+<span class="grid">⬛🟨⬛⬛⬛
+⬛🟩🟨⬛⬛
+🟩🟩🟩⬛🟩
+🟩🟩🟩🟩🟩</span><span class="t">07:42</span></div>
+        <div class="msg a" style="--d:1.4s"><span class="n" style="color:#53bdeb">Friend 2</span>3/6 before coffee 😎<span class="t">07:58</span></div>
+        <div class="msg me a" style="--d:2.4s">Kymppijape Daily 13.01.2026
+Throws: 9
+🎲🎲🎲🎲🎲🎲🎲🎲🎲
+
+kymppijape.com<span class="t">08:03 ✓✓</span></div>
+        <div class="msg a" style="--d:3.4s"><span class="n" style="color:#f2c14e">Friend 1</span>wait what is this 😂<span class="t">08:04</span></div>
+        <div class="msg a" style="--d:4.0s"><span class="n" style="color:#ff7aa8">Friend 3</span>14. rigged.<span class="t">08:11</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="abs muted a fade" style="--d:4.4s;right:130px;bottom:40px;font-size:14px">Chat is a dramatisation. The share text is the real one from the game.</div>
+</section>
+
+<!-- 4 · DAY ONE -->
+<section class="slide light" id="s-v1" data-chapter="Chapter 2 · The daily">
+  <div class="kicker a" style="color:var(--em2)">Day one <span class="date">13 January 2026</span></div>
+  <h2 class="a" style="--d:.1s;font-size:76px">Version 1,<br>built in <em style="color:var(--em2)">Lovable</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:640px;font-size:24px">A single daily challenge: the same opening throw for everyone, one attempt a day, and a share button for the group chat. That was the whole game.</p>
+  <div class="row" style="margin-top:34px;gap:24px">
+    <div class="card a" style="--d:.5s;width:190px"><div class="stat" style="color:var(--em2)" data-count="51">51</div><div class="muted" style="font-size:17px;margin-top:6px">commits on day one</div></div>
+    <div class="card a" style="--d:.65s;width:190px"><div class="stat" style="color:var(--em2)">1×</div><div class="muted" style="font-size:17px;margin-top:6px">play per day, at midnight</div></div>
+  </div>
+  <div class="share a" style="--d:1s;margin-top:28px;width:610px">Kymppijape Daily 13.01.2026
+Throws: 9
+🎲🎲🎲🎲🎲🎲🎲🎲🎲
+
+kymppijape.com</div>
+  <div class="abs" style="right:400px;top:90px"><div class="phone a drop" style="--d:.4s"><div class="scr"><img src="img/v1-mid.webp" alt="Version 1 mid-game"></div></div><div class="cap a fade" style="--d:.8s">v1: lock dice, roll again</div></div>
+  <div class="abs" style="right:70px;top:130px"><div class="phone a drop" style="--d:.7s"><div class="scr"><img src="img/v1-win.webp" alt="Version 1 win screen"></div></div><div class="cap a fade" style="--d:1.1s">"Kymppijape! 🎉" (real v1 screenshot)</div></div>
+</section>
+
+<!-- 5 · TERRIBLE GAME / HISTOGRAM -->
+<section class="slide" id="s-hist" data-chapter="Chapter 2 · The daily">
+  <div class="kicker a">An honest review</div>
+  <h2 class="a" style="--d:.1s">As a game, it was <em style="color:var(--tuli)">pretty bad</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:1100px">Throws needed across <b id="simN">200,000</b> simulated games played by the simple "keep the most common number" strategy. Your skill moves the needle about as much as you'd expect.</p>
+  <div class="abs a pop" style="--d:2.2s;right:110px;top:90px;text-align:right">
+    <div class="sarcasm">"It's obviously pure skill,<br>no luck involved."</div>
+    <div class="muted" style="font-size:15px;margin-top:6px">the game's own description, to this day</div>
+  </div>
+  <div id="hist"></div>
+</section>
+
+<!-- 6 · STATS & LEADERBOARD -->
+<section class="slide" id="s-stats" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">Chapter 3 · Gamify it <span class="date">Jan 16 – 21</span></div>
+  <h2 class="a" style="--d:.1s;font-size:74px">Step 1: give everyone<br>numbers to <em>argue about</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:640px">The meme kept it alive, but people wanted proof of their <i>superior skill</i>. So: personal stats, then a leaderboard.</p>
+  <div class="col" style="gap:14px;margin-top:30px;width:620px">
+    <div class="card a left" style="--d:.5s;display:flex;gap:18px;align-items:center"><span style="font-size:34px">🏆</span><div><b style="font-size:21px">Personal best & average</b><div class="muted" style="font-size:17px">Every throw count, saved server-side</div></div></div>
+    <div class="card a left" style="--d:.65s;display:flex;gap:18px;align-items:center"><span style="font-size:34px">🔥</span><div><b style="font-size:21px">Daily streaks</b><div class="muted" style="font-size:17px">The real reason anyone plays on a Sunday</div></div></div>
+    <div class="card a left" style="--d:.8s;display:flex;gap:18px;align-items:center"><span style="font-size:34px">⭐</span><div><b style="font-size:21px">Lucky number & percentile</b><div class="muted" style="font-size:17px">"Top 85% result", which sounds great until you think about it</div></div></div>
+  </div>
+  <div class="abs" style="right:400px;top:120px"><div class="phone a drop" style="--d:.4s"><div class="scr"><img src="img/now-mid.webp" alt="Game board mid-game"></div></div><div class="cap a fade" style="--d:.8s">The daily board today</div></div>
+  <div class="abs" style="right:70px;top:80px"><div class="phone a drop" style="--d:.7s"><div class="scr"><img src="img/leaderboard.webp" alt="Leaderboard"></div></div><div class="cap a fade" style="--d:1.1s">The leaderboard: best 3, average 13.9</div></div>
+</section>
+
+<!-- 7 · BADGES & CREDITS -->
+<section class="slide" id="s-badges" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">Badges & credits <span class="date">Jan 19</span></div>
+  <h2 class="a" style="--d:.1s">Step 2: rewards,<br>but <em>never pay-to-win</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:700px">How do you gamify a dice game and keep it <b>absolutely skill-based</b>? <span class="sarcasm" style="font-size:30px">(you know, like it was before)</span><br>Play consistently and well, earn badges, and every badge pays out <b class="gold">credits</b>.</p>
+  <div class="a" style="--d:.5s;margin-top:28px"><div class="muted" style="font-size:17px;font-weight:600;letter-spacing:.1em;text-transform:uppercase">79 badges by rarity</div>
+    <div class="rarity" id="rarity">
+      <div style="background:#8b98a4" data-w="17">17</div><div style="background:#22a95b" data-w="21">21</div><div style="background:#3b82f6" data-w="26">26</div><div style="background:#a855f7" data-w="8">8</div><div style="background:#e48a10" data-w="7">7</div>
+    </div>
+    <div class="rlegend"><span style="--c:#8b98a4">Common</span><span style="--c:#22a95b">Uncommon</span><span style="--c:#3b82f6">Rare</span><span style="--c:#a855f7">Epic</span><span style="--c:#e48a10">Legendary</span></div>
+  </div>
+  <div class="row a" style="--d:.9s;margin-top:30px;gap:30px;align-items:center">
+    <div class="credits"><div class="coin">c</div><span id="credCount">0</span></div>
+    <div class="muted" style="font-size:18px;line-height:1.4;max-width:420px">Legendary example: <b style="color:var(--text)">Dice God</b>, a Kymppijape on the very first throw. +1000 credits, odds 1 in 10,077,696.</div>
+  </div>
+  <div class="abs" style="right:90px;top:110px;width:440px"><img class="a zoom" style="--d:.6s;width:100%;border-radius:22px;box-shadow:0 30px 70px rgba(0,0,0,.55)" src="img/badge-modal.webp" alt="Badge unlocked modal"><div class="cap a fade" style="--d:1s">The unlock modal, confetti included</div></div>
+</section>
+
+<!-- 8 · SHOP -->
+<section class="slide" id="s-shop" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">The shop <span class="date">Jan 27 →</span></div>
+  <h2 class="a" style="--d:.1s">Step 3: something to<br><em>spend credits on</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:640px">The natural next step was a cosmetics store: dice skins, throw animations, backgrounds and some very questionable "actions".</p>
+  <div class="shopgrid" id="shopgrid" style="margin-top:34px"></div>
+  <div class="abs" style="right:230px;top:60px;width:300px">
+    <div class="phone a drop" style="--d:.5s"><div class="scr"><img src="img/shop-golden-full.webp" alt="Golden dice in the shop"></div></div>
+    <div class="cap a fade" style="--d:.9s">Golden Dice: the first big purchase</div>
+  </div>
+  <div class="insult a pop" id="insult" style="--d:1.6s;right:110px;top:735px">You absolute cube of disappointment.</div>
+  <div class="abs muted a fade" style="--d:1.8s;right:120px;top:850px;font-size:15px">↑ "Insult Your Dice", 300 credits. Real lines from the game.</div>
+</section>
+
+<!-- 9 · EVERYTHING BOUGHT -->
+<section class="slide" id="s-soldout" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">Months later</div>
+  <h2 class="a" style="--d:.1s">Then they <em style="color:var(--gold)">bought everything</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:620px">We played every day for months. The most active players hoarded credits until the whole store was owned, and then came the inevitable question in the chat:</p>
+  <div class="bubble a pop" style="--d:3.2s;margin-top:34px;font-size:30px;max-width:560px"><span class="who">The group chat</span>"Can you add more stuff to buy?" 🙃</div>
+  <div class="shopgrid abs" id="soldgrid" style="right:100px;top:210px;grid-template-columns:repeat(4,150px)"></div>
+</section>
+
+<!-- 10 · PREMIUM DROPS -->
+<section class="slide" id="s-drops" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">Premium drops</div>
+  <h2 class="a" style="--d:.1s;font-size:72px">So: fancier cosmetics, with <em>victory cinematics</em></h2>
+  <div class="drops">
+    <div class="dropcard a" style="--d:.3s">
+      <div class="tag" style="color:var(--tuli)">Mar 29 · 600 credits</div><h3>🪵 Sauna Dice</h3>
+      <div class="shot"><img src="img/shop-sauna.webp" alt="Sauna dice"></div>
+      <p>Birch dice, a löyly thermometer that heats up with every roll, steam, and leaves bursting off the dice. MAXIMUM LÖYLY.</p>
+    </div>
+    <div class="dropcard a" style="--d:.5s">
+      <div class="tag" style="color:#ffd84a">May 16 · 800 credits</div><h3>🪖 Helldivers</h3>
+      <div class="shot"><img src="img/shop-helldivers.webp" alt="Helldivers dice"></div>
+      <p>For our favourite PC/PS5 game. Six stratagems replace the pips and every face gets its own full-screen win cinematic.</p>
+    </div>
+    <div class="dropcard a" style="--d:.7s">
+      <div class="tag" style="color:#e9a23b">Jul 7 · 750 credits</div><h3>🍄 Suomen Sienet</h3>
+      <div class="shot"><img src="img/shop-sieni.webp" alt="Mushroom dice"></div>
+      <p>Six Finnish mushrooms, from the golden kantarelli to the toxic korvasieni. Älä syö tuntemattomia sieniä.</p>
+    </div>
+  </div>
+  <div id="leaves"></div>
+</section>
+
+<!-- 11 · CINEMATICS -->
+<section class="slide" id="s-cine" data-chapter="Chapter 3 · Gamify it">
+  <div class="kicker a">Win screens worth flexing</div>
+  <h2 class="a" style="--d:.1s;font-size:72px">Every Kymppijape ends with a <em>bang</em></h2>
+  <div class="cines">
+    <div class="cine a up" style="--d:.3s"><div class="phone"><div class="scr"><img src="img/cine-hellbomb-2.webp" alt="Hellbomb cinematic"></div></div><h4>Hellbomb</h4><p>Ten fours. The screen goes white.</p></div>
+    <div class="cine a up" style="--d:.5s"><div class="phone"><div class="scr"><img src="img/cine-laser-1.webp" alt="Orbital laser cinematic"></div></div><h4>Orbital Laser</h4><p>Managed democracy, delivered.</p></div>
+    <div class="cine a up" style="--d:.7s"><div class="phone"><div class="scr"><img src="img/cine-kantarelli-1.webp" alt="Kantarelli cinematic"></div></div><h4>Kantarelli</h4><p>Golden harvest… SUIII.</p></div>
+    <div class="cine a up" style="--d:.9s"><div class="phone"><div class="scr"><img src="img/cine-karpas-1.webp" alt="Kärpässieni cinematic"></div></div><h4>Kärpässieni</h4><p>A psychedelic trip. Don't eat it.</p></div>
+  </div>
+</section>
+
+<!-- 12 · OPUS -->
+<section class="slide" id="s-opus" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="kicker a">Chapter 4 · Something groundbreaking <span class="date">October 2026</span></div>
+  <h2 class="a" style="--d:.1s">No more skins.<br>Something <em>bigger</em>.</h2>
+  <p class="lead a" style="--d:.3s;max-width:640px">Right then <b>Claude Opus 5.5</b> came out, and it was seriously good at <b>animation and 3D</b>. After some brainstorming with Opus, two ideas stuck. Both are real <b class="gold">credit sinks</b> for players who already own everything.</p>
+  <div class="idea a drop" style="--d:.9s;left:880px;top:120px;transform:rotate(-3deg)">
+    <div class="e">🎟️</div><h3>Vedot</h3><p>Bet credits on your own run before the first throw. Odds, a daily pot, a progressive jackpot.</p>
+  </div>
+  <div class="idea a drop" style="--d:1.4s;left:1000px;top:470px">
+    <div class="e">🏡</div><h3>Mökki</h3><p>A 3D island on a Finnish lake that you build piece by piece, plus neighbours to visit and prank.</p>
+  </div>
+  <div class="spark" style="left:840px;top:430px">✨</div><div class="spark" style="left:1430px;top:90px;animation-delay:.8s">✨</div>
+</section>
+
+<!-- 13 · VEDOT -->
+<section class="slide" id="s-vedot" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="kicker a" style="color:var(--gold)">Vedot · Bets & Pot <span class="date" style="color:#fff">Oct 6</span></div>
+  <h2 class="a" style="--d:.1s;font-size:76px">Put your<br>credits where<br>your <em style="color:var(--gold)">skill</em> is</h2>
+  <p class="lead a" style="--d:.2s;max-width:540px;color:#c8b18a;font-size:23px">Before the opening throw, pick a target and lock in your stake. Fewest throws takes the <b>Pot of the Day</b>, and a Kymppijape in five throws or fewer hits the <b>jackpot</b>.</p>
+  <div class="odds">
+    <div class="card a pop" style="--d:.6s"><b>×1.8</b><span>Safe · ≤ 13 throws</span></div>
+    <div class="card a pop" style="--d:.75s"><b>×4.3</b><span>Bold · ≤ 9 throws</span></div>
+    <div class="card a pop" style="--d:.9s"><b>×19</b><span>Crazy · ≤ 6 throws</span></div>
+  </div>
+  <div class="fan">
+    <div class="phone a drop" style="--d:.5s;left:0;top:150px;transform:rotate(-6deg)"><div class="scr"><img src="img/vedot-betting-sheet.webp" alt="Betting sheet"></div></div>
+    <div class="phone a drop" style="--d:.8s;left:200px;top:80px;transform:rotate(-2deg)"><div class="scr"><img src="img/vedot-locked-in-stamp.webp" alt="Locked in"></div></div>
+    <div class="phone a drop" style="--d:1.1s;left:400px;top:120px;transform:rotate(2deg)"><div class="scr"><img src="img/vedot-settlement.webp" alt="Settlement"></div></div>
+    <div class="phone a drop" style="--d:1.4s;left:600px;top:60px;transform:rotate(5deg)"><div class="scr"><img src="img/vedot-jackpot.webp" alt="Jackpot"></div></div>
+  </div>
+</section>
+
+<!-- 14 · MÖKKI -->
+<section class="slide" id="s-mokki" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="seasons" id="seasons">
+    <img src="img/mokki-full.webp" data-label="☀️ Summer day" class="show" alt="">
+    <img src="img/mokki-autumn.webp" data-label="🍂 Ruska" alt="">
+    <img src="img/mokki-juhannus.webp" data-label="🌅 Juhannus white night" alt="">
+    <img src="img/mokki-winter.webp" data-label="🌌 Kaamos & revontulet" alt="">
+  </div>
+  <div class="mokki-copy a left" style="--d:.2s">
+    <div class="kicker">The Mökki <span class="date">Oct 6</span></div>
+    <h2 style="font-size:72px;margin:12px 0 14px">Every Finn deserves a <em>mökki</em></h2>
+    <p style="font-size:21px;line-height:1.45;color:#c9d6e0">Buy a little island, then build it up: woodshed, sauna, dock, rowing boat, a dog. The 3D scene follows real Finnish seasons and time of day, and the sauna chimney smokes on days you've played.</p>
+  </div>
+  <div class="usage a right" style="--d:.6s">
+    <div style="font-weight:700;font-size:19px">The whole 3D mökki took</div>
+    <div class="meter"><div id="usageBar"></div></div>
+    <div style="font-size:16px;color:#c9d6e0">single-digit % of one week's Claude usage, with Opus 5.5 ✨</div>
+  </div>
+  <div class="seasonchip" id="seasonChip">☀️ Summer day</div>
+</section>
+
+<!-- 15 · MÖKKI LIFE -->
+<section class="slide" id="s-life" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="kicker a">Life at the mökki</div>
+  <h2 class="a" style="--d:.1s;font-size:72px">Chores, a dog and <em>neighbours to annoy</em></h2>
+  <div class="life">
+    <div class="card a" style="--d:.3s"><div class="ph"><img src="img/mokki-dog.webp" alt="Dog on the island" style="object-position:center"></div><div class="t"><h4>🐕 Daily chores pay credits</h4><p>Go fishing, grill makkara, take your sauna turn, pick berries. Every piece you buy unlocks something to do.</p></div></div>
+    <div class="card a" style="--d:.5s"><div class="ph"><img src="img/ui-pranks.webp" alt="Pranks"></div><div class="t"><h4>😈 Visit & prank neighbours</h4><p>TP their birches, hoist a Swedish flag, raid the berries. Their dog might catch you.</p></div></div>
+    <div class="card a" style="--d:.7s"><div class="ph"><img src="img/ui-inbox.webp" alt="Mailbox"></div><div class="t"><h4>📬 …and find out in the mailbox</h4><p>"Matti hopped into your palju." Visits and gifts both earn a few credits.</p></div></div>
+  </div>
+</section>
+
+<!-- 16 · CREDIT SINKS -->
+<section class="slide" id="s-flow" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="kicker a">The economy</div>
+  <h2 class="a" style="--d:.1s">Two real <em style="color:var(--gold)">credit sinks</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:1100px">Now the most active players have something to work towards for a seriously long time, and none of it touches the dice.</p>
+  <div id="flow"></div>
+</section>
+
+<!-- 17 · TECH TREE -->
+<section class="slide" id="s-tree" data-chapter="Chapter 4 · Groundbreaking">
+  <div class="kicker a">Rakennuspuu · the tech tree <span class="date">Oct 15</span></div>
+  <h2 class="a" style="--d:.1s">Then it went full <em>Civilization</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:1040px;font-size:24px">24 pieces across 4 eras and 5 lanes. Eras open with the days you've played, and pieces need their prerequisites.</p>
+  <div id="tree"></div>
+  <div class="abs" style="right:80px;top:120px"><div class="phone a right" style="--d:.5s;--h:680px"><div class="scr"><img src="img/build-panel.webp" alt="Build panel tech tree"></div></div><div class="cap a fade" style="--d:.9s">The real build panel</div></div>
+</section>
+
+<!-- 18 · WALK MODE -->
+<section class="slide" id="s-walk" data-chapter="Chapter 5 · First person">
+  <img class="big a zoom" style="--d:0s" src="img/pi0.webp" alt="First-person view of the cabin">
+  <div class="crosshair a fade" style="--d:1s"></div>
+  <div class="walk-copy a left" style="--d:.3s">
+    <div class="kicker">Chapter 5 · Walk mode <span class="date">Oct 17</span></div>
+    <h2 style="font-size:68px;margin:12px 0 6px">Step <em>inside</em> your mökki</h2>
+    <ul class="walk-list">
+      <li class="a" style="--d:.7s"><span>🚪</span>A detailed world when you walk in. Enter the cabin and the sauna.</li>
+      <li class="a" style="--d:.85s"><span>🎣</span>Do your chores right where they happen</li>
+      <li class="a" style="--d:1.0s"><span>🎲</span>Play today's Kymppijape on the porch table</li>
+      <li class="a" style="--d:1.15s"><span>📝</span>Visit a neighbour and leave a note on their door</li>
+    </ul>
+  </div>
+  <div class="thumbs">
+    <img class="a right" style="--d:1.2s" src="img/pe-2.webp" alt="On the porch">
+    <img class="a right" style="--d:1.4s" src="img/walk-visit.webp" alt="Visiting in autumn">
+  </div>
+  <div class="hud a fade" style="--d:1.6s">WASD to walk · drag to look · Shift runs · click things! · Esc leaves</div>
+</section>
+
+<!-- 19 · PORCH GAME -->
+<section class="slide" id="s-porch" data-chapter="Chapter 5 · First person">
+  <div class="kicker a" style="color:#d6f5e8">The coolest part</div>
+  <h2 class="a" style="--d:.1s;font-size:72px">The daily game, <em style="color:#7ff0c5">on the porch</em></h2>
+  <p class="lead a" style="--d:.2s;max-width:880px;color:#d4e3ef">Ten real-size dice on the table. Tap dice to lock, tap the table to throw. It's the same saved game as the main board, so <b style="color:#fff">it counts towards your daily</b>.</p>
+  <div class="porch-scene"><div class="ptable" id="ptable"></div></div>
+  <div class="pbubble" id="pbubble" style="top:auto;bottom:40px">🎲 Tap the table to throw</div>
+  <div class="door a fade" style="--d:.4s;right:-40px;top:300px"></div>
+  <div class="note a drop" style="--d:2.2s;right:30px;top:420px">Kävin kylässä!<br>Sauna was warm 🔥<br>– naapuri</div>
+</section>
+
+<!-- 20 · NUMBERS + TIMELINE -->
+<section class="slide" id="s-nums" data-chapter="Epilogue">
+  <div class="kicker a">Ten months later</div>
+  <h2 class="a" style="--d:.1s">From one die joke to a <em>whole lake</em></h2>
+  <div class="nums">
+    <div class="card a pop" style="--d:.3s"><div class="stat" data-count="523">0</div><small class="muted" style="font-size:18px">commits</small></div>
+    <div class="card a pop" style="--d:.45s"><div class="stat" data-count="79">0</div><small class="muted" style="font-size:18px">badges to earn</small></div>
+    <div class="card a pop" style="--d:.6s"><div class="stat" data-count="24">0</div><small class="muted" style="font-size:18px">mökki pieces in the tech tree</small></div>
+    <div class="card a pop" style="--d:.75s"><div class="stat" data-count="16950">0</div><small class="muted" style="font-size:18px">credits to finish the mökki</small></div>
+  </div>
+  <div class="timeline">
+    <div class="axis"></div><div class="fill" id="tlfill"></div>
+    <div id="ticks"></div>
+  </div>
+</section>
+
+<!-- 21 · END -->
+<section class="slide" id="s-end" data-chapter="Epilogue">
+  <canvas id="confetti" width="1600" height="900"></canvas>
+  <div class="kicker a">What's next?</div>
+  <h2 class="a pop" style="--d:.2s">Who knows. 🤷</h2>
+  <div class="board" id="endBoard" style="margin:30px 0 26px"></div>
+  <div class="a" style="--d:1.2s;font-size:30px;color:var(--muted)">Come play. It's free 😃</div>
+  <div class="url a pop" style="--d:1.5s">kymppijape.com</div>
+</section>
+
+</div>
+
+<div id="progress"><div></div></div>
+<div id="chapter"></div>
+<div id="hint">← → or space to navigate · F for fullscreen</div>
+<div id="nav"><span id="count"></span><button id="prev" aria-label="Previous slide">‹</button><button id="next" aria-label="Next slide">›</button></div>
+
+<script>
+const TREE = {"lanes": [{"id": "tuli", "name": "Tuli & löyly", "emoji": "🔥", "color": "#e8693c", "rows": 2}, {"id": "jarvi", "name": "Järvi", "emoji": "🌊", "color": "#3fa7e0", "rows": 3}, {"id": "piha", "name": "Piha", "emoji": "🌿", "color": "#6cc04a", "rows": 1}, {"id": "pihapiiri", "name": "Pihapiiri", "emoji": "🐕", "color": "#c48a52", "rows": 2}, {"id": "elama", "name": "Mökkielämä", "emoji": "☀️", "color": "#b98be0", "rows": 3}], "eras": [{"index": 0, "roman": "I", "name": "Kesämökki", "minDaysPlayed": 0, "cols": [0]}, {"index": 1, "roman": "II", "name": "Vapaa-ajan asunto", "minDaysPlayed": 10, "cols": [1, 2]}, {"index": 2, "roman": "III", "name": "Huvila", "minDaysPlayed": 30, "cols": [3]}, {"index": 3, "roman": "IV", "name": "Legenda", "minDaysPlayed": 60, "cols": [4]}], "pieces": [{"id": "puuvaja", "name": "Puuvaja", "emoji": "🪵", "price": 300, "era": 0, "lane": "tuli", "col": 0, "row": 0, "requires": [], "gives": ["Firewood"]}, {"id": "nuotiopaikka", "name": "Nuotiopaikka", "emoji": "🌭", "price": 100, "era": 0, "lane": "tuli", "col": 0, "row": 1, "requires": [], "gives": ["Makkaranpaisto"]}, {"id": "onkipaikka", "name": "Onkipaikka", "emoji": "🎣", "price": 100, "era": 0, "lane": "jarvi", "col": 0, "row": 0, "requires": [], "gives": ["Onki"]}, {"id": "marjapensaat", "name": "Marjapensaat", "emoji": "🫐", "price": 250, "era": 0, "lane": "piha", "col": 0, "row": 0, "requires": [], "gives": ["Marjastus", "Marjavarkaus"]}, {"id": "huussi", "name": "Huussi", "emoji": "🚽", "price": 150, "era": 0, "lane": "pihapiiri", "col": 0, "row": 1, "requires": [], "gives": ["Vessapaperi-isku"]}, {"id": "riukuaita", "name": "Riukuaita", "emoji": "🪵", "price": 150, "era": 0, "lane": "pihapiiri", "col": 0, "row": 0, "requires": [], "gives": ["Pihapiiri"]}, {"id": "lipputanko", "name": "Lipputanko", "emoji": "🇫🇮", "price": 200, "era": 0, "lane": "elama", "col": 0, "row": 1, "requires": [], "gives": ["Flag picker", "Ruotsin lippu"]}, {"id": "riippumatto", "name": "Riippumatto", "emoji": "🌿", "price": 250, "era": 0, "lane": "elama", "col": 0, "row": 2, "requires": [], "gives": ["Päiväunet"]}, {"id": "sauna", "name": "Rantasauna", "emoji": "🧖", "price": 700, "era": 1, "lane": "tuli", "col": 1, "row": 0, "requires": ["puuvaja"], "gives": ["Saunavuoro", "Kunnon löyly"]}, {"id": "laituri", "name": "Laituri", "emoji": "🛶", "price": 500, "era": 1, "lane": "jarvi", "col": 1, "row": 0, "requires": ["onkipaikka"], "gives": ["Better fishing"]}, {"id": "soutuvene", "name": "Soutuvene", "emoji": "🚣", "price": 450, "era": 1, "lane": "jarvi", "col": 2, "row": 0, "requires": ["laituri"], "gives": ["Open-water fishing", "Kalalahja"]}, {"id": "koira", "name": "Koira", "emoji": "🐕", "price": 700, "era": 1, "lane": "pihapiiri", "col": 1, "row": 0, "requires": ["riukuaita"], "gives": ["Rapsuta", "Guard dog", "Breed trick"]}, {"id": "mehilaispesat", "name": "Mehiläispesät", "emoji": "🐝", "price": 500, "era": 1, "lane": "piha", "col": 1, "row": 0, "requires": ["marjapensaat"], "comingSoon": true, "gives": ["Hunaja", "Pollination", "Mehiläisparvi"]}, {"id": "aurinkopaneeli", "name": "Aurinkopaneeli", "emoji": "☀️", "price": 500, "era": 1, "lane": "elama", "col": 1, "row": 0, "requires": ["huussi"], "comingSoon": true, "gives": ["Valosarjat", "Sähköt"]}, {"id": "grillikota", "name": "Grillikota", "emoji": "🔥", "price": 800, "era": 2, "lane": "tuli", "col": 3, "row": 1, "requires": ["nuotiopaikka", "puuvaja"], "gives": ["Makkaranpaisto+", "Grillibileet"]}, {"id": "palju", "name": "Palju", "emoji": "♨️", "price": 900, "era": 2, "lane": "tuli", "col": 3, "row": 0, "requires": ["sauna"], "gives": ["Paljubileet"]}, {"id": "avanto", "name": "Avanto", "emoji": "🧊", "price": 600, "era": 2, "lane": "jarvi", "col": 3, "row": 2, "requires": ["laituri", "sauna"], "comingSoon": true, "gives": ["Avantouinti"]}, {"id": "silta", "name": "Silta", "emoji": "🌉", "price": 800, "era": 2, "lane": "jarvi", "col": 3, "row": 1, "requires": ["laituri"], "comingSoon": true, "gives": ["Luoto"]}, {"id": "aitta", "name": "Aitta", "emoji": "📖", "price": 900, "era": 2, "lane": "pihapiiri", "col": 3, "row": 1, "requires": ["puuvaja", "huussi"], "comingSoon": true, "gives": ["Vieraskirja"]}, {"id": "mokkiradio", "name": "Mökkiradio", "emoji": "📻", "price": 600, "era": 2, "lane": "elama", "col": 3, "row": 0, "requires": ["aurinkopaneeli"], "comingSoon": true, "gives": ["Humppapommi"]}, {"id": "peramoottori", "name": "Perämoottori", "emoji": "🚤", "price": 1200, "era": 2, "lane": "jarvi", "col": 3, "row": 0, "requires": ["soutuvene"], "comingSoon": true, "gives": ["Peräaalto"]}, {"id": "savusauna", "name": "Savusauna", "emoji": "💨", "price": 1800, "era": 3, "lane": "tuli", "col": 4, "row": 0, "requires": ["palju", "silta"], "comingSoon": true, "gives": ["Savusaunan löyly"]}, {"id": "saunalautta", "name": "Saunalautta", "emoji": "🛟", "price": 2500, "era": 3, "lane": "jarvi", "col": 4, "row": 0, "requires": ["peramoottori", "sauna"], "comingSoon": true, "gives": ["Lautta kylässä"]}, {"id": "lasikuisti", "name": "Lasikuisti", "emoji": "🪟", "price": 2000, "era": 3, "lane": "pihapiiri", "col": 4, "row": 1, "requires": ["aitta", "aurinkopaneeli"], "comingSoon": true, "gives": ["Pokaalihylly"]}]};
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const rnd = () => 1 + Math.floor(Math.random() * 6);
+const PIPS = { 1: [4], 2: [2, 6], 3: [2, 4, 6], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const pipHTML = (n) => [...Array(9)].map((_, i) => `<i${PIPS[n]?.includes(i) ? ' class="p"' : ""}></i>`).join("");
+function makeDie(n) { const d = document.createElement("div"); d.className = "die"; d.innerHTML = pipHTML(n); d.dataset.v = n; return d; }
+function setDie(d, n) { d.dataset.v = n; [...d.children].forEach((c, i) => (c.className = PIPS[n].includes(i) ? "p" : "")); }
+const fmt = (n) => n.toLocaleString("en-US");
+function countUp(el, to, ms = 1600) {
+  const t0 = performance.now();
+  const step = (t) => { const k = Math.min(1, (t - t0) / ms); el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1 && el.isConnected) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+/* An auto-playing Kymppijape on a row of DOM dice: greedy "keep the most common number". */
+async function autoGame(board, meter, token, { speed = 1, onWin } = {}) {
+  board.innerHTML = "";
+  const dice = [...Array(10)].map(() => { const d = makeDie(rnd()); board.appendChild(d); return d; });
+  const locked = Array(10).fill(false);
+  let throws = 0, target = 0;
+  while (!locked.every(Boolean)) {
+    if (token.dead) return;
+    throws++;
+    dice.forEach((d, i) => !locked[i] && d.classList.add("rolling"));
+    for (let k = 0; k < 7; k++) { dice.forEach((d, i) => !locked[i] && setDie(d, rnd())); await sleep(70 / speed); }
+    dice.forEach((d) => d.classList.remove("rolling"));
+    if (meter) meter.innerHTML = `Throw <b>${throws}</b> · ${locked.filter(Boolean).length} locked`;
+    await sleep(380 / speed);
+    if (!target) { const c = [0, 0, 0, 0, 0, 0, 0]; dice.forEach((d) => c[+d.dataset.v]++); target = c.indexOf(Math.max(...c.slice(1))); }
+    for (let i = 0; i < 10; i++) if (!locked[i] && +dice[i].dataset.v === target) { locked[i] = true; dice[i].classList.add("locked"); await sleep(90 / speed); }
+    if (meter) meter.innerHTML = `Throw <b>${throws}</b> · ${locked.filter(Boolean).length} locked`;
+    await sleep(420 / speed);
+  }
+  if (token.dead) return;
+  dice.forEach((d, i) => { d.style.setProperty("--wd", i * 0.05 + "s"); d.classList.add("win"); });
+  if (meter) meter.innerHTML = `Kymppijape in <b>${throws}</b> throws 🎉`;
+  onWin && onWin(throws);
+}
+
+/* ---------- per-slide behaviour ---------- */
+const hooks = {
+  "s-title": (tok) => {
+    (async () => { while (!tok.dead) { await autoGame($("#titleBoard"), $("#titleMeter"), tok, { speed: 1.3 }); await sleep(3200); } })();
+  },
+  "s-night": (tok) => {
+    const nd = $("#nightDice"); nd.innerHTML = ""; const ds = [...Array(10)].map(() => { const d = makeDie(rnd()); nd.appendChild(d); return d; });
+    let m = 47;
+    (async () => { while (!tok.dead) { ds.forEach((d) => d.classList.add("rolling")); for (let k = 0; k < 8; k++) { ds.forEach((d) => setDie(d, rnd())); await sleep(70); } ds.forEach((d) => d.classList.remove("rolling")); await sleep(1800); m++; $("#clockTime").textContent = `0${1 + Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`; } })();
+  },
+  "s-name": () => initPlay(),
+  "s-v1": () => {},
+  "s-hist": () => drawHist(),
+  "s-badges": () => {
+    const tot = 79; $$("#rarity div").forEach((d, i) => { d.style.width = "0"; setTimeout(() => (d.style.width = (d.dataset.w / tot) * 100 + "%"), 700 + i * 150); });
+    setTimeout(() => countUp($("#credCount"), 2480, 2200), 1100);
+  },
+  "s-shop": (tok) => {
+    buildShop($("#shopgrid"), SHOP);
+    const lines = ["You absolute cube of disappointment.", "You're not even a die. You're a don't.", "I've seen better randomness from a rock.", "You're the participation trophy of dice.", "You make snake eyes look like a jackpot."];
+    let i = 0; const el = $("#insult");
+    (async () => { await sleep(3000); while (!tok.dead) { el.style.opacity = 0; await sleep(300); el.textContent = lines[++i % lines.length]; el.style.opacity = 1; await sleep(2600); } })();
+  },
+  "s-soldout": (tok) => {
+    const g = $("#soldgrid"); buildShop(g, SHOP.slice(2, 14));
+    $$(".item", g).forEach((it, i) => setTimeout(() => !tok.dead && it.classList.add("sold"), 900 + i * 170));
+  },
+  "s-drops": (tok) => {
+    const box = $("#leaves"); box.innerHTML = "";
+    for (let i = 0; i < 9; i++) { const l = document.createElement("div"); l.className = "leaf"; l.textContent = "🍃"; l.style.left = 120 + Math.random() * 420 + "px"; l.style.top = 120 + Math.random() * 80 + "px"; l.style.animationDelay = Math.random() * 6 + "s"; box.appendChild(l); }
+  },
+  "s-mokki": (tok) => {
+    const imgs = $$("#seasons img"); let i = 0; imgs.forEach((im, k) => im.classList.toggle("show", k === 0)); $("#seasonChip").textContent = imgs[0].dataset.label;
+    $("#usageBar").style.width = "0"; setTimeout(() => ($("#usageBar").style.width = "7%"), 50);
+    (async () => { while (!tok.dead) { await sleep(3200); if (tok.dead) return; imgs[i].classList.remove("show"); i = (i + 1) % imgs.length; imgs[i].classList.add("show"); $("#seasonChip").textContent = imgs[i].dataset.label; } })();
+  },
+  "s-flow": () => drawFlow(),
+  "s-tree": () => drawTree(),
+  "s-porch": (tok) => porchGame(tok),
+  "s-nums": () => {
+    $$("#s-nums [data-count]").forEach((el, i) => setTimeout(() => countUp(el, +el.dataset.count, 1800), 400 + i * 150));
+    drawTimeline();
+  },
+  "s-end": (tok) => {
+    (async () => { while (!tok.dead) { await autoGame($("#endBoard"), null, tok, { speed: 1.6, onWin: () => confetti(tok) }); await sleep(4200); } })();
+  },
+};
+
+/* ---------- playable board ---------- */
+let play;
+function initPlay() {
+  const b = $("#playBoard"); b.innerHTML = "";
+  play = { dice: [...Array(10)].map(() => makeDie(0)), locked: Array(10).fill(false), throws: 0, done: false };
+  play.dice.forEach((d, i) => { b.appendChild(d); d.onclick = () => { if (!play.throws || play.done) return; play.locked[i] = !play.locked[i]; d.classList.toggle("locked", play.locked[i]); checkPlay(); }; });
+  $("#playMsg").innerHTML = "Press roll to start"; $("#playBtn").disabled = false; $("#playBtn").textContent = "🎲 Roll dice";
+}
+function checkPlay() {
+  const v = play.dice.map((d) => +d.dataset.v);
+  if (play.locked.every(Boolean) && v.every((x) => x === v[0])) {
+    play.done = true; play.dice.forEach((d, i) => { d.style.setProperty("--wd", i * 0.05 + "s"); d.classList.add("win"); });
+    $("#playMsg").innerHTML = `🎉 Kymppijape in <b>${play.throws}</b> throws! Average is ~15.`;
+    $("#playBtn").textContent = "↻ Play again";
+  } else $("#playMsg").innerHTML = `Throws: <b>${play.throws}</b> · Locked: <b>${play.locked.filter(Boolean).length}</b>/10`;
+}
+$("#playBtn").onclick = async () => {
+  if (play.done) return initPlay();
+  if (play.locked.every(Boolean)) return;
+  $("#playBtn").disabled = true; play.throws++;
+  play.dice.forEach((d, i) => !play.locked[i] && d.classList.add("rolling"));
+  for (let k = 0; k < 7; k++) { play.dice.forEach((d, i) => !play.locked[i] && setDie(d, rnd())); await sleep(65); }
+  play.dice.forEach((d) => d.classList.remove("rolling"));
+  $("#playBtn").disabled = false; checkPlay();
+};
+
+/* ---------- histogram ---------- */
+function simulate(n) {
+  const h = new Array(80).fill(0); let sum = 0;
+  for (let g = 0; g < n; g++) {
+    const d = new Array(10), l = new Array(10).fill(false); let t = 0, target = 0, done = 0;
+    while (done < 10) {
+      t++;
+      for (let i = 0; i < 10; i++) if (!l[i]) d[i] = 1 + ((Math.random() * 6) | 0);
+      if (!target) { const c = [0, 0, 0, 0, 0, 0, 0]; for (const x of d) c[x]++; let b = 1; for (let k = 2; k <= 6; k++) if (c[k] > c[b]) b = k; target = b; }
+      for (let i = 0; i < 10; i++) if (!l[i] && d[i] === target) { l[i] = true; done++; }
+    }
+    sum += t; h[Math.min(t, 79)]++;
+  }
+  return { h, mean: sum / n };
+}
+let histData;
+function drawHist() {
+  histData = histData || simulate(200000);
+  const { h, mean } = histData; const MAXT = 45; const max = Math.max(...h);
+  const W = 1400, H = 400, bw = W / MAXT;
+  let s = `<svg viewBox="0 0 ${W} ${H + 40}">`;
+  for (let t = 1; t <= MAXT; t++) {
+    const v = h[t] / max * (H - 30); const x = (t - 1) * bw;
+    const col = t <= 5 ? "#f2c14e" : t <= 13 ? "#10b981" : "#2f6f8f";
+    s += `<rect class="bar" x="${x + 3}" y="${H}" width="${bw - 6}" height="0" rx="4" fill="${col}" data-y="${H - v}" data-h="${v}" style="transition-delay:${t * 25}ms"/>`;
+    if ((t % 5 === 0 && t < MAXT) || t === 1) s += `<text class="hlabel" x="${x + bw / 2}" y="${H + 28}" text-anchor="middle">${t}</text>`;
+  }
+  const mx = (mean - 0.5) * bw;
+  s += `<line x1="${mx}" x2="${mx}" y1="0" y2="${H}" stroke="#fff" stroke-dasharray="6 6" opacity=".7"/>`;
+  s += `<text class="anno" x="${mx + 12}" y="22">average ${mean.toFixed(1)} throws</text>`;
+  s += `<text class="anno" x="0" y="40" fill="#f2c14e" style="fill:#f2c14e">≤ 5 throws: ${(h.slice(1, 6).reduce((a, b) => a + b, 0) / 2000).toFixed(1)}% of games</text>`;
+  s += `<text class="anno" x="0" y="68" style="fill:#9db2c4;font-size:16px">1 throw ("Dice God"): 1 in 10,077,696</text>`;
+  s += `<text class="hlabel" x="${W}" y="${H + 28}" text-anchor="end">throws →</text></svg>`;
+  $("#hist").innerHTML = s;
+  requestAnimationFrame(() => requestAnimationFrame(() => $$("#hist .bar").forEach((r) => { r.setAttribute("y", r.dataset.y); r.setAttribute("height", r.dataset.h); })));
+}
+
+/* ---------- shop ---------- */
+const SHOP = [
+  ["✨", "Golden Dice", 200, "skin"], ["💎", "Diamond Dice", 500, "skin"], ["🛒", "German Supermarket Dice", 100, "skin"], ["🫨", "Shake Dice", 300, "action"], ["💨", "Blow Dice", 300, "action"],
+  ["🤬", "Insult Your Dice", 300, "action"], ["🌀", "Turbo Spin", 200, "throw"], ["⬇️", "Bounce Drop", 200, "throw"], ["🎰", "Casino Felt", 300, "background"], ["🌌", "Starfield", 500, "background"],
+  ["🪵", "Sauna Dice", 600, "skin"], ["🪖", "Helldivers", 800, "skin"], ["🍄", "Suomen Sienet", 750, "skin"], ["🎟️", "Betting License", 300, "feature"], ["🏡", "Mökkitontti", 1000, "feature"],
+];
+function buildShop(g, items) {
+  g.innerHTML = items.map(([e, n, p, c], i) => `<div class="item a pop" style="--d:${0.4 + i * 0.06}s"><div class="cat">${c}</div><div class="e">${e}</div><div class="nm">${n}</div><div class="pr">${p} cr</div><div class="owned">OWNED ✓</div></div>`).join("");
+  if (g.id === "shopgrid") g.innerHTML = items.slice(0, 10).map(([e, n, p, c], i) => `<div class="item a pop" style="--d:${0.4 + i * 0.06}s"><div class="cat">${c}</div><div class="e">${e}</div><div class="nm">${n}</div><div class="pr">${p} cr</div></div>`).join("");
+}
+
+/* ---------- credit flow ---------- */
+function drawFlow() {
+  const src = [["🎲", "Daily game", "every day you play"], ["🏅", "Badges", "79 of them, up to +2000"], ["🎣", "Mökki chores", "fish, grill, sauna, berries"], ["🎟️", "Winning bets", "×1.8 to ×19, plus the pot"]];
+  const sink = [["🛍️", "Shop", "15 items", "6,350", 6350], ["🏡", "Mökki", "24 pieces", "16,950", 16950], ["🎟️", "Bets", "up to 200 a day", "∞", 0]];
+  const W = 1440, Y0 = 40;
+  let s = `<svg viewBox="0 0 ${W} 600"><defs><linearGradient id="gw" x1="0" x2="1"><stop offset="0" stop-color="#f2c14e"/><stop offset="1" stop-color="#e8a33c"/></linearGradient></defs>`;
+  const sy = (i) => Y0 + i * 130, ky = (i) => Y0 + 40 + i * 170;
+  src.forEach((x, i) => { s += `<path class="flowpath" stroke="#10b981" d="M330 ${sy(i) + 45} C 470 ${sy(i) + 45}, 470 280, 590 280"/>`; });
+  sink.forEach((x, i) => { s += `<path class="flowpath" stroke="#f2c14e" d="M850 280 C 970 280, 970 ${ky(i) + 50}, 1090 ${ky(i) + 50}"/>`; });
+  src.forEach((x, i) => {
+    s += `<g class="node"><rect x="0" y="${sy(i)}" width="330" height="90" rx="18" fill="#142c42" stroke="#24425e"/><text x="24" y="${sy(i) + 56}" font-size="36">${x[0]}</text><text x="84" y="${sy(i) + 42}" font-size="23" font-weight="700" fill="#eef4f8">${x[1]}</text><text x="84" y="${sy(i) + 68}" font-size="16" fill="#9db2c4">${x[2]}</text></g>`;
+    s += `<circle r="7" fill="#10b981"><animateMotion dur="${2 + i * 0.3}s" repeatCount="indefinite" begin="${i * 0.4}s" path="M330 ${sy(i) + 45} C 470 ${sy(i) + 45}, 470 280, 590 280"/></circle>`;
+  });
+  s += `<g><rect x="590" y="190" width="260" height="180" rx="26" fill="url(#gw)"/><text x="720" y="265" text-anchor="middle" font-size="54">👛</text><text x="720" y="320" text-anchor="middle" font-size="26" font-weight="800" fill="#3b2a05">Your credits</text><text x="720" y="348" text-anchor="middle" font-size="16" fill="#5a420b">earned, never bought</text></g>`;
+  sink.forEach((x, i) => {
+    s += `<circle r="7" fill="#f2c14e"><animateMotion dur="${2.2 + i * 0.3}s" repeatCount="indefinite" begin="${0.6 + i * 0.5}s" path="M850 280 C 970 280, 970 ${ky(i) + 50}, 1090 ${ky(i) + 50}"/></circle>`;
+    const bw = x[4] ? (x[4] / 16950) * 200 : 0;
+    s += `<g class="node"><rect x="1090" y="${ky(i)}" width="350" height="100" rx="18" fill="#2a1d0c" stroke="#5b4114"/><text x="1112" y="${ky(i) + 60}" font-size="38">${x[0]}</text><text x="1172" y="${ky(i) + 42}" font-size="24" font-weight="700" fill="#eef4f8">${x[1]} <tspan fill="#c8b18a" font-size="16" font-weight="500">${x[2]}</tspan></text><text x="1172" y="${ky(i) + 76}" font-size="22" font-weight="700" fill="#f2c14e">${x[3]} cr</text>${bw ? `<rect x="1310" y="${ky(i) + 62}" width="0" height="16" rx="8" fill="#f2c14e" opacity=".8"><animate attributeName="width" from="0" to="${bw * 0.6}" dur="1.4s" begin=".8s" fill="freeze"/></rect>` : `<text x="1310" y="${ky(i) + 76}" font-size="16" fill="#c8b18a">a daily sink</text>`}</g>`;
+  });
+  s += `<text x="165" y="${Y0 - 14}" text-anchor="middle" font-size="16" font-weight="700" fill="#10b981" letter-spacing="3">EARN</text><text x="1265" y="${Y0 + 22}" text-anchor="middle" font-size="16" font-weight="700" fill="#f2c14e" letter-spacing="3">SPEND</text></svg>`;
+  $("#flow").innerHTML = s;
+}
+
+/* ---------- tech tree ---------- */
+function drawTree() {
+  const { lanes, eras, pieces } = TREE;
+  const colX = [80, 300, 470, 680, 900], top = 50, rowH = 38;
+  const laneY = {}; let y = top; lanes.forEach((l) => { laneY[l.id] = y; y += l.rows * rowH + 14; });
+  const pos = {}; pieces.forEach((p) => (pos[p.id] = [colX[p.col], laneY[p.lane] + p.row * rowH + 18]));
+  const laneC = Object.fromEntries(lanes.map((l) => [l.id, l.color]));
+  const eraDelay = (e) => 0.6 + e * 0.9;
+  let s = `<svg viewBox="0 0 1080 600">`;
+  eras.forEach((e, i) => {
+    const xs = e.cols.map((c) => colX[c]); const x0 = Math.min(...xs) - 80, x1 = Math.max(...xs) + 80;
+    s += `<rect x="${x0 + 4}" y="0" width="${x1 - x0 - 8}" height="${y - 6}" rx="14" fill="rgba(255,255,255,${i % 2 ? 0.035 : 0.06})"/>`;
+    s += `<text x="${(x0 + x1) / 2}" y="30" text-anchor="middle" font-size="17" font-weight="700" fill="#eef4f8">${e.roman} · ${e.name}</text>`;
+    s += `<text x="${(x0 + x1) / 2}" y="${y + 14}" text-anchor="middle" font-size="13" fill="#9db2c4">${e.minDaysPlayed ? e.minDaysPlayed + "+ days played" : "from day one"}</text>`;
+  });
+  lanes.forEach((l) => { s += `<text x="-6" y="${laneY[l.id] + 24}" text-anchor="end" font-size="20">${l.emoji}</text><rect x="0" y="${laneY[l.id]}" width="4" height="${l.rows * rowH - 4}" rx="2" fill="${l.color}"/>`; });
+  pieces.forEach((p) => p.requires.forEach((r) => {
+    const [x1, y1] = pos[r], [x2, y2] = pos[p.id];
+    s += `<path class="tedge" style="--d:${eraDelay(p.era) - 0.3}s" stroke="${laneC[p.lane]}" opacity=".7" d="M${x1 + 70} ${y1} C ${x1 + 120} ${y1}, ${x2 - 120} ${y2}, ${x2 - 70} ${y2}"/>`;
+  }));
+  pieces.forEach((p, i) => {
+    const [x, yy] = pos[p.id]; const soon = p.comingSoon;
+    s += `<g class="tnode" style="--d:${eraDelay(p.era) + (i % 8) * 0.05}s"><rect x="${x - 70}" y="${yy - 15}" width="140" height="30" rx="9" fill="${soon ? "rgba(255,255,255,.04)" : "#fff7ec"}" stroke="${laneC[p.lane]}" stroke-width="2" ${soon ? 'stroke-dasharray="5 4"' : ""}/>
+      <text x="${x - 58}" y="${yy + 6}" font-size="16">${p.emoji}</text><text x="${x - 34}" y="${yy + 5}" font-size="13" font-weight="600" fill="${soon ? "#9db2c4" : "#1f2a33"}">${p.name.length > 13 ? p.name.slice(0, 12) + "…" : p.name}</text></g>`;
+  });
+  s += `<g transform="translate(0 ${y + 40})"><rect x="0" y="-12" width="26" height="16" rx="5" fill="#fff7ec"/><text x="34" y="1" font-size="14" fill="#9db2c4">buildable now</text><rect x="160" y="-12" width="26" height="16" rx="5" fill="none" stroke="#9db2c4" stroke-dasharray="4 3"/><text x="194" y="1" font-size="14" fill="#9db2c4">tulossa (coming soon)</text></g></svg>`;
+  const el = $("#tree"); el.classList.remove("tree-on"); el.innerHTML = s; void el.offsetWidth; el.classList.add("tree-on");
+}
+
+/* ---------- porch game (CSS 3D) ---------- */
+const FACE = { 1: [0, 0], 6: [0, 180], 2: [0, 90], 5: [0, -90], 3: [90, 0], 4: [-90, 0] };
+function porchGame(tok) {
+  const t = $("#ptable"); t.innerHTML = "";
+  const S = 56;
+  const cubes = [...Array(10)].map((_, i) => {
+    const c = document.createElement("div"); c.className = "cube";
+    c.innerHTML = Object.entries(FACE).map(([v, [rx, ry]]) => `<div class="f" style="transform:rotateY(${ry}deg) rotateX(${rx}deg) translateZ(${S / 2}px)">${pipHTML(+v)}</div>`).join("");
+    t.appendChild(c); return { el: c, v: 1, locked: false, spin: 0 };
+  });
+  const place = (c, x, y) => { c.el.style.left = x + "px"; c.el.style.top = y + "px"; };
+  const orient = (c) => { const [rx, ry] = FACE[c.v]; c.spin += 2; c.el.style.transform = `translateZ(${S / 2}px) rotateZ(${(Math.random() * 60 - 30) | 0}deg) rotateX(${-rx + 360 * c.spin}deg) rotateY(${-ry + 360 * (c.spin % 3)}deg)`; };
+  cubes.forEach((c, i) => { place(c, 120 + (i % 5) * 140, 120 + Math.floor(i / 5) * 140); c.el.style.transform = `translateZ(${S / 2}px)`; });
+  const say = (m) => ($("#pbubble").textContent = m);
+  const NAMES = ["ones", "twos", "threes", "fours", "fives", "sixes"];
+  (async () => {
+    say("🎲 Tap the table to throw"); await sleep(1400);
+    let throws = 0, target = 0;
+    while (!tok.dead) {
+      throws++;
+      const loose = cubes.filter((c) => !c.locked);
+      loose.forEach((c) => { c.v = rnd(); place(c, 90 + Math.random() * 640, 60 + Math.random() * 200); orient(c); });
+      await sleep(1300); if (tok.dead) return;
+      if (!target) { const cnt = [0, 0, 0, 0, 0, 0, 0]; cubes.forEach((c) => cnt[c.v]++); target = cnt.indexOf(Math.max(...cnt.slice(1))); }
+      say(throws === 1 ? "🎲 Today's opening throw! Tap dice to lock them, tap the table to throw" : `🎲 Throw ${throws} · ${cubes.filter((c) => c.locked).length} locked`);
+      await sleep(900);
+      for (const c of cubes) if (!c.locked && c.v === target) { c.locked = true; c.el.classList.add("locked"); }
+      cubes.filter((c) => c.locked).forEach((c, i) => place(c, 60 + i * 76, 395));
+      await sleep(800);
+      if (cubes.every((c) => c.locked)) {
+        say(`🎉 KYMPPI! Ten ${NAMES[target - 1]} in ${throws} ${throws === 1 ? "throw" : "throws"} · saving…`); await sleep(1500);
+        say(`🎉 KYMPPI in ${throws}! Saved to your daily run`); await sleep(3500); if (tok.dead) return;
+        cubes.forEach((c) => { c.locked = false; c.el.classList.remove("locked"); }); throws = 0; target = 0; say("🎲 Tap the table to throw"); await sleep(1200);
+      }
+    }
+  })();
+}
+
+/* ---------- timeline ---------- */
+const MILESTONES = [
+  ["Jan 13", "🎲", "Day one in Lovable"], ["Jan 16", "📊", "Stats"], ["Jan 19", "🏅", "Badges & credits"], ["Jan 21", "🏆", "Leaderboard"],
+  ["Jan 27", "🛍️", "The shop"], ["Mar 29", "🧖", "Sauna Dice"], ["May 16", "🪖", "Helldivers"], ["Jul 7", "🍄", "Suomen Sienet"],
+  ["Oct 6", "🏡", "Vedot + Mökki"], ["Oct 15", "🌳", "Tech tree"], ["Oct 17", "🚶", "Walk mode"],
+];
+function drawTimeline() {
+  const start = Date.UTC(2026, 0, 13), end = Date.UTC(2026, 9, 17);
+  const mon = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9 };
+  const pctOf = (d) => { const [m, day] = d.split(" "); return ((Date.UTC(2026, mon[m], +day) - start) / (end - start)) * 100; };
+  let last = -99, flip = false;
+  $("#ticks").innerHTML = MILESTONES.map(([d, e, l], i) => {
+    const p = 4 + (i / (MILESTONES.length - 1)) * 92; flip = i % 2 === 1;
+    const delay = 0.4 + (p / 100) * 3;
+    return `<div class="tick ${flip ? "dn" : "up"} a pop" style="left:${p}%;--d:${delay}s"><div class="lbl"><span class="e">${e}</span> ${l}<small>${d}</small></div><div class="dot"></div></div>`;
+  }).join("");
+  const f = $("#tlfill"); f.style.width = "0"; setTimeout(() => (f.style.width = "100%"), 50);
+}
+
+/* ---------- confetti ---------- */
+function confetti(tok) {
+  const cv = $("#confetti"), ctx = cv.getContext("2d");
+  const cols = ["#10b981", "#f2c14e", "#e8693c", "#3fa7e0", "#b98be0", "#ffffff"];
+  const ps = [...Array(220)].map(() => ({ x: 800 + (Math.random() - 0.5) * 300, y: 520, vx: (Math.random() - 0.5) * 22, vy: -Math.random() * 22 - 8, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4, c: cols[(Math.random() * cols.length) | 0], w: 8 + Math.random() * 8 }));
+  let f = 0;
+  const tick = () => {
+    ctx.clearRect(0, 0, 1600, 900); f++;
+    ps.forEach((p) => { p.vy += 0.5; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); ctx.restore(); });
+    if (f < 220 && !tok.dead) requestAnimationFrame(tick); else ctx.clearRect(0, 0, 1600, 900);
+  };
+  tick();
+}
+
+/* ---------- deck engine ---------- */
+const slides = $$(".slide");
+let cur = -1, token = { dead: true };
+function fit() { const s = Math.min(innerWidth / 1600, innerHeight / 900); $("#stage").style.transform = `translate(-50%, -50%) scale(${s})`; }
+function go(n) {
+  n = Math.max(0, Math.min(slides.length - 1, n));
+  if (n === cur) return;
+  token.dead = true; token = { dead: false };
+  if (cur >= 0) slides[cur].classList.remove("on");
+  cur = n; const s = slides[cur];
+  void s.offsetWidth; s.classList.add("on");
+  hooks[s.id] && hooks[s.id](token);
+  $("#progress div").style.width = ((cur + 1) / slides.length) * 100 + "%";
+  $("#count").textContent = `${cur + 1} / ${slides.length}`;
+  $("#chapter").textContent = s.dataset.chapter || "";
+  history.replaceState(null, "", "#" + (cur + 1));
+}
+addEventListener("resize", fit); fit();
+addEventListener("keydown", (e) => {
+  if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return;
+  if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  else if (e.key === "Home") go(0); else if (e.key === "End") go(slides.length - 1);
+  else if (e.key === "f" || e.key === "F") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+$("#next").onclick = () => go(cur + 1); $("#prev").onclick = () => go(cur - 1);
+let tx = null; addEventListener("touchstart", (e) => (tx = e.touches[0].clientX)); addEventListener("touchend", (e) => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) go(cur + (dx < 0 ? 1 : -1)); tx = null; });
+setTimeout(() => ($("#hint").style.opacity = 0), 6000);
+const stars = $("#stars"); for (let i = 0; i < 70; i++) { const st = document.createElement("i"); st.style.left = Math.random() * 100 + "%"; st.style.top = Math.random() * 70 + "%"; st.style.animationDelay = Math.random() * 3 + "s"; stars.appendChild(st); }
+go((parseInt(location.hash.slice(1)) || 1) - 1);
+</script>
+</body>
+</html>

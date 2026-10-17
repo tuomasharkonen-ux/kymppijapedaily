@@ -4,15 +4,34 @@
     {
       "name": "Vite Frontend",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 8080,
       "autoPort": true
     },
     {
       "name": "Supabase Functions",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["supabase", "functions", "serve"],
+      "runtimeArgs": [
+        "supabase",
+        "functions",
+        "serve"
+      ],
       "port": 54321
+    },
+    {
+      "name": "Kymppijape deck",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8093",
+        "--directory",
+        "presentation"
+      ],
+      "port": 8093
     }
   ]
 }
