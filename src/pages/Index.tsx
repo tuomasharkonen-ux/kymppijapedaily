@@ -1,3 +1,4 @@
+import MadeByVSDGS from "@/components/MadeByVSDGS";
 import { useState, useEffect, useCallback } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -485,6 +486,7 @@ ${diceEmojis}
         {/* Footer with Terms link */}
         <footer className={`mt-8 pt-4 border-t text-center text-xs ${hasPremiumBg ? "text-white/70 border-white/20" : "text-muted-foreground"}`}>
           <Link to="/terms" className="hover:underline">Terms and Conditions</Link>
+          <MadeByVSDGS />
         </footer>
       </div>
     </div>;

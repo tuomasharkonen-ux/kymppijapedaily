@@ -1,3 +1,4 @@
+import MadeByVSDGS from "@/components/MadeByVSDGS";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -232,6 +233,7 @@ const Terms = () => {
 
         <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
           <Link to="/terms" className="hover:underline">Terms and Conditions & Privacy Policy</Link>
+          <MadeByVSDGS />
         </footer>
       </div>
     </div>

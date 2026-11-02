@@ -1,3 +1,4 @@
+import MadeByVSDGS from "@/components/MadeByVSDGS";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -353,6 +354,7 @@ const Shop = () => {
         <footer className="mt-8 pt-4 border-t text-center text-xs text-muted-foreground">
           <p>More items coming soon!</p>
           <Link to="/terms" className="hover:underline mt-2 inline-block">Terms and Conditions</Link>
+          <MadeByVSDGS />
         </footer>
       </div>
 
